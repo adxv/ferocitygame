@@ -39,6 +39,12 @@ public class PlayerController : MonoBehaviour
     public GameObject smgSprite;
     public GameObject knifeSprite;
 
+    //camera
+    public Camera mainCamera;
+    public float cameraSmoothSpeed = 0.125f;
+    // public float cameraShakeTime = 0.1f; //todo
+    // public float cameraShakeIntensity = 0.1f;
+
     //audio
     public AudioSource shootSound; //todo
 
@@ -46,6 +52,7 @@ public class PlayerController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         pistolSprite.SetActive(false);
+        if(mainCamera == null) { mainCamera = Camera.main; }
     }
     void Update()
     {
@@ -56,6 +63,9 @@ public class PlayerController : MonoBehaviour
     } 
     void FixedUpdate()
     {
+        //camera follow
+        Vector3 targetCameraPos = new Vector3(transform.position.x, transform.position.y, mainCamera.transform.position.z);
+        mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, targetCameraPos, cameraSmoothSpeed);
         rb.linearVelocity = movementInput * moveSpeed;
     }
 
@@ -113,6 +123,8 @@ public void OnWeaponInteract(InputAction.CallbackContext context)
     {
         Vector3 spawnPosition = transform.position + (transform.up * bulletOffset) + (transform.right * bulletOffsetSide);
         Instantiate(bulletPrefab, spawnPosition, transform.rotation);
+        Rigidbody2D bulletRb = bulletPrefab.GetComponent<Rigidbody2D>();
+        bulletRb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         shootSound.Play(); //todo
     }
 
@@ -128,7 +140,7 @@ public void OnWeaponInteract(InputAction.CallbackContext context)
         GameObject droppedWeapon = Instantiate(pistolPrefab, transform.position, Quaternion.Euler(0, 0, Random.Range(0f, 360f)));
         Rigidbody2D weaponrb = droppedWeapon.GetComponent<Rigidbody2D>();
         weaponrb.linearVelocity = transform.up * 130f; //nudge
-        weaponrb.angularVelocity = Random.Range(300f, 600f);
+        weaponrb.angularVelocity = Random.Range(500f, 900f);
     }
 
     void OnTriggerEnter2D(Collider2D collision)
