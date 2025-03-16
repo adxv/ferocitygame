@@ -14,7 +14,7 @@ public class PlayerController : MonoBehaviour
     public GameObject bulletPrefab;
     public float bulletOffset = 0;
     public float bulletOffsetSide = 0.45f;
-    public float fireRate = 0.1f;
+    public float fireRate = 3f;
     private float nextFire;
 
     //gun handling
