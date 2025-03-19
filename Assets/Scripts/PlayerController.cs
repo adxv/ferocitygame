@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Random = UnityEngine.Random;
@@ -25,6 +26,10 @@ public class PlayerController : MonoBehaviour
     private GameObject nearbyGun;
     private float lastWeaponPickupTime = 0;
     private float weaponActionCooldown = 0.5f;
+
+    //object pooling
+    private List<GameObject> bulletPool = new List<GameObject>();
+    private int poolSize = 20;
 
     //different weapon prefabs
 
@@ -124,12 +129,23 @@ public void OnWeaponInteract(InputAction.CallbackContext context)
     //actions
     void Shoot()
     {
+        GameObject bullet = GetPooledBullet();
         Vector3 spawnPosition = transform.position + (transform.up * bulletOffset) + (transform.right * bulletOffsetSide);
         Instantiate(bulletPrefab, spawnPosition, transform.rotation);
         Rigidbody2D bulletRb = bulletPrefab.GetComponent<Rigidbody2D>();
         bulletRb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         shootSound.Play(); //todo
     }
+    GameObject GetPooledBullet()
+    {
+        foreach (GameObject bullet in bulletPool)
+        {
+            if (!bullet.activeInHierarchy)
+                return bullet;
+        }
+        return null; // Expand pool if needed
+    }
+
     public void TakeDamage(int damage)
     {
         health -= damage;

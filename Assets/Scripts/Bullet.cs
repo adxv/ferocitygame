@@ -19,27 +19,18 @@ public class Bullet : MonoBehaviour
         switch (collision.gameObject.tag)
         {
             case "Enemy":
-            Destroy(collision.gameObject);
-            Destroy(gameObject);
-            break;
-
+                Destroy(collision.gameObject);
+                gameObject.SetActive(false);
+                break;
             case "Player":
-            PlayerController player = collision.gameObject.GetComponent<PlayerController>();
-            if (player != null)
-            {
-                player.TakeDamage(1);
-            }
-            Destroy(gameObject);
-            break;
-
-            case "Wall":
-            Destroy(gameObject);
-            break;
-            
-            default:
-            break;
+                PlayerController player = collision.gameObject.GetComponent<PlayerController>();
+                if (player != null) { player.TakeDamage(1); }
+                gameObject.SetActive(false);
+                break;
+            case "Environment":
+                gameObject.SetActive(false);
+                break;
         }
-        Destroy(gameObject);
     }
     void Update()
     {
