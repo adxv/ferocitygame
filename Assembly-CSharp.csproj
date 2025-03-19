@@ -67,11 +67,13 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\PlayerController.cs" />
     <Compile Include="Assets\Scripts\Bullet.cs" />
+    <Compile Include="Assets\Scripts\Restart.cs" />
+    <Compile Include="Assets\Scripts\SceneFade.cs" />
     <Compile Include="Assets\Scripts\WeaponPrefab.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\Shaders\SpriteOutline.shader" />
-    <None Include="Assets\Shaders\SpriteSaturation.shader" />
+    <None Include="Assets\Shaders\old\SpriteOutline.shader" />
+    <None Include="Assets\Shaders\old\SpriteSaturation.shader" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

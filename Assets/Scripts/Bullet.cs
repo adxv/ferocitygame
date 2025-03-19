@@ -13,12 +13,31 @@ public class Bullet : MonoBehaviour
         Destroy(gameObject, lifeDuration);
     }
 
-    void OnTriggerEnter2D(Collider2D hitObject)
+    void OnCollisionEnter2D(Collision2D collision)
     {
-        Debug.Log("Bullet hit " + hitObject.name);
-        if(hitObject.CompareTag("Enemy"))
+        Debug.Log("Bullet hit " + collision.gameObject.name);
+        switch (collision.gameObject.tag)
         {
-            Destroy(hitObject.gameObject);
+            case "Enemy":
+            Destroy(collision.gameObject);
+            Destroy(gameObject);
+            break;
+
+            case "Player":
+            PlayerController player = collision.gameObject.GetComponent<PlayerController>();
+            if (player != null)
+            {
+                player.TakeDamage(1);
+            }
+            Destroy(gameObject);
+            break;
+
+            case "Wall":
+            Destroy(gameObject);
+            break;
+            
+            default:
+            break;
         }
         Destroy(gameObject);
     }

@@ -10,6 +10,9 @@ public class PlayerController : MonoBehaviour
     private Vector2 movementInput;
     private Rigidbody2D rb;
 
+    private int health = 1;
+    private bool isDead = false;
+
     //shooting
     public GameObject bulletPrefab;
     public float bulletOffset = 0;
@@ -126,6 +129,20 @@ public void OnWeaponInteract(InputAction.CallbackContext context)
         Rigidbody2D bulletRb = bulletPrefab.GetComponent<Rigidbody2D>();
         bulletRb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         shootSound.Play(); //todo
+    }
+    public void TakeDamage(int damage)
+    {
+        health -= damage;
+        if (health <= 0)
+        {
+            Die();
+        }
+    }
+    void Die()
+    {
+        isDead = true;
+        rb.linearVelocity = Vector2.zero;
+        gameObject.SetActive(false);
     }
 
 
