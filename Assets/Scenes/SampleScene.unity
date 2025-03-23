@@ -3907,7 +3907,8 @@ GameObject:
   - component: {fileID: 1556018125}
   - component: {fileID: 1556018128}
   - component: {fileID: 1556018127}
-  m_Layer: 0
+  - component: {fileID: 1556018129}
+  m_Layer: 9
   m_Name: Enemy
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -4048,6 +4049,22 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!114 &1556018129
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1556018124}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cdef3fb5b7c60f848a023b2cf55c3ca8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bulletPrefab: {fileID: 4780090448626563172, guid: c55fcad0891b0aa4ea65546dde828a13, type: 3}
+  shootInterval: 1
+  bulletSpeed: 30
+  bulletOffset: 0.5
 --- !u!1 &1783098537
 GameObject:
   m_ObjectHideFlags: 0
