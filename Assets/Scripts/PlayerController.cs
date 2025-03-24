@@ -43,6 +43,9 @@ public class PlayerController : MonoBehaviour
     // Camera
     public Camera mainCamera;
     public float cameraSmoothSpeed = 0.05f;
+    public float shootShakeDuration = 0.05f;
+    public float shootShakemagnitude = 0.05f;
+    private float shakeTimeRemaining;
 
     // Audio
     public AudioSource shootSound;
@@ -76,11 +79,19 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (!isDead)
+    if (!isDead) // checks if player is alive
         {
-            Vector3 targetCameraPos = new Vector3(transform.position.x, transform.position.y, mainCamera.transform.position.z);
-            mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, targetCameraPos, cameraSmoothSpeed);
-            rb.linearVelocity = movementInput * moveSpeed;
+            Vector3 targetCameraPos = new Vector3(transform.position.x, transform.position.y, mainCamera.transform.position.z); // sets camera target
+            Vector3 smoothedPos = Vector3.Lerp(mainCamera.transform.position, targetCameraPos, cameraSmoothSpeed); // smooths camera to target
+            Vector3 shakeOffset = Vector3.zero; // initializes shake offset
+            if (shakeTimeRemaining > 0) // checks if shaking
+            {
+                shakeOffset = Random.insideUnitSphere * shakeMagnitude; // generates random offset
+                shakeOffset.z = 0f; // keeps z at 0 for 2d
+                shakeTimeRemaining -= Time.deltaTime; // reduces shake timer
+            }
+            mainCamera.transform.position = smoothedPos + shakeOffset; // applies smooth position plus shake
+            rb.linearVelocity = movementInput * moveSpeed; // moves player
         }
     }
 
@@ -132,11 +143,14 @@ public class PlayerController : MonoBehaviour
         {
             bulletRb.linearVelocity = transform.up * 50f;
         }
-
-        if (shootSound != null && shootSound.clip != null)
-        {
-            shootSound.PlayOneShot(shootSound.clip);
-        }
+        shootSound.pitch = UnityEngine.Random.Range(0.6f, 1.1f);
+        shootSound.PlayOneShot(shootSound.clip);
+        ShakeCamera(shootShakeDuration, shootShakemagnitude);
+    }
+    public void ShakeCamera(float duration, float magnitude) // shakes camera with given duration and magnitude
+    {
+        shakeTimeRemaining = duration; // sets shake duration
+        shakeMagnitude = magnitude; // sets shake strength
     }
 
     public void TakeDamage(int damage)
@@ -155,7 +169,7 @@ public class PlayerController : MonoBehaviour
     {
         isDead = true;
         rb.linearVelocity = Vector2.zero;
-        gameObject.SetActive(false);
+        gameObject.SetActive(false); //replace with death animation
     }
 
     void EquipWeapon()
@@ -194,4 +208,5 @@ public class PlayerController : MonoBehaviour
             nearbyGun = null;
         }
     }
+    private float shakeMagnitude;
 }

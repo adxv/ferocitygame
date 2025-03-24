@@ -1,4 +1,6 @@
+using System;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class Enemy : MonoBehaviour
 {
@@ -6,10 +8,18 @@ public class Enemy : MonoBehaviour
     public float shootInterval = 1f;
     public float bulletSpeed = 30f;
     public float bulletOffset = 0.5f;
+    public float forgetTime = 3f;
+    public LayerMask wallLayer;
+    //public float firstShotDelay = 0.5f; replaced with random delay
+    public float shotDelayMin = 0.19f; // min delay before shooting (190ms)
+    public float shotDelayMax = 0.23f; // max delay before shooting (230ms)
 
     private Transform player;
     private float nextShootTime;
     private bool hasSpottedPlayer;
+    private Quaternion originalRotation;
+    private float lastSpottedTime;
+
 
     //audio
     public AudioSource shootSound;
@@ -27,6 +37,8 @@ public class Enemy : MonoBehaviour
         }
         nextShootTime = Time.time + shootInterval; // set initial shoot time
         hasSpottedPlayer = false; // start without spotting player
+        originalRotation = transform.rotation;
+        lastSpottedTime = -forgetTime;
     }
 
     void Update()
@@ -39,15 +51,28 @@ public class Enemy : MonoBehaviour
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f; // calculate rotation angle
             transform.rotation = Quaternion.Euler(0, 0, angle); // rotate to face player
 
-            if (Time.time >= nextShootTime) // check if time to shoot
+            if (!CanSeePlayer()) // check if player is behind wall
+            {
+                if (Time.time >= lastSpottedTime + forgetTime) // check if forget time elapsed
+                {
+                    hasSpottedPlayer = false; // forget player
+                    transform.rotation = originalRotation; // revert to original rotation
+                }
+            }
+            else
+            {
+                lastSpottedTime = Time.time; // update last spotted time
+            }
+
+            if (Time.time >= nextShootTime && CanSeePlayer()) // check if time to shoot
             {
                 Shoot(); // fire bullet
-                nextShootTime = Time.time + shootInterval; // update next shoot time
+                nextShootTime = Time.time + shootInterval + UnityEngine.Random.Range(shotDelayMin, shotDelayMax); // set next shoot time
             }
         }
     }
-
-    void Shoot()
+    
+void Shoot()
     {
         if (bulletPrefab == null) // check if bullet prefab is assigned
         {
@@ -62,14 +87,25 @@ public class Enemy : MonoBehaviour
         {
             bulletRb.linearVelocity = transform.up * bulletSpeed; // set bullet velocity
         }
+        shootSound.pitch = UnityEngine.Random.Range(0.8f, 1.1f); // randomize pitch
         shootSound.PlayOneShot(shootSound.clip); // play shoot sound
+
     }
 
-    void OnTriggerEnter2D(Collider2D collision) // detect entering fov
+    void OnTriggerStay2D(Collider2D collision) // check player in fov continuously
     {
-        if (collision.CompareTag("Player")) // check if player enters
+        if (collision.CompareTag("Player") && CanSeePlayer()) // check if player is in fov and visible
         {
-            hasSpottedPlayer = true; // mark player as spotted
+            if (!hasSpottedPlayer) // check if newly spotted
+            {
+                hasSpottedPlayer = true; // mark player as spotted
+                lastSpottedTime = Time.time; // record spotting time
+                nextShootTime = Time.time + Random.Range(shotDelayMin, shotDelayMax); // set initial random delay
+            }
+            else if (Time.time - lastSpottedTime > Time.deltaTime) // check if player was hidden recently
+            {
+                nextShootTime = Time.time + Random.Range(shotDelayMin, shotDelayMax); // reset timer when re-spotted
+            }
         }
     }
 
@@ -77,7 +113,27 @@ public class Enemy : MonoBehaviour
     {
         if (collision.CompareTag("Player")) // check if player leaves
         {
-            hasSpottedPlayer = false; // unmark player as spotted
+            if (!CanSeePlayer()) // check if player is invisible
+            {
+                if (Time.time >= lastSpottedTime + forgetTime) // check if forget time elapsed
+                {
+                    hasSpottedPlayer = false; // forget player
+                    transform.rotation = originalRotation; // revert to original rotation
+                }
+            }
         }
+    }
+
+    bool CanSeePlayer() // check line of sight to player
+    {
+        if (player == null) return false; // return false if no player
+        Vector2 direction = (player.position - transform.position).normalized; // direction to player
+        float distance = Vector2.Distance(transform.position, player.position); // distance to player
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, distance, wallLayer); // raycast to player
+        if (hit.collider != null) // check if ray hits something
+        {
+            return false; // wall blocks sight
+        }
+        return true; // clear line of sight
     }
 }
