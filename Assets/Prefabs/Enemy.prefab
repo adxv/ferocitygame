@@ -10,11 +10,11 @@ GameObject:
   m_Component:
   - component: {fileID: 359076084518987058}
   - component: {fileID: 4651323014482287835}
-  - component: {fileID: 1512164128219611355}
-  - component: {fileID: 7942521951262912186}
   - component: {fileID: 6018019734961149731}
+  - component: {fileID: 1512164128219611355}
   - component: {fileID: 7723354781287923379}
   - component: {fileID: 2296431436199089768}
+  - component: {fileID: 1766017145600562032}
   m_Layer: 9
   m_Name: Enemy
   m_TagString: Enemy
@@ -31,7 +31,7 @@ Transform:
   m_GameObject: {fileID: 8028187921594231981}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 9.47, y: -13.89, z: 0}
   m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -92,70 +92,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!50 &1512164128219611355
-Rigidbody2D:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8028187921594231981}
-  m_BodyType: 0
-  m_Simulated: 1
-  m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 0
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_GravityScale: 0
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
-  m_Constraints: 0
---- !u!70 &7942521951262912186
-CapsuleCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8028187921594231981}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_CompositeOperation: 0
-  m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
-  m_Size: {x: 0.99, y: 0.33}
-  m_Direction: 1
 --- !u!114 &6018019734961149731
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -176,9 +112,41 @@ MonoBehaviour:
   wallLayer:
     serializedVersion: 2
     m_Bits: 2147483648
-  shotDelayMin: 0.19
-  shotDelayMax: 0.23
-  shootSound: {fileID: 0}
+  shotDelayMin: 0.25
+  shotDelayMax: 0.3
+  shootSound: {fileID: 2296431436199089768}
+  patrolSpeed: 4
+  chaseSpeed: 8
+  randomModeInterval: 2.5
+  rotationSpeed: 8
+  safetyDistance: 1
+--- !u!50 &1512164128219611355
+Rigidbody2D:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8028187921594231981}
+  m_BodyType: 1
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_GravityScale: 0
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0
 --- !u!60 &7723354781287923379
 PolygonCollider2D:
   m_ObjectHideFlags: 0
@@ -225,16 +193,14 @@ PolygonCollider2D:
   m_AutoTiling: 0
   m_Points:
     m_Paths:
-    - - {x: 4.4986825, y: 1.0145953}
-      - {x: -0.0062518083, y: 5.0067706}
-      - {x: -4.502648, y: 1.0030327}
-      - {x: -0.5, y: 0.078125}
-      - {x: -0.5, y: -0.15625}
-      - {x: -0.46875, y: -0.171875}
-      - {x: 0.390625, y: -0.171875}
-      - {x: 0.4375, y: -0.15625}
-      - {x: 0.5, y: -0.09375}
-      - {x: 0.5, y: 0.0625}
+    - - {x: 1.000005, y: -1.4517478}
+      - {x: 1.5756769, y: 0.06133032}
+      - {x: 4.9713135, y: 5.0022807}
+      - {x: -0.0062518083, y: 7.013663}
+      - {x: -4.97349, y: 4.9739375}
+      - {x: -1.5087322, y: -0.0039140284}
+      - {x: -1.0053183, y: -1.4755917}
+      - {x: -0.015618086, y: -2.045977}
   m_UseDelaunayMesh: 0
 --- !u!82 &2296431436199089768
 AudioSource:
@@ -333,3 +299,39 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!58 &1766017145600562032
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8028187921594231981}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_Radius: 0.5

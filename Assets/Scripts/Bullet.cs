@@ -5,6 +5,7 @@ public class Bullet : MonoBehaviour
     public float speed = 30f;
     public float lifeDuration = 2f;
     private Rigidbody2D rb;
+    private GameObject shooter; // track who fired the bullet
 
     void Start()
     {
@@ -13,9 +14,17 @@ public class Bullet : MonoBehaviour
         Destroy(gameObject, lifeDuration);
     }
 
+    // Public method to set the shooter when spawned
+    public void SetShooter(GameObject shooterObj)
+    {
+        shooter = shooterObj;
+    }
+
     void OnCollisionEnter2D(Collision2D collision)
     {
         Debug.Log("Bullet hit " + collision.gameObject.name);
+        if (collision.gameObject == shooter) return;
+
         switch (collision.gameObject.tag)
         {
             case "Enemy":

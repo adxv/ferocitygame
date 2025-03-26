@@ -1,139 +1,304 @@
-using System;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 public class Enemy : MonoBehaviour
 {
+    // Player reference
+    private Transform player;
+
+    // Detection and shooting variables
     public GameObject bulletPrefab;
     public float shootInterval = 1f;
     public float bulletSpeed = 30f;
     public float bulletOffset = 0.5f;
     public float forgetTime = 3f;
     public LayerMask wallLayer;
-    //public float firstShotDelay = 0.5f; replaced with random delay
-    public float shotDelayMin = 0.19f; // min delay before shooting (190ms)
-    public float shotDelayMax = 0.23f; // max delay before shooting (230ms)
-
-    private Transform player;
+    public float shotDelayMin = 0.19f;
+    public float shotDelayMax = 0.23f;
     private float nextShootTime;
     private bool hasSpottedPlayer;
-    private Quaternion originalRotation;
     private float lastSpottedTime;
-
-
-    //audio
     public AudioSource shootSound;
+
+    // Movement variables
+    public float patrolSpeed = 2f;          // Speed during patrol
+    public float chaseSpeed = 4f;           // Speed during pursuit
+    public float randomModeInterval = 2.5f; // Unused in Random mode now, kept for consistency
+    public float rotationSpeed = 5f;        // Speed of rotation (degrees per second)
+    private Rigidbody2D rb;                 // Rigidbody for kinematic movement
+    private Vector2 patrolDirection;        // Current direction for patrolling
+    private float enemyRadius = 0.25f;      // Collision check radius (adjust based on collider)
+    private float randomModeTimer;          // Timer for random mode decisions (unused now)
+    private bool isMovingInRandomMode;      // Unused now, kept for structure
+    public float safetyDistance = 0.5f;     // Distance to maintain from walls
+    private Quaternion targetRotation;      // Target rotation for smooth interpolation
+    private float waitTimer;                // Timer for waiting after direction change in Random mode
+    private bool isWaiting;                 // Flag to pause movement during wait
+
+    // State enum
+    private enum State { Patrol, Pursue, Random }
+    private State currentState = State.Patrol;
 
     void Start()
     {
-        GameObject playerObj = GameObject.FindGameObjectWithTag("Player"); // find player
+        // Initialize player reference
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
         {
-            player = playerObj.transform; // set player transform
+            player = playerObj.transform;
         }
         else
         {
-            Debug.LogError("Enemy could not find Player with tag 'Player'!"); // log error if no player
+            Debug.LogError("Enemy could not find Player with tag 'Player'!");
         }
-        nextShootTime = Time.time + shootInterval; // set initial shoot time
-        hasSpottedPlayer = false; // start without spotting player
-        originalRotation = transform.rotation;
+
+        // Initialize detection and shooting
+        nextShootTime = Time.time + shootInterval;
+        hasSpottedPlayer = false;
         lastSpottedTime = -forgetTime;
+
+        // Initialize movement
+        rb = GetComponent<Rigidbody2D>();
+        rb.bodyType = RigidbodyType2D.Kinematic;
+        patrolDirection = transform.up;
+        randomModeTimer = randomModeInterval;
+        targetRotation = transform.rotation;
+        waitTimer = 0f;
+        isWaiting = false;
+
+        gameObject.layer = LayerMask.NameToLayer("Enemy");
     }
 
     void Update()
     {
-        if (player == null) return; // skip if no player
+        if (player == null) return;
 
-        if (hasSpottedPlayer) // only act if player is spotted
+        if (hasSpottedPlayer)
         {
-            Vector2 direction = (player.position - transform.position).normalized; // direction to player
-            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f; // calculate rotation angle
-            transform.rotation = Quaternion.Euler(0, 0, angle); // rotate to face player
-
-            if (!CanSeePlayer()) // check if player is behind wall
+            if (!CanSeePlayer())
             {
-                if (Time.time >= lastSpottedTime + forgetTime) // check if forget time elapsed
+                if (Time.time >= lastSpottedTime + forgetTime)
                 {
-                    hasSpottedPlayer = false; // forget player
-                    transform.rotation = originalRotation; // revert to original rotation
+                    currentState = State.Random;
+                    // Set initial random direction when entering Random mode
+                    if (currentState != State.Random) // Only set once on transition
+                    {
+                        float randomAngle = GetClearRandomAngle();
+                        targetRotation = Quaternion.Euler(0, 0, randomAngle);
+                        patrolDirection = Quaternion.Euler(0, 0, randomAngle) * Vector2.up;
+                    }
                 }
             }
             else
             {
-                lastSpottedTime = Time.time; // update last spotted time
+                lastSpottedTime = Time.time;
+                currentState = State.Pursue;
             }
 
-            if (Time.time >= nextShootTime && CanSeePlayer()) // check if time to shoot
+            if (Time.time >= nextShootTime && CanSeePlayer())
             {
-                Shoot(); // fire bullet
-                nextShootTime = Time.time + shootInterval + UnityEngine.Random.Range(shotDelayMin, shotDelayMax); // set next shoot time
+                Shoot();
+                nextShootTime = Time.time + shootInterval + Random.Range(shotDelayMin, shotDelayMax);
             }
         }
-    }
-    
-void Shoot()
-    {
-        if (bulletPrefab == null) // check if bullet prefab is assigned
+        else
         {
-            Debug.LogError("bulletPrefab not assigned in Enemy!"); // log error if missing
-            return; // exit if no prefab
+            if (currentState != State.Random)
+            {
+                currentState = State.Patrol;
+            }
         }
 
-        Vector3 spawnPosition = transform.position + (transform.up * bulletOffset); // calculate bullet spawn pos
-        GameObject bullet = Instantiate(bulletPrefab, spawnPosition, transform.rotation); // spawn bullet
-        Rigidbody2D bulletRb = bullet.GetComponent<Rigidbody2D>(); // get bullet rigidbody
-        if (bulletRb != null) // check if bullet has rigidbody
+        // Handle wait timer in Random mode
+        if (currentState == State.Random && isWaiting)
         {
-            bulletRb.linearVelocity = transform.up * bulletSpeed; // set bullet velocity
+            waitTimer -= Time.deltaTime;
+            if (waitTimer <= 0)
+            {
+                isWaiting = false; // Resume movement
+            }
         }
-        shootSound.pitch = UnityEngine.Random.Range(0.8f, 1.1f); // randomize pitch
-        shootSound.PlayOneShot(shootSound.clip); // play shoot sound
 
-    }
-
-    void OnTriggerStay2D(Collider2D collision) // check player in fov continuously
-    {
-        if (collision.CompareTag("Player") && CanSeePlayer()) // check if player is in fov and visible
+        // Smoothly rotate towards targetRotation in Patrol and Random modes
+        if (currentState == State.Patrol || currentState == State.Random)
         {
-            if (!hasSpottedPlayer) // check if newly spotted
-            {
-                hasSpottedPlayer = true; // mark player as spotted
-                lastSpottedTime = Time.time; // record spotting time
-                nextShootTime = Time.time + Random.Range(shotDelayMin, shotDelayMax); // set initial random delay
-            }
-            else if (Time.time - lastSpottedTime > Time.deltaTime) // check if player was hidden recently
-            {
-                nextShootTime = Time.time + Random.Range(shotDelayMin, shotDelayMax); // reset timer when re-spotted
-            }
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
         }
     }
 
-    void OnTriggerExit2D(Collider2D collision) // detect exiting fov
+    void FixedUpdate()
     {
-        if (collision.CompareTag("Player")) // check if player leaves
+        if (player == null) return;
+
+        if (currentState == State.Pursue)
         {
-            if (!CanSeePlayer()) // check if player is invisible
+            Vector2 desiredDirection = (player.position - transform.position).normalized;
+            Vector2 repulsion = CalculateRepulsion();
+            Vector2 finalDirection = (desiredDirection + repulsion).normalized;
+            Vector2 desiredPosition = (Vector2)transform.position + finalDirection * chaseSpeed * Time.fixedDeltaTime;
+            if (!WouldCollide(desiredPosition))
             {
-                if (Time.time >= lastSpottedTime + forgetTime) // check if forget time elapsed
+                rb.MovePosition(desiredPosition);
+            }
+            float angle = Mathf.Atan2(desiredDirection.y, desiredDirection.x) * Mathf.Rad2Deg - 90f;
+            transform.rotation = Quaternion.Euler(0, 0, angle);
+            patrolSpeed = chaseSpeed; // Update speed for movement
+        }
+        else if (currentState == State.Patrol)
+        {
+            Vector2 repulsion = CalculateRepulsion();
+            Vector2 finalDirection = (patrolDirection + repulsion).normalized;
+            Vector2 desiredPosition = (Vector2)transform.position + finalDirection * patrolSpeed * Time.fixedDeltaTime;
+
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, patrolDirection, safetyDistance + enemyRadius + enemyRadius/2, wallLayer);
+            if (hit.collider != null)
+            {
+                Vector2 newDirection = Quaternion.Euler(0, 0, -90) * patrolDirection;
+                targetRotation = Quaternion.LookRotation(Vector3.forward, newDirection);
+                patrolDirection = newDirection;
+                desiredPosition = (Vector2)transform.position + patrolDirection * patrolSpeed * Time.fixedDeltaTime;
+                if (!WouldCollide(desiredPosition))
                 {
-                    hasSpottedPlayer = false; // forget player
-                    transform.rotation = originalRotation; // revert to original rotation
+                    rb.MovePosition(desiredPosition);
+                }
+            }
+            else if (!WouldCollide(desiredPosition))
+            {
+                rb.MovePosition(desiredPosition);
+            }
+        }
+        else if (currentState == State.Random)
+        {
+            if (!isWaiting) // Only move if not waiting
+            {
+                Vector2 repulsion = CalculateRepulsion();
+                Vector2 finalDirection = (patrolDirection + repulsion).normalized;
+                Vector2 desiredPosition = (Vector2)transform.position + finalDirection * patrolSpeed * Time.fixedDeltaTime;
+
+                RaycastHit2D hit = Physics2D.Raycast(transform.position, patrolDirection, safetyDistance + enemyRadius, wallLayer);
+                if (hit.collider != null)
+                {
+                    // Wall detected ahead, pick a new direction and wait
+                    float randomAngle = GetClearRandomAngle();
+                    targetRotation = Quaternion.Euler(0, 0, randomAngle);
+                    patrolDirection = Quaternion.Euler(0, 0, randomAngle) * Vector2.up;
+                    waitTimer = Random.Range(0f, 2f); // Random wait between 0 and 1 second
+                    isWaiting = true;
+                }
+                else if (!WouldCollide(desiredPosition))
+                {
+                    rb.MovePosition(desiredPosition);
                 }
             }
         }
     }
 
-    bool CanSeePlayer() // check line of sight to player
+    void Shoot()
     {
-        if (player == null) return false; // return false if no player
-        Vector2 direction = (player.position - transform.position).normalized; // direction to player
-        float distance = Vector2.Distance(transform.position, player.position); // distance to player
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, distance, wallLayer); // raycast to player
-        if (hit.collider != null) // check if ray hits something
+        if (bulletPrefab == null)
         {
-            return false; // wall blocks sight
+            Debug.LogError("bulletPrefab not assigned in Enemy!");
+            return;
         }
-        return true; // clear line of sight
+
+        Vector3 spawnPosition = transform.position + (transform.up * bulletOffset);
+        GameObject bullet = Instantiate(bulletPrefab, spawnPosition, transform.rotation);
+        Rigidbody2D bulletRb = bullet.GetComponent<Rigidbody2D>();
+        if (bulletRb != null)
+        {
+            bulletRb.linearVelocity = transform.up * bulletSpeed;
+        }
+        Bullet bulletScript = bullet.GetComponent<Bullet>();
+        if (bulletScript != null)
+        {
+            bulletScript.SetShooter(gameObject);
+        }
+        shootSound.pitch = Random.Range(0.8f, 1.1f);
+        shootSound.PlayOneShot(shootSound.clip);
+    }
+
+    void OnTriggerStay2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Player") && CanSeePlayer())
+        {
+            if (!hasSpottedPlayer)
+            {
+                hasSpottedPlayer = true;
+                lastSpottedTime = Time.time;
+                nextShootTime = Time.time + Random.Range(shotDelayMin, shotDelayMax);
+            }
+            else if (Time.time - lastSpottedTime > Time.deltaTime)
+            {
+                nextShootTime = Time.time + Random.Range(shotDelayMin, shotDelayMax);
+            }
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Player") && !CanSeePlayer())
+        {
+            if (Time.time >= lastSpottedTime + forgetTime)
+            {
+                currentState = State.Random;
+                // Set initial random direction when entering Random mode
+                float randomAngle = GetClearRandomAngle();
+                targetRotation = Quaternion.Euler(0, 0, randomAngle);
+                patrolDirection = Quaternion.Euler(0, 0, randomAngle) * Vector2.up;
+            }
+        }
+    }
+
+    bool CanSeePlayer()
+    {
+        if (player == null) return false;
+        Vector2 direction = (player.position - transform.position).normalized;
+        float distance = Vector2.Distance(transform.position, player.position);
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, distance, wallLayer);
+        return hit.collider == null;
+    }
+
+    bool WouldCollide(Vector2 position)
+    {
+        return Physics2D.OverlapCircle(position, enemyRadius, wallLayer) != null;
+    }
+
+    private Vector2 CalculateRepulsion()
+    {
+        Vector2 repulsion = Vector2.zero;
+        int rayCount = 8;
+        float angleStep = 360f / rayCount;
+        for (int i = 0; i < rayCount; i++)
+        {
+            float angle = i * angleStep;
+            Vector2 direction = Quaternion.Euler(0, 0, angle) * Vector2.up;
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, safetyDistance, wallLayer);
+            if (hit.collider != null)
+            {
+                float distance = hit.distance;
+                if (distance < safetyDistance)
+                {
+                    Vector2 repulsionDirection = (Vector2)transform.position - hit.point;
+                    float repulsionStrength = (safetyDistance - distance) / safetyDistance;
+                    repulsion += repulsionDirection.normalized * repulsionStrength;
+                }
+            }
+        }
+        return repulsion;
+    }
+
+    private float GetClearRandomAngle()
+    {
+        int maxAttempts = 5;
+        for (int i = 0; i < maxAttempts; i++)
+        {
+            float randomAngle = Random.Range(0f, 360f);
+            Vector2 testDirection = Quaternion.Euler(0, 0, randomAngle) * Vector2.up;
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, testDirection, safetyDistance * 4, wallLayer);
+            if (hit.collider == null)
+            {
+                return randomAngle;
+            }
+        }
+        return Random.Range(0f, 360f);
     }
 }

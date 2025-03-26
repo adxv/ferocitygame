@@ -8,7 +8,7 @@ public class PlayerController : MonoBehaviour
     public float moveSpeed;
     private Vector2 movementInput;
     private Rigidbody2D rb;
-    private int health = 1;
+    public int health = 1; //temporarily public for testing
     private bool isDead = false;
 
     // Shooting

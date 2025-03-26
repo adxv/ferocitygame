@@ -40,8 +40,8 @@ TagManager:
   - 
   - 
   - 
-  - Ground
-  - Walls
+  - GroundLayer
+  - WallsLayer
   m_SortingLayers:
   - name: Background
     uniqueID: 2527259835
