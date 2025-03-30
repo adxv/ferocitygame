@@ -10,6 +10,7 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D rb;
     public int health = 1; //temporarily public for testing
     private bool isDead = false;
+    public Sprite deathSprite;
 
     // Shooting
     public GameObject bulletPrefab;
@@ -46,6 +47,11 @@ public class PlayerController : MonoBehaviour
     public float shootShakeDuration = 0.05f;
     public float shootShakemagnitude = 0.05f;
     private float shakeTimeRemaining;
+    public float normalOffsetFactor = 0.2f;  // Normal offset towards cursor
+    public float shiftOffsetFactor = 0.6f;   // Larger offset when Shift is held
+    public float normalMaxOffset = 2f;       // Max offset in normal mode
+    public float shiftMaxOffset = 4f;        // Max offset when Shift is held
+    private bool isLooking; // New flag for Shift state
 
     // Audio
     public AudioSource shootSound;
@@ -77,23 +83,34 @@ public class PlayerController : MonoBehaviour
 
     }
 
-    void FixedUpdate()
+void FixedUpdate()
+{
+    if (!isDead)
     {
-    if (!isDead) // checks if player is alive
+        rb.linearVelocity = movementInput * moveSpeed;
+
+            Vector2 mouseScreenPos = mainCamera.ScreenToViewportPoint(Input.mousePosition);
+            Vector2 offsetDirection = new Vector2(mouseScreenPos.x - 0.5f, mouseScreenPos.y - 0.5f);
+            float offsetFactor = isLooking ? shiftOffsetFactor : normalOffsetFactor;
+            float maxOffset = isLooking ? shiftMaxOffset : normalMaxOffset;
+            float horizontalOffset = offsetDirection.x * mainCamera.orthographicSize * mainCamera.aspect * 2 * offsetFactor;
+            float verticalOffset = offsetDirection.y * mainCamera.orthographicSize * 2 * offsetFactor;
+            Vector3 offset = new Vector3(horizontalOffset, verticalOffset, 0);
+            offset = Vector3.ClampMagnitude(offset, maxOffset);
+            Vector3 targetCameraPos = transform.position + offset;
+            targetCameraPos.z = -1f;
+            Vector3 smoothedPos = Vector3.Lerp(mainCamera.transform.position, targetCameraPos, cameraSmoothSpeed/10f);
+
+        Vector3 shakeOffset = Vector3.zero;
+        if (shakeTimeRemaining > 0)
         {
-            Vector3 targetCameraPos = new Vector3(transform.position.x, transform.position.y, mainCamera.transform.position.z); // sets camera target
-            Vector3 smoothedPos = Vector3.Lerp(mainCamera.transform.position, targetCameraPos, cameraSmoothSpeed); // smooths camera to target
-            Vector3 shakeOffset = Vector3.zero; // initializes shake offset
-            if (shakeTimeRemaining > 0) // checks if shaking
-            {
-                shakeOffset = Random.insideUnitSphere * shakeMagnitude; // generates random offset
-                shakeOffset.z = 0f; // keeps z at 0 for 2d
-                shakeTimeRemaining -= Time.deltaTime; // reduces shake timer
-            }
-            mainCamera.transform.position = smoothedPos + shakeOffset; // applies smooth position plus shake
-            rb.linearVelocity = movementInput * moveSpeed; // moves player
+            shakeOffset = Random.insideUnitSphere * shootShakemagnitude;
+            shakeOffset.z = 0f;
+            shakeTimeRemaining -= Time.fixedDeltaTime;
         }
+        mainCamera.transform.position = smoothedPos + shakeOffset;
     }
+}
 
     // Input Handling
     public void OnMove(InputAction.CallbackContext context)
@@ -132,6 +149,13 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
+    public void OnLook(InputAction.CallbackContext context)
+    {
+        if (!isDead)
+        {
+            isLooking = context.performed;
+        }
+    }
 
     // Actions
     void Shoot()
@@ -167,9 +191,9 @@ public class PlayerController : MonoBehaviour
 
     void Die()
     {
-        isDead = true;
-        rb.linearVelocity = Vector2.zero;
-        gameObject.SetActive(false); //replace with death animation
+        isDead = true;                          // Set death flag
+        rb.linearVelocity = Vector2.zero;       // Stop movement (assuming rb is your Rigidbody2D)
+        GetComponent<SpriteRenderer>().sprite = deathSprite; // Change to death sprite
     }
 
     void EquipWeapon()

@@ -389,9 +389,9 @@ GameObject:
   - component: {fileID: 408927391}
   - component: {fileID: 408927397}
   - component: {fileID: 408927390}
-  - component: {fileID: 408927395}
   - component: {fileID: 408927394}
   - component: {fileID: 408927396}
+  - component: {fileID: 408927398}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -491,7 +491,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -6.42, y: 0.97, z: 0}
-  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_LocalScale: {x: 2.5, y: 2.5, z: 2.5}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 650309262}
@@ -511,10 +511,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 15
-  health: 99
+  health: 3
+  deathSprite: {fileID: 854268768, guid: daeaf44e96445fa4cbff83e623dac504, type: 3}
   bulletPrefab: {fileID: 4780090448626563172, guid: c55fcad0891b0aa4ea65546dde828a13, type: 3}
-  bulletOffset: 1.1
-  bulletOffsetSide: 0.62
+  bulletOffset: 1.4
+  bulletOffsetSide: 0.4
   fireRate: 0.01
   pistolPrefab: {fileID: 8876430355026324728, guid: 73e6745fe6356c44c8c037d6329a8978, type: 3}
   shotgunPrefab: {fileID: 0}
@@ -527,9 +528,13 @@ MonoBehaviour:
   smgSprite: {fileID: 0}
   knifeSprite: {fileID: 0}
   mainCamera: {fileID: 519420031}
-  cameraSmoothSpeed: 0.05
+  cameraSmoothSpeed: 0.3
   shootShakeDuration: 0.05
   shootShakemagnitude: 0.05
+  normalOffsetFactor: 0.2
+  shiftOffsetFactor: 0.6
+  normalMaxOffset: 2
+  shiftMaxOffset: 7
   shootSound: {fileID: 408927397}
 --- !u!114 &408927394
 MonoBehaviour:
@@ -604,48 +609,27 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: f9c96f02-8730-4f34-8357-a404550c4b0a
     m_ActionName: 'Gameplay/Drop[/Mouse/rightButton]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 408927393}
+        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+        m_MethodName: OnLook
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: c7adac75-ab37-49e5-82f9-671ff13b6a50
+    m_ActionName: 'Gameplay/Look[/Keyboard/leftShift]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Gameplay
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
---- !u!70 &408927395
-CapsuleCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 408927389}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_CompositeOperation: 0
-  m_CompositeOrder: 0
-  m_Offset: {x: -0.000000005011339, y: -0.04203816}
-  m_Size: {x: 0.79, y: 0.29557538}
-  m_Direction: 1
 --- !u!58 &408927396
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -779,6 +763,51 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!66 &408927398
+CompositeCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 408927389}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_GeometryType: 0
+  m_GenerationType: 0
+  m_EdgeRadius: 0
+  m_ColliderPaths: []
+  m_CompositePaths:
+    m_Paths: []
+  m_VertexDistance: 0.0005
+  m_OffsetDistance: 0.00005
+  m_UseDelaunayMesh: 0
+  m_CompositeGameObject: {fileID: 408927389}
 --- !u!1 &432460963
 GameObject:
   m_ObjectHideFlags: 0
@@ -1020,8 +1049,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_ComponentVersion: 1
   m_AssetsPPU: 48
-  m_RefResolutionX: 1024
-  m_RefResolutionY: 576
+  m_RefResolutionX: 1920
+  m_RefResolutionY: 1080
   m_CropFrame: 0
   m_GridSnapping: 0
   m_FilterMode: 0
