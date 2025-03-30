@@ -143,7 +143,7 @@ public class PlayerController : MonoBehaviour
         {
             bulletRb.linearVelocity = transform.up * 50f;
         }
-        shootSound.pitch = UnityEngine.Random.Range(0.6f, 1.1f);
+        shootSound.pitch = UnityEngine.Random.Range(1.1f, 1.3f);
         shootSound.PlayOneShot(shootSound.clip);
         ShakeCamera(shootShakeDuration, shootShakemagnitude);
     }

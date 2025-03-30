@@ -6,12 +6,12 @@ public class SpriteImportSettings : AssetPostprocessor
     void OnPreprocessTexture()
     {
         TextureImporter textureImporter = assetImporter as TextureImporter;
-        if (textureImporter != null && textureImporter.assetPath.Contains(".png")) // Adjust for your sprite file types
+        if (textureImporter != null && textureImporter.assetPath.Contains(".png"))
         {
             textureImporter.textureType = TextureImporterType.Sprite;
-            textureImporter.spritePixelsPerUnit = 64; // Correct property
+            textureImporter.spritePixelsPerUnit = 48;
             textureImporter.filterMode = FilterMode.Point;
-            textureImporter.textureCompression = TextureImporterCompression.Uncompressed; // Correct property
+            textureImporter.textureCompression = TextureImporterCompression.Uncompressed;
         }
     }
 }
