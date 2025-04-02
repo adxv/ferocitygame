@@ -221,6 +221,7 @@ MonoBehaviour:
   randomModeInterval: 2.5
   rotationSpeed: 8
   safetyDistance: 1
+  deathSprite: {fileID: 4325505437714666157, guid: 20563bb334931394faf8dafbde76c41c, type: 3}
 --- !u!50 &1512164128219611355
 Rigidbody2D:
   serializedVersion: 5

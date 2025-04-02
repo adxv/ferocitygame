@@ -30,8 +30,12 @@ public class Enemy : MonoBehaviour
     private float waitTimer;
     private bool isWaiting;
 
-    private enum State { Patrol, Pursue, Random }
+    private enum State { Patrol, Pursue, Random, Dead } // Added Dead state
     private State currentState = State.Patrol;
+
+    // Death Sprite System
+    public Sprite deathSprite; // Assign in Inspector
+    private bool isDead = false;
 
     void Start()
     {
@@ -50,7 +54,7 @@ public class Enemy : MonoBehaviour
         lastSpottedTime = -forgetTime;
 
         rb = GetComponent<Rigidbody2D>();
-        rb.bodyType = RigidbodyType2D.Kinematic;
+        rb.bodyType = RigidbodyType2D.Kinematic; // Change to Dynamic for nudge if needed
         patrolDirection = transform.up;
         randomModeTimer = randomModeInterval;
         targetRotation = transform.rotation;
@@ -62,7 +66,7 @@ public class Enemy : MonoBehaviour
 
     void Update()
     {
-        if (player == null) return;
+        if (player == null || isDead) return;
 
         PlayerController playerController = player.GetComponent<PlayerController>();
         bool playerIsDead = playerController != null && playerController.IsDead();
@@ -96,7 +100,7 @@ public class Enemy : MonoBehaviour
         }
         else
         {
-            hasSpottedPlayer = false; // Reset spotting if player is dead
+            hasSpottedPlayer = false;
             if (currentState != State.Random)
             {
                 currentState = State.Random;
@@ -123,7 +127,7 @@ public class Enemy : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (player == null) return;
+        if (player == null || isDead) return;
 
         if (currentState == State.Pursue)
         {
@@ -248,9 +252,9 @@ public class Enemy : MonoBehaviour
 
     bool CanSeePlayer()
     {
-        if (player == null) return false;
+        if (player == null || isDead) return false;
         PlayerController playerController = player.GetComponent<PlayerController>();
-        if (playerController != null && playerController.IsDead()) return false; // Can't see dead player
+        if (playerController != null && playerController.IsDead()) return false;
         Vector2 direction = (player.position - transform.position).normalized;
         float distance = Vector2.Distance(transform.position, player.position);
         RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, distance, wallLayer);
@@ -300,5 +304,26 @@ public class Enemy : MonoBehaviour
             }
         }
         return Random.Range(0f, 360f);
+    }
+
+    // New Death Method
+    public void Die()
+    {
+        if (isDead) return;
+
+        isDead = true;
+        transform.localScale = new Vector3(3.2f, 3.2f, 3.2f);
+        currentState = State.Dead;
+        rb.linearVelocity = Vector2.zero; // Stop current movement
+        GetComponent<SpriteRenderer>().sprite = deathSprite;
+        Vector2 nudgeDirection = -transform.up; // Nudge back in opposite direction
+        rb.MovePosition(rb.position + nudgeDirection * 0.1f); // Small nudge (kinematic, so use MovePosition)
+        Invoke("StopAfterNudge", 0.1f); // Delay to allow nudge to take effect
+        GetComponent<Collider2D>().enabled = false; // Prevent further collisions
+    }
+
+    void StopAfterNudge()
+    {
+        rb.linearVelocity = Vector2.zero; // Ensure no residual movement
     }
 }

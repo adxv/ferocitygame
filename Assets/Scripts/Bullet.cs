@@ -28,7 +28,8 @@ public class Bullet : MonoBehaviour
         switch (collision.gameObject.tag)
         {
             case "Enemy":
-                Destroy(collision.gameObject);
+                Enemy enemy = collision.gameObject.GetComponent<Enemy>();
+                if (enemy != null) enemy.Die();
                 gameObject.SetActive(false);
                 break;
             case "Player":
