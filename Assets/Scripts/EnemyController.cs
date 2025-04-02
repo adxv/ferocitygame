@@ -2,10 +2,7 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
-    // Player reference
     private Transform player;
-
-    // Detection and shooting variables
     public GameObject bulletPrefab;
     public float shootInterval = 1f;
     public float bulletSpeed = 30f;
@@ -19,28 +16,25 @@ public class Enemy : MonoBehaviour
     private float lastSpottedTime;
     public AudioSource shootSound;
 
-    // Movement variables
-    public float patrolSpeed = 2f;          // Speed during patrol
-    public float chaseSpeed = 4f;           // Speed during pursuit
-    public float randomModeInterval = 2.5f; // Unused in Random mode now, kept for consistency
-    public float rotationSpeed = 5f;        // Speed of rotation (degrees per second)
-    private Rigidbody2D rb;                 // Rigidbody for kinematic movement
-    private Vector2 patrolDirection;        // Current direction for patrolling
-    private float enemyRadius = 0.25f;      // Collision check radius (adjust based on collider)
-    private float randomModeTimer;          // Timer for random mode decisions (unused now)
-    private bool isMovingInRandomMode;      // Unused now, kept for structure
-    public float safetyDistance = 0.5f;     // Distance to maintain from walls
-    private Quaternion targetRotation;      // Target rotation for smooth interpolation
-    private float waitTimer;                // Timer for waiting after direction change in Random mode
-    private bool isWaiting;                 // Flag to pause movement during wait
+    public float patrolSpeed = 2f;
+    public float chaseSpeed = 4f;
+    public float randomModeInterval = 2.5f;
+    public float rotationSpeed = 5f;
+    private Rigidbody2D rb;
+    private Vector2 patrolDirection;
+    private float enemyRadius = 0.25f;
+    private float randomModeTimer;
+    private bool isMovingInRandomMode;
+    public float safetyDistance = 0.5f;
+    private Quaternion targetRotation;
+    private float waitTimer;
+    private bool isWaiting;
 
-    // State enum
     private enum State { Patrol, Pursue, Random }
     private State currentState = State.Patrol;
 
     void Start()
     {
-        // Initialize player reference
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
         {
@@ -51,12 +45,10 @@ public class Enemy : MonoBehaviour
             Debug.LogError("Enemy could not find Player with tag 'Player'!");
         }
 
-        // Initialize detection and shooting
         nextShootTime = Time.time + shootInterval;
         hasSpottedPlayer = false;
         lastSpottedTime = -forgetTime;
 
-        // Initialize movement
         rb = GetComponent<Rigidbody2D>();
         rb.bodyType = RigidbodyType2D.Kinematic;
         patrolDirection = transform.up;
@@ -72,15 +64,17 @@ public class Enemy : MonoBehaviour
     {
         if (player == null) return;
 
-        if (hasSpottedPlayer)
+        PlayerController playerController = player.GetComponent<PlayerController>();
+        bool playerIsDead = playerController != null && playerController.IsDead();
+
+        if (!playerIsDead && hasSpottedPlayer)
         {
             if (!CanSeePlayer())
             {
                 if (Time.time >= lastSpottedTime + forgetTime)
                 {
                     currentState = State.Random;
-                    // Set initial random direction when entering Random mode
-                    if (currentState != State.Random) // Only set once on transition
+                    if (currentState != State.Random)
                     {
                         float randomAngle = GetClearRandomAngle();
                         targetRotation = Quaternion.Euler(0, 0, randomAngle);
@@ -102,23 +96,25 @@ public class Enemy : MonoBehaviour
         }
         else
         {
+            hasSpottedPlayer = false; // Reset spotting if player is dead
             if (currentState != State.Random)
             {
-                currentState = State.Patrol;
+                currentState = State.Random;
+                float randomAngle = GetClearRandomAngle();
+                targetRotation = Quaternion.Euler(0, 0, randomAngle);
+                patrolDirection = Quaternion.Euler(0, 0, randomAngle) * Vector2.up;
             }
         }
 
-        // Handle wait timer in Random mode
         if (currentState == State.Random && isWaiting)
         {
             waitTimer -= Time.deltaTime;
             if (waitTimer <= 0)
             {
-                isWaiting = false; // Resume movement
+                isWaiting = false;
             }
         }
 
-        // Smoothly rotate towards targetRotation in Patrol and Random modes
         if (currentState == State.Patrol || currentState == State.Random)
         {
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
@@ -141,7 +137,7 @@ public class Enemy : MonoBehaviour
             }
             float angle = Mathf.Atan2(desiredDirection.y, desiredDirection.x) * Mathf.Rad2Deg - 90f;
             transform.rotation = Quaternion.Euler(0, 0, angle);
-            patrolSpeed = chaseSpeed; // Update speed for movement
+            patrolSpeed = chaseSpeed;
         }
         else if (currentState == State.Patrol)
         {
@@ -168,7 +164,7 @@ public class Enemy : MonoBehaviour
         }
         else if (currentState == State.Random)
         {
-            if (!isWaiting) // Only move if not waiting
+            if (!isWaiting)
             {
                 Vector2 repulsion = CalculateRepulsion();
                 Vector2 finalDirection = (patrolDirection + repulsion).normalized;
@@ -177,11 +173,10 @@ public class Enemy : MonoBehaviour
                 RaycastHit2D hit = Physics2D.Raycast(transform.position, patrolDirection, safetyDistance + enemyRadius, wallLayer);
                 if (hit.collider != null)
                 {
-                    // Wall detected ahead, pick a new direction and wait
                     float randomAngle = GetClearRandomAngle();
                     targetRotation = Quaternion.Euler(0, 0, randomAngle);
                     patrolDirection = Quaternion.Euler(0, 0, randomAngle) * Vector2.up;
-                    waitTimer = Random.Range(0f, 2f); // Random wait between 0 and 1 second
+                    waitTimer = Random.Range(0f, 2f);
                     isWaiting = true;
                 }
                 else if (!WouldCollide(desiredPosition))
@@ -220,15 +215,19 @@ public class Enemy : MonoBehaviour
     {
         if (collision.CompareTag("Player") && CanSeePlayer())
         {
-            if (!hasSpottedPlayer)
+            PlayerController playerController = collision.GetComponent<PlayerController>();
+            if (playerController != null && !playerController.IsDead())
             {
-                hasSpottedPlayer = true;
-                lastSpottedTime = Time.time;
-                nextShootTime = Time.time + Random.Range(shotDelayMin, shotDelayMax);
-            }
-            else if (Time.time - lastSpottedTime > Time.deltaTime)
-            {
-                nextShootTime = Time.time + Random.Range(shotDelayMin, shotDelayMax);
+                if (!hasSpottedPlayer)
+                {
+                    hasSpottedPlayer = true;
+                    lastSpottedTime = Time.time;
+                    nextShootTime = Time.time + Random.Range(shotDelayMin, shotDelayMax);
+                }
+                else if (Time.time - lastSpottedTime > Time.deltaTime)
+                {
+                    nextShootTime = Time.time + Random.Range(shotDelayMin, shotDelayMax);
+                }
             }
         }
     }
@@ -240,7 +239,6 @@ public class Enemy : MonoBehaviour
             if (Time.time >= lastSpottedTime + forgetTime)
             {
                 currentState = State.Random;
-                // Set initial random direction when entering Random mode
                 float randomAngle = GetClearRandomAngle();
                 targetRotation = Quaternion.Euler(0, 0, randomAngle);
                 patrolDirection = Quaternion.Euler(0, 0, randomAngle) * Vector2.up;
@@ -251,6 +249,8 @@ public class Enemy : MonoBehaviour
     bool CanSeePlayer()
     {
         if (player == null) return false;
+        PlayerController playerController = player.GetComponent<PlayerController>();
+        if (playerController != null && playerController.IsDead()) return false; // Can't see dead player
         Vector2 direction = (player.position - transform.position).normalized;
         float distance = Vector2.Distance(transform.position, player.position);
         RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, distance, wallLayer);

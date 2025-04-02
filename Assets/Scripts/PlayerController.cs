@@ -73,33 +73,29 @@ public class PlayerController : MonoBehaviour
             mousePos.z = 0f;
             Vector3 direction = (mousePos - transform.position).normalized;
             transform.up = direction;
-            if (weaponEquipped && shouldShoot && Time.time >= lastFireTime + fireRate) // checks if can shoot
+            if (weaponEquipped && shouldShoot && Time.time >= lastFireTime + fireRate)
             {
-                Shoot();                                        // fires bullet
-                lastFireTime = Time.time;                       // updates last shot time
-                shouldShoot = false;                            // resets shoot state after firing
+                Shoot();
+                lastFireTime = Time.time;
+                shouldShoot = false;
             }
         }
-
     }
 
-void FixedUpdate()
-{
-    if (!isDead)
+    void FixedUpdate()
     {
-        rb.linearVelocity = movementInput * moveSpeed;
-
-            Vector2 mouseScreenPos = mainCamera.ScreenToViewportPoint(Input.mousePosition);
-            Vector2 offsetDirection = new Vector2(mouseScreenPos.x - 0.5f, mouseScreenPos.y - 0.5f);
-            float offsetFactor = isLooking ? shiftOffsetFactor : normalOffsetFactor;
-            float maxOffset = isLooking ? shiftMaxOffset : normalMaxOffset;
-            float horizontalOffset = offsetDirection.x * mainCamera.orthographicSize * mainCamera.aspect * 2 * offsetFactor;
-            float verticalOffset = offsetDirection.y * mainCamera.orthographicSize * 2 * offsetFactor;
-            Vector3 offset = new Vector3(horizontalOffset, verticalOffset, 0);
-            offset = Vector3.ClampMagnitude(offset, maxOffset);
-            Vector3 targetCameraPos = transform.position + offset;
-            targetCameraPos.z = -1f;
-            Vector3 smoothedPos = Vector3.Lerp(mainCamera.transform.position, targetCameraPos, cameraSmoothSpeed/10f);
+        // Always update camera, even when dead
+        Vector2 mouseScreenPos = mainCamera.ScreenToViewportPoint(Input.mousePosition);
+        Vector2 offsetDirection = new Vector2(mouseScreenPos.x - 0.5f, mouseScreenPos.y - 0.5f);
+        float offsetFactor = isLooking ? shiftOffsetFactor : normalOffsetFactor;
+        float maxOffset = isLooking ? shiftMaxOffset : normalMaxOffset;
+        float horizontalOffset = offsetDirection.x * mainCamera.orthographicSize * mainCamera.aspect * 2 * offsetFactor;
+        float verticalOffset = offsetDirection.y * mainCamera.orthographicSize * 2 * offsetFactor;
+        Vector3 offset = new Vector3(horizontalOffset, verticalOffset, 0);
+        offset = Vector3.ClampMagnitude(offset, maxOffset);
+        Vector3 targetCameraPos = transform.position + offset;
+        targetCameraPos.z = -1f;
+        Vector3 smoothedPos = Vector3.Lerp(mainCamera.transform.position, targetCameraPos, cameraSmoothSpeed/10f);
 
         Vector3 shakeOffset = Vector3.zero;
         if (shakeTimeRemaining > 0)
@@ -109,8 +105,13 @@ void FixedUpdate()
             shakeTimeRemaining -= Time.fixedDeltaTime;
         }
         mainCamera.transform.position = smoothedPos + shakeOffset;
+
+        // Only update movement if not dead
+        if (!isDead)
+        {
+            rb.linearVelocity = movementInput * moveSpeed;
+        }
     }
-}
 
     // Input Handling
     public void OnMove(InputAction.CallbackContext context)
@@ -191,9 +192,25 @@ void FixedUpdate()
 
     void Die()
     {
-        isDead = true;                          // Set death flag
-        rb.linearVelocity = Vector2.zero;       // Stop movement (assuming rb is your Rigidbody2D)
-        GetComponent<SpriteRenderer>().sprite = deathSprite; // Change to death sprite
+        isDead = true;
+        rb.linearVelocity = Vector2.zero; // Stop current movement
+        transform.localScale = new Vector3(3.2f, 3.2f, 3.2f); // Scale down for death effect
+        GetComponent<SpriteRenderer>().sprite = deathSprite;
+        Vector2 nudgeDirection = -transform.up; // Nudge back in opposite direction
+        rb.AddForce(nudgeDirection * 1f, ForceMode2D.Impulse); // Apply nudge
+        // Wait briefly then stop completely
+        Invoke("StopAfterNudge", 0.1f); // Delay to allow nudge to take effect
+        GetComponent<Collider2D>().enabled = false; // Prevent further collisions
+    }
+
+    void StopAfterNudge()
+    {
+        rb.linearVelocity = Vector2.zero; // Reset velocity after nudge
+        rb.angularVelocity = 0f; // Stop any rotation
+    }
+    public bool IsDead() //getter
+    {
+        return isDead;
     }
 
     void EquipWeapon()
