@@ -53,17 +53,24 @@ public class PlayerController : MonoBehaviour
     public float shiftMaxOffset = 4f;        // Max offset when Shift is held
     private bool isLooking; // New flag for Shift state
 
+    // Timer
+    private TimerController timerController;
+    private bool hasMovedOnce = false;
+
     // Audio
     public AudioSource shootSound;
 
-    void Start()
-    {
-        rb = GetComponent<Rigidbody2D>();
-        if (pistolSprite != null) pistolSprite.SetActive(false);
-        if (mainCamera == null) mainCamera = Camera.main;
-        if (shootSound == null) Debug.LogError("shootSound not assigned in " + gameObject.name);
-        lastFireTime = -fireRate;
-    }
+void Start()
+{
+    rb = GetComponent<Rigidbody2D>();
+    if (pistolSprite != null) pistolSprite.SetActive(false);
+    if (mainCamera == null) mainCamera = Camera.main;
+    if (shootSound == null) Debug.LogError("shootSound not assigned in " + gameObject.name);
+    lastFireTime = -fireRate;
+    
+    // Find the TimerManager
+    timerController = FindObjectOfType<TimerController>();
+}
 
     void Update()
     {
@@ -114,13 +121,20 @@ public class PlayerController : MonoBehaviour
     }
 
     // Input Handling
-    public void OnMove(InputAction.CallbackContext context)
+public void OnMove(InputAction.CallbackContext context)
+{
+    if (!isDead)
     {
-        if (!isDead)
+        movementInput = context.ReadValue<Vector2>();
+        
+        // Check if this is the first movement
+        if (!hasMovedOnce && movementInput != Vector2.zero && timerController != null)
         {
-            movementInput = context.ReadValue<Vector2>();
+            hasMovedOnce = true;
+            timerController.StartTimer();
         }
     }
+}
 
     public void OnShoot(InputAction.CallbackContext context)
     {

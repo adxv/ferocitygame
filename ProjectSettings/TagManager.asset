@@ -20,7 +20,7 @@ TagManager:
   - Bullet
   - Pickup
   - Enemy
-  - 
+  - DeadEnemy
   - 
   - 
   - 
@@ -48,6 +48,21 @@ TagManager:
     locked: 0
   - name: Foreground
     uniqueID: 703367001
+    locked: 0
+  - name: DeadEnemies
+    uniqueID: 3975355335
+    locked: 0
+  - name: Enemies
+    uniqueID: 1911306257
+    locked: 0
+  - name: Weapons
+    uniqueID: 2565261651
+    locked: 0
+  - name: Player
+    uniqueID: 425746907
+    locked: 0
+  - name: UI
+    uniqueID: 2891975561
     locked: 0
   - name: Default
     uniqueID: 0

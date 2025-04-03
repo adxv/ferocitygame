@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 
 public class Enemy : MonoBehaviour
 {
@@ -35,7 +36,7 @@ public class Enemy : MonoBehaviour
 
     // Death Sprite System
     public Sprite deathSprite; // Assign in Inspector
-    private bool isDead = false;
+    public bool isDead = false;
 
     void Start()
     {
@@ -306,7 +307,6 @@ public class Enemy : MonoBehaviour
         return Random.Range(0f, 360f);
     }
 
-    // New Death Method
     public void Die()
     {
         if (isDead) return;
@@ -314,12 +314,22 @@ public class Enemy : MonoBehaviour
         isDead = true;
         transform.localScale = new Vector3(3.2f, 3.2f, 3.2f);
         currentState = State.Dead;
-        rb.linearVelocity = Vector2.zero; // Stop current movement
+        rb.linearVelocity = Vector2.zero;
         GetComponent<SpriteRenderer>().sprite = deathSprite;
-        Vector2 nudgeDirection = -transform.up; // Nudge back in opposite direction
-        rb.MovePosition(rb.position + nudgeDirection * 0.1f); // Small nudge (kinematic, so use MovePosition)
-        Invoke("StopAfterNudge", 0.1f); // Delay to allow nudge to take effect
-        GetComponent<Collider2D>().enabled = false; // Prevent further collisions
+        Vector2 nudgeDirection = -transform.up;
+        rb.MovePosition(rb.position + nudgeDirection * 1f); 
+        Invoke("StopAfterNudge", 0.1f);
+        
+        
+        gameObject.layer = LayerMask.NameToLayer("DeadEnemy"); 
+        GetComponent<SpriteRenderer>().sortingLayerName = "DeadEnemies";
+        
+        // Turn off the Light 2D component
+        var light = GetComponentInChildren<UnityEngine.Rendering.Universal.Light2D>();
+        if (light != null)
+        {
+            light.enabled = false;
+        }
     }
 
     void StopAfterNudge()
