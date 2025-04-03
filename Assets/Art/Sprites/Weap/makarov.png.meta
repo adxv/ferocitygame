@@ -1,13 +1,10 @@
 fileFormatVersion: 2
-guid: 5c4feb7445e97984aa65f5a78e297857
+guid: daaea00bb31302f4ab8ebc9af01e4e67
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 4889003452107803544
-    second: mikhail_makarov_0
-  - first:
-      213: 4885059566378020856
-    second: mikhail_makarov_1
+      213: 6716020034259297413
+    second: makarov_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -103,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: mikhail_makarov_0
+      name: makarov_0
       rect:
         serializedVersion: 2
-        x: 9
-        y: 1
-        width: 25
-        height: 42
+        x: 0
+        y: 6
+        width: 64
+        height: 50
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -118,30 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 89b4b849cba39d340800000000000000
-      internalID: 4889003452107803544
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: mikhail_makarov_1
-      rect:
-        serializedVersion: 2
-        x: 57
-        y: 1
-        width: 25
-        height: 47
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 8ffe5902bc73bc340800000000000000
-      internalID: 4885059566378020856
+      spriteID: 584ae6e53a8143d50800000000000000
+      internalID: 6716020034259297413
       vertices: []
       indices: 
       edges: []

@@ -9,6 +9,7 @@ TagManager:
   - GlobalLight
   - Enemy
   - Environment
+  - WeaponPickup
   layers:
   - Default
   - TransparentFX
@@ -16,7 +17,7 @@ TagManager:
   - Player
   - Water
   - UI
-  - Weapon
+  - DroppedWeapon
   - Bullet
   - Pickup
   - Enemy
@@ -55,7 +56,7 @@ TagManager:
   - name: Enemies
     uniqueID: 1911306257
     locked: 0
-  - name: Weapons
+  - name: DroppedItems
     uniqueID: 2565261651
     locked: 0
   - name: Player

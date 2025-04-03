@@ -22,23 +22,41 @@ public class Bullet : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        Debug.Log("Bullet hit " + collision.gameObject.name);
-        if (collision.gameObject == shooter) return;
+        // Debug.Log("Bullet hit " + collision.gameObject.name + " fired by " + (shooter != null ? shooter.name : "Unknown"));
+        if (collision.gameObject == shooter) return; // Don't collide with the entity that shot it
+
+        // Check if the shooter is the player before recording a hit
+        bool isPlayerShooter = shooter != null && shooter.CompareTag("Player");
 
         switch (collision.gameObject.tag)
         {
             case "Enemy":
                 Enemy enemy = collision.gameObject.GetComponent<Enemy>();
-                if (enemy != null) enemy.Die();
-                gameObject.SetActive(false);
+                if (enemy != null && !enemy.isDead)
+                {
+                    // Record hit only if player shot a LIVE enemy
+                    if (isPlayerShooter && ScoreManager.Instance != null)
+                    {
+                        ScoreManager.Instance.RecordHit();
+                    }
+                    enemy.Die(); // Call Die() only if it's alive
+                }
+                // Regardless of hit, destroy the bullet
+                Destroy(gameObject);
                 break;
             case "Player":
+                // Apply damage/effect to the player
                 PlayerController player = collision.gameObject.GetComponent<PlayerController>();
                 if (player != null) { player.TakeDamage(1); }
-                gameObject.SetActive(false);
+                 Destroy(gameObject); // Destroy bullet after hitting player
                 break;
             case "Environment":
-                gameObject.SetActive(false);
+                 // Optionally record a miss if the player shot it (handled by accuracy calculation)
+                 Destroy(gameObject); // Destroy bullet after hitting environment
+                break;
+            default:
+                 // Destroy bullet if it hits anything else unaccounted for
+                Destroy(gameObject);
                 break;
         }
     }

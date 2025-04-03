@@ -312,28 +312,41 @@ public class Enemy : MonoBehaviour
         if (isDead) return;
 
         isDead = true;
-        transform.localScale = new Vector3(3.2f, 3.2f, 3.2f);
         currentState = State.Dead;
+        rb.bodyType = RigidbodyType2D.Dynamic;
+        rb.gravityScale = 0;
         rb.linearVelocity = Vector2.zero;
-        GetComponent<SpriteRenderer>().sprite = deathSprite;
-        Vector2 nudgeDirection = -transform.up;
-        rb.MovePosition(rb.position + nudgeDirection * 1f); 
-        Invoke("StopAfterNudge", 0.1f);
-        
-        
-        gameObject.layer = LayerMask.NameToLayer("DeadEnemy"); 
-        GetComponent<SpriteRenderer>().sortingLayerName = "DeadEnemies";
-        
-        // Turn off the Light 2D component
-        var light = GetComponentInChildren<UnityEngine.Rendering.Universal.Light2D>();
-        if (light != null)
+        rb.angularVelocity = 0f;
+
+        SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
+        if (spriteRenderer != null && deathSprite != null)
         {
-            light.enabled = false;
+            spriteRenderer.sprite = deathSprite;
+            spriteRenderer.sortingOrder = 0;
+        }
+        transform.localScale = new Vector3(3.2f, 3.2f, 3.2f);
+
+        Vector2 nudgeDirection = (transform.position - player.position).normalized;
+        if (nudgeDirection == Vector2.zero) nudgeDirection = Random.insideUnitCircle.normalized;
+        rb.AddForce(nudgeDirection * 1f, ForceMode2D.Impulse);
+
+        GetComponent<Collider2D>().enabled = false;
+
+        Invoke("StopAfterNudge", 0.1f);
+
+        if (ScoreManager.Instance != null)
+        {
+            ScoreManager.Instance.RecordEnemyDefeated();
         }
     }
 
     void StopAfterNudge()
     {
-        rb.linearVelocity = Vector2.zero; // Ensure no residual movement
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+            rb.angularVelocity = 0f;
+            rb.bodyType = RigidbodyType2D.Kinematic;
+        }
     }
 }
