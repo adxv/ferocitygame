@@ -12,6 +12,7 @@ public class WeaponData : ScriptableObject
     [Header("Shooting")]
     public GameObject projectilePrefab; // Optional: if the weapon shoots projectiles
     public float fireRate = 1f;         // Shots per second
+    public bool isFullAuto = false;
     public float damage = 10f;
     public float bulletOffset = 1.0f;   // Forward offset for bullet spawn
     public float bulletOffsetSide = 0f; // Sideways offset for bullet spawn

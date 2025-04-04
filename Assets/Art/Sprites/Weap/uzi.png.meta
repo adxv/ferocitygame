@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 974e582f6684d3847913020db55f7c4b
+guid: 2b67daf35d1edda4f867dda8b8bf03c1
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -5702716246923843966
-    second: player_fists_0
+      213: 6446061410222754207
+    second: uzi_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,45 +100,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: player_fists_0
+      name: uzi_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 48
-        height: 48
-      alignment: 9
-      pivot: {x: 0.45833334, y: 0.3541667}
+        x: 3
+        y: 1
+        width: 42
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2866147a9c1ebd0b0800000000000000
-      internalID: -5702716246923843966
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: player_fists_1
-      rect:
-        serializedVersion: 2
-        x: 48
-        y: 0
-        width: 48
-        height: 48
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 7b7e1aaa3a8091c4bad59a3c8fdd6e73
-      internalID: 1369673727
+      spriteID: f994eac23b2057950800000000000000
+      internalID: 6446061410222754207
       vertices: []
       indices: 
       edges: []
@@ -147,7 +125,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -156,9 +134,7 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable:
-      player_fists_0: -5702716246923843966
-      player_fists_1: 1369673727
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[RequireComponent(typeof(SpriteRenderer), typeof(Collider2D))]
+[RequireComponent(typeof(SpriteRenderer))]
 public class WeaponPickup : MonoBehaviour
 {
     public WeaponData weaponData; // Assign the specific WeaponData asset in the Inspector

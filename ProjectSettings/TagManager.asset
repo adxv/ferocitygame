@@ -4,7 +4,6 @@
 TagManager:
   serializedVersion: 3
   tags:
-  - Weapon
   - Ground
   - GlobalLight
   - Enemy
@@ -22,7 +21,7 @@ TagManager:
   - Pickup
   - Enemy
   - DeadEnemy
-  - 
+  - Weapon
   - 
   - 
   - 

@@ -42,6 +42,10 @@ public class PlayerController : MonoBehaviour
     private WeaponPickup nearbyWeaponPickup; // Tracks the pickup item the player is near
     private WeaponData fistWeaponData; // Keep this to store the reference locally
 
+    // Weapon Handling
+    [Tooltip("The force applied when throwing a weapon.")]
+    public float weaponThrowForce = 130f; // <-- ADD THIS PUBLIC VARIABLE
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -94,7 +98,12 @@ public class PlayerController : MonoBehaviour
             {
                 Shoot();
                 lastFireTime = Time.time;
-                shouldShoot = false; // Reset shooting flag after a shot
+                
+                // Only reset the shooting flag for semi-auto weapons
+                if (!playerEquipment.CurrentWeapon.isFullAuto)
+                {
+                    shouldShoot = false; 
+                }
             }
         }
     }
@@ -150,16 +159,37 @@ public class PlayerController : MonoBehaviour
 
     public void OnShoot(InputAction.CallbackContext context)
     {
-        if (!isDead && playerEquipment.CurrentWeapon != null && playerEquipment.CurrentWeapon.canShoot)
+        if (isDead || playerEquipment.CurrentWeapon == null || !playerEquipment.CurrentWeapon.canShoot) 
         {
-            if (context.performed) shouldShoot = true;
-            // Optional: Handle held input for automatic weapons
-            // else if (context.canceled) shouldShoot = false; 
+             shouldShoot = false; // Ensure cannot shoot if dead, unarmed, or weapon can't shoot
+             return;
         }
-        // If weapon cannot shoot, ensure flag is false
-        else if (context.canceled || (playerEquipment.CurrentWeapon != null && !playerEquipment.CurrentWeapon.canShoot))
+
+        WeaponData currentWep = playerEquipment.CurrentWeapon;
+
+        if (currentWep.isFullAuto)
         {
-            shouldShoot = false;
+            // For full-auto, set shooting flag based on button held state
+            if (context.performed || context.started) // Started or Performed means held
+            {
+                shouldShoot = true;
+            }
+            else if (context.canceled) // Canceled means released
+            {
+                shouldShoot = false;
+            }
+        }
+        else
+        {
+            // For semi-auto, only shoot on the initial press (performed)
+            if (context.performed)
+            {
+                shouldShoot = true; // Will be reset after one shot in Update()
+            }
+            else if (context.canceled)
+            {
+                 shouldShoot = false; // Ensure flag is cleared on release
+            }
         }
     }
 
@@ -295,25 +325,31 @@ public class PlayerController : MonoBehaviour
     // Collision Handling for Pickups
     void OnTriggerEnter2D(Collider2D collision)
     {
-        if (!isDead && collision.CompareTag("WeaponPickup")) // Make sure your pickup prefabs have this tag
+        // Check if the collider belongs to the "Pickup" layer
+        if (!isDead && collision.gameObject.layer == LayerMask.NameToLayer("Pickup"))
         {
-            WeaponPickup pickup = collision.GetComponent<WeaponPickup>();
+            // Try to get the WeaponPickup component from the PARENT of the trigger object
+            WeaponPickup pickup = collision.transform.parent.GetComponent<WeaponPickup>();
             if (pickup != null)
             {
                 nearbyWeaponPickup = pickup;
-                Debug.Log($"Near weapon pickup: {pickup.weaponData?.weaponName ?? "Unknown"}");
-                // Optional: Add visual feedback (highlight, UI prompt)
+                Debug.Log($"Near weapon pickup: {pickup.weaponData?.weaponName ?? "Unknown"} (Triggered by: {collision.gameObject.name})");
+                // Optional: Add visual feedback
+            }
+            else
+            {
+                 Debug.LogWarning($"Object on Pickup layer entered trigger, but parent lacks WeaponPickup script! Trigger Object: {collision.gameObject.name}", collision.transform.parent.gameObject);
             }
         }
     }
 
     void OnTriggerExit2D(Collider2D collision)
     {
-        if (!isDead && collision.CompareTag("WeaponPickup"))
+        // Check if the collider belongs to the "Pickup" layer
+         if (!isDead && collision.gameObject.layer == LayerMask.NameToLayer("Pickup"))
         {
-            WeaponPickup pickup = collision.GetComponent<WeaponPickup>();
-            // Check if the object we are exiting is the one we currently have stored
-            if (pickup != null && pickup == nearbyWeaponPickup)
+            // Check if the exiting trigger's parent matches the currently stored pickup
+            if (nearbyWeaponPickup != null && collision.transform.parent == nearbyWeaponPickup.transform)
             {
                 nearbyWeaponPickup = null;
                 Debug.Log("Left weapon pickup area.");
@@ -333,12 +369,11 @@ public class PlayerController : MonoBehaviour
             Vector3 dropPosition = transform.position + transform.up * 0.5f; // Adjust offset as needed
             GameObject droppedItem = Instantiate(weaponToDrop.pickupPrefab, dropPosition, Quaternion.Euler(0f, 0f, Random.Range(0f, 360f)));
             
-            // Apply Hotline Miami style throw physics (from user's previous code)
+            // Apply Hotline Miami style throw physics using the public variable
             Rigidbody2D itemRb = droppedItem.GetComponent<Rigidbody2D>();
             if (itemRb != null)
             {
-                // Apply Hotline Miami style throw physics (from user's previous code)
-                itemRb.linearVelocity = transform.up * 130f; // Strong forward nudge
+                itemRb.linearVelocity = transform.up * weaponThrowForce; // <-- USE THE VARIABLE HERE
                 itemRb.angularVelocity = Random.Range(300f, 600f); // Rotation
             }
             else

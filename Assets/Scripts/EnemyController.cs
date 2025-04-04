@@ -330,7 +330,12 @@ public class Enemy : MonoBehaviour
         if (nudgeDirection == Vector2.zero) nudgeDirection = Random.insideUnitCircle.normalized;
         rb.AddForce(nudgeDirection * 1f, ForceMode2D.Impulse);
 
-        GetComponent<Collider2D>().enabled = false;
+        // Disable all colliders on this GameObject and its children
+        Collider2D[] allColliders = GetComponentsInChildren<Collider2D>(true); // true includes inactive colliders
+        foreach (Collider2D col in allColliders)
+        {
+            col.enabled = false;
+        }
 
         Invoke("StopAfterNudge", 0.1f);
 
