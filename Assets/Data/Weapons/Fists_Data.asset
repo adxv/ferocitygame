@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d8aa359b5944334189703fbbe6e7523, type: 3}
+  m_Name: Fists_Data
+  m_EditorClassIdentifier: 
+  weaponName: Fists
+  playerSprite: {fileID: -5702716246923843966, guid: 974e582f6684d3847913020db55f7c4b, type: 3}
+  pickupPrefab: {fileID: 0}
+  canShoot: 1
+  isMelee: 1
+  projectilePrefab: {fileID: 0}
+  fireRate: 1
+  isFullAuto: 0
+  damage: 1
+  bulletOffset: 1
+  bulletOffsetSide: 0
+  magazineSize: 1
+  pelletCount: 1
+  spreadAngle: 0
+  shootSound: {fileID: 0}
+  shootShakeDuration: 0.01
+  shootShakeMagnitude: 0.01

@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System;
 // using System.Linq; // No longer needed
 
 public class PlayerEquipment : MonoBehaviour
@@ -9,6 +10,9 @@ public class PlayerEquipment : MonoBehaviour
     [SerializeField] private SpriteRenderer playerSpriteRenderer;
     [Tooltip("WeaponData representing the 'unarmed' state.")]
     [SerializeField] private WeaponData fistWeaponData; // Assign your 'Fists' WeaponData here
+
+    // Public event that fires when the weapon changes
+    public event Action OnWeaponChanged;
 
     // REMOVED List<WeaponData> availableWeapons
 
@@ -63,8 +67,8 @@ public class PlayerEquipment : MonoBehaviour
              Debug.LogError("Cannot equip weapon: Both new weapon/sprite and fist data/sprite are invalid!", this);
         }
 
-        // TODO: Notify PlayerController about the potential change in fire rate for lastFireTime reset
-        // This might require a reference back to PlayerController or an event system.
+        // Notify listeners that the weapon has changed
+        OnWeaponChanged?.Invoke();
     }
 
     // REMOVED SwitchToNext/PreviousWeapon

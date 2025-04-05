@@ -93,8 +93,11 @@ public class PlayerController : MonoBehaviour
             transform.up = direction;
 
             // Check if current weapon can shoot and if fire rate allows
-            if (playerEquipment.CurrentWeapon != null && playerEquipment.CurrentWeapon.canShoot && 
-                shouldShoot && Time.time >= lastFireTime + (1f / playerEquipment.CurrentWeapon.fireRate)) // Use 1/fireRate for delay
+            if (playerEquipment.CurrentWeapon != null && 
+                playerEquipment.CurrentWeapon.canShoot && 
+                playerEquipment.CurrentWeapon.HasAmmo() && 
+                shouldShoot && 
+                Time.time >= lastFireTime + (1f / playerEquipment.CurrentWeapon.fireRate)) // Use 1/fireRate for delay
             {
                 Shoot();
                 lastFireTime = Time.time;
@@ -104,6 +107,15 @@ public class PlayerController : MonoBehaviour
                 {
                     shouldShoot = false; 
                 }
+            }
+            else if (playerEquipment.CurrentWeapon != null && 
+                     playerEquipment.CurrentWeapon.canShoot && 
+                     !playerEquipment.CurrentWeapon.HasAmmo() && 
+                     shouldShoot)
+            {
+                // Play empty click sound if weapon is out of ammo
+                PlayEmptyClickSound();
+                shouldShoot = false; // Reset shooting flag to prevent continuous clicks
             }
         }
     }
@@ -202,16 +214,27 @@ public class PlayerController : MonoBehaviour
             // --- Pick up Weapon --- 
             if (nearbyWeaponPickup.weaponData != null)
             {
+                // Store the weapon data and its current ammo before destroying the pickup object
+                WeaponData weaponToPickup = nearbyWeaponPickup.weaponData;
+                int currentAmmo = nearbyWeaponPickup.GetCurrentAmmo();
+                
                 // If currently holding a weapon (not fists), drop it first
                 if (playerEquipment.CurrentWeapon != fistWeaponData)
                 {
                      DropWeapon(false); // Drop without applying cooldown again
                 }
 
-                // Equip the new weapon
-                playerEquipment.EquipWeapon(nearbyWeaponPickup.weaponData);
+                // Equip the new weapon and set its ammo
+                playerEquipment.EquipWeapon(weaponToPickup);
+                
+                // Set the weapon's current ammo from the pickup
+                if (currentAmmo >= 0) // -1 indicates it wasn't explicitly set
+                {
+                    weaponToPickup.currentAmmo = currentAmmo;
+                }
+                
                 UpdateLastFireTime(); // Update fire time for the new weapon
-                Debug.Log($"Picked up {nearbyWeaponPickup.weaponData.weaponName}");
+                Debug.Log($"Picked up {weaponToPickup.weaponName} with {weaponToPickup.currentAmmo}/{weaponToPickup.magazineSize} ammo");
 
                 Destroy(nearbyWeaponPickup.gameObject);
                 nearbyWeaponPickup = null;
@@ -242,28 +265,67 @@ public class PlayerController : MonoBehaviour
     void Shoot()
     {
         WeaponData currentWep = playerEquipment.CurrentWeapon;
-        if (currentWep == null || currentWep.projectilePrefab == null || !currentWep.canShoot)
+        if (currentWep == null || currentWep.projectilePrefab == null || !currentWep.canShoot || !currentWep.HasAmmo())
         {
-             Debug.LogWarning("Shoot called but current weapon data or prefab is missing/invalid.");
-             return; // Cannot shoot if data is missing
+             Debug.LogWarning("Shoot called but current weapon data or prefab is missing/invalid or out of ammo.");
+             return; // Cannot shoot if data is missing or out of ammo
+        }
+
+        // Use ammo
+        if (!currentWep.UseAmmo())
+        {
+            // Couldn't use ammo (weapon empty)
+            PlayEmptyClickSound();
+            return;
+        }
+
+        // Record that a shot was fired (one shot = one trigger pull, regardless of pellet count)
+        if (ScoreManager.Instance != null)
+        {
+            ScoreManager.Instance.RecordShotFired();
         }
 
         // Use data from WeaponData
         Vector3 spawnPosition = transform.position + (transform.up * currentWep.bulletOffset) + (transform.right * currentWep.bulletOffsetSide);
-        GameObject bulletGO = Instantiate(currentWep.projectilePrefab, spawnPosition, transform.rotation);
         
-        Bullet bulletScript = bulletGO.GetComponent<Bullet>();
-        if (bulletScript != null)
-        {
-            bulletScript.SetShooter(gameObject);
-            // Optionally set damage here if bullet doesn't handle it:
-            // bulletScript.damage = currentWep.damage; 
-        }
+        // Handle shotgun pellets
+        bool hasHitEnemy = false; // Track if any pellet hits an enemy
         
-        Rigidbody2D bulletRb = bulletGO.GetComponent<Rigidbody2D>();
-        if (bulletRb != null)
+        // Number of pellets to fire (regular guns use 1)
+        int pelletCount = Mathf.Max(1, currentWep.pelletCount);
+        
+        for (int i = 0; i < pelletCount; i++)
         {
-            bulletRb.linearVelocity = transform.up * 50f; // Keep bullet speed for now, could add to WeaponData
+            // Calculate spread angle for this pellet
+            float angle = 0;
+            if (currentWep.spreadAngle > 0 && pelletCount > 1)
+            {
+                // Distribute pellets evenly across the spread angle
+                float angleStep = currentWep.spreadAngle / (pelletCount - 1);
+                angle = -currentWep.spreadAngle / 2 + angleStep * i;
+            }
+            
+            // Create the bullet with rotation adjusted for spread
+            Quaternion pelletRotation = transform.rotation * Quaternion.Euler(0, 0, angle);
+            GameObject bulletGO = Instantiate(currentWep.projectilePrefab, spawnPosition, pelletRotation);
+            
+            Bullet bulletScript = bulletGO.GetComponent<Bullet>();
+            if (bulletScript != null)
+            {
+                // Pass the player controller to allow tracking hits
+                bulletScript.SetShooter(gameObject);
+                
+                // Set shotgun flag to track only one hit per shot
+                bulletScript.isShotgunPellet = pelletCount > 1;
+                bulletScript.hasRecordedHit = hasHitEnemy;
+                bulletScript.OnEnemyHit += () => hasHitEnemy = true;
+            }
+            
+            Rigidbody2D bulletRb = bulletGO.GetComponent<Rigidbody2D>();
+            if (bulletRb != null)
+            {
+                bulletRb.linearVelocity = bulletGO.transform.up * 50f; // Apply velocity in the direction the bullet is facing
+            }
         }
 
         // Play sound from WeaponData using the player's AudioSource
@@ -275,11 +337,6 @@ public class PlayerController : MonoBehaviour
 
         // Shake camera using WeaponData values
         ShakeCamera(currentWep.shootShakeDuration, currentWep.shootShakeMagnitude);
-
-        if (ScoreManager.Instance != null)
-        {
-            ScoreManager.Instance.RecordShotFired();
-        }
     }
 
     public void ShakeCamera(float duration, float magnitude)
@@ -365,9 +422,19 @@ public class PlayerController : MonoBehaviour
         // Check if it's a droppable weapon with a valid pickup prefab
         if (weaponToDrop != null && weaponToDrop != fistWeaponData && weaponToDrop.pickupPrefab != null)
         {            
+            // Remember current ammo count
+            int currentAmmo = weaponToDrop.currentAmmo;
+            
             // Instantiate the pickup prefab slightly in front of the player
             Vector3 dropPosition = transform.position + transform.up * 0.5f; // Adjust offset as needed
             GameObject droppedItem = Instantiate(weaponToDrop.pickupPrefab, dropPosition, Quaternion.Euler(0f, 0f, Random.Range(0f, 360f)));
+            
+            // Set the dropped weapon's ammo count
+            WeaponPickup pickup = droppedItem.GetComponent<WeaponPickup>();
+            if (pickup != null)
+            {
+                pickup.SetCurrentAmmo(currentAmmo);
+            }
             
             // Apply Hotline Miami style throw physics using the public variable
             Rigidbody2D itemRb = droppedItem.GetComponent<Rigidbody2D>();
@@ -381,7 +448,7 @@ public class PlayerController : MonoBehaviour
                 Debug.LogWarning("Dropped weapon pickup prefab does not have a Rigidbody2D!", droppedItem);
             }
 
-            Debug.Log($"Dropped {weaponToDrop.weaponName}");
+            Debug.Log($"Dropped {weaponToDrop.weaponName} with {currentAmmo}/{weaponToDrop.magazineSize} ammo");
 
             // Equip fists
             playerEquipment.EquipWeapon(fistWeaponData);
@@ -410,6 +477,20 @@ public class PlayerController : MonoBehaviour
         else
         {
             lastFireTime = Time.time; // Cannot fire immediately if rate is 0 or invalid
+        }
+    }
+
+    // Play a sound for empty magazine
+    void PlayEmptyClickSound()
+    {
+        if (playerAudioSource != null)
+        {
+            // You can add a specific empty click sound here
+            playerAudioSource.pitch = 1.0f;
+            // playerAudioSource.PlayOneShot(emptyClickSound);
+            
+            // For now, just log that the gun is empty
+            Debug.Log("*Click* - Weapon is empty!");
         }
     }
 }

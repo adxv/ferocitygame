@@ -66,6 +66,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Library\PackageCache\com.justinpbarnett.unity-mcp@7cfb821eb38c\Editor\Models\Command.cs" />
+    <Compile Include="Assets\Scripts\Editor\CreateShotgunWeaponData.cs" />
     <Compile Include="Library\PackageCache\com.justinpbarnett.unity-mcp@7cfb821eb38c\Editor\Windows\ManualConfigEditorWindow.cs" />
     <Compile Include="Library\PackageCache\com.justinpbarnett.unity-mcp@7cfb821eb38c\Editor\Tools\ManageAsset.cs" />
     <Compile Include="Library\PackageCache\com.justinpbarnett.unity-mcp@7cfb821eb38c\Editor\Tools\ManageEditor.cs" />
@@ -74,7 +75,9 @@
     <Compile Include="Library\PackageCache\com.justinpbarnett.unity-mcp@7cfb821eb38c\Editor\Models\MCPConfigServer.cs" />
     <Compile Include="Library\PackageCache\com.justinpbarnett.unity-mcp@7cfb821eb38c\Editor\Tools\ReadConsole.cs" />
     <Compile Include="Library\PackageCache\com.justinpbarnett.unity-mcp@7cfb821eb38c\Editor\Models\McpTypes.cs" />
+    <Compile Include="Assets\Scripts\Editor\RetroLightManager.cs" />
     <Compile Include="Library\PackageCache\com.justinpbarnett.unity-mcp@7cfb821eb38c\Editor\Tools\ManageScript.cs" />
+    <Compile Include="Assets\Scripts\Editor\CreateAmmoDisplay.cs" />
     <Compile Include="Library\PackageCache\com.justinpbarnett.unity-mcp@7cfb821eb38c\Editor\Data\McpClients.cs" />
     <Compile Include="Library\PackageCache\com.justinpbarnett.unity-mcp@7cfb821eb38c\Editor\UnityMCPBridge.cs" />
     <Compile Include="Library\PackageCache\com.justinpbarnett.unity-mcp@7cfb821eb38c\Editor\Windows\UnityMCPEditorWindow.cs" />
@@ -85,8 +88,11 @@
     <Compile Include="Library\PackageCache\com.justinpbarnett.unity-mcp@7cfb821eb38c\Editor\Tools\ManageGameObject.cs" />
     <Compile Include="Library\PackageCache\com.justinpbarnett.unity-mcp@7cfb821eb38c\Editor\Models\MCPConfigServers.cs" />
     <Compile Include="Library\PackageCache\com.justinpbarnett.unity-mcp@7cfb821eb38c\Editor\Helpers\Vector3Helper.cs" />
+    <Compile Include="Assets\Scripts\Editor\UpdateWeaponMeleeProperty.cs" />
+    <Compile Include="Assets\Scripts\Editor\CreateShotgunPickup.cs" />
     <Compile Include="Library\PackageCache\com.justinpbarnett.unity-mcp@7cfb821eb38c\Editor\Tools\ManageScene.cs" />
     <Compile Include="Library\PackageCache\com.justinpbarnett.unity-mcp@7cfb821eb38c\Editor\Data\DefaultServerConfig.cs" />
+    <Compile Include="Assets\Scripts\Editor\UpdateWeaponMagazineSizes.cs" />
     <Compile Include="Assets\Editor\SpriteImportSettings.cs" />
     <Compile Include="Library\PackageCache\com.justinpbarnett.unity-mcp@7cfb821eb38c\Editor\Models\ServerConfig.cs" />
   </ItemGroup>

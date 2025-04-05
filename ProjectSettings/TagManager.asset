@@ -9,6 +9,7 @@ TagManager:
   - Enemy
   - Environment
   - WeaponPickup
+  - Weapon
   layers:
   - Default
   - TransparentFX
@@ -52,14 +53,14 @@ TagManager:
   - name: DeadEnemies
     uniqueID: 3975355335
     locked: 0
-  - name: Enemies
-    uniqueID: 1911306257
-    locked: 0
   - name: DroppedItems
     uniqueID: 2565261651
     locked: 0
   - name: Player
     uniqueID: 425746907
+    locked: 0
+  - name: Enemies
+    uniqueID: 1911306257
     locked: 0
   - name: UI
     uniqueID: 2891975561

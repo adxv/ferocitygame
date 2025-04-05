@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 
 public class Bullet : MonoBehaviour
 {
@@ -6,6 +7,13 @@ public class Bullet : MonoBehaviour
     public float lifeDuration = 2f;
     private Rigidbody2D rb;
     private GameObject shooter; // track who fired the bullet
+    
+    // Shotgun pellet properties
+    [HideInInspector] public bool isShotgunPellet = false;
+    [HideInInspector] public bool hasRecordedHit = false;
+    
+    // Event that fires when this bullet hits an enemy
+    public event Action OnEnemyHit;
 
     void Start()
     {
@@ -37,7 +45,13 @@ public class Bullet : MonoBehaviour
                     // Record hit only if player shot a LIVE enemy
                     if (isPlayerShooter && ScoreManager.Instance != null)
                     {
-                        ScoreManager.Instance.RecordHit();
+                        // For shotgun pellets, only record one hit per shotgun blast
+                        if (!isShotgunPellet || !hasRecordedHit)
+                        {
+                            ScoreManager.Instance.RecordHit();
+                            // Notify that this pellet hit an enemy
+                            OnEnemyHit?.Invoke();
+                        }
                     }
                     enemy.Die(); // Call Die() only if it's alive
                 }
