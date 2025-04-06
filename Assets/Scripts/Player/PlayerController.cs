@@ -87,6 +87,9 @@ public class PlayerController : MonoBehaviour
     {
         if (!isDead)
         {
+            // Update which weapon pickup is closest
+            UpdateClosestWeaponPickup();
+            
             Vector3 mousePos = mainCamera.ScreenToWorldPoint(Mouse.current.position.ReadValue());
             mousePos.z = 0f;
             Vector3 direction = (mousePos - transform.position).normalized;
@@ -389,8 +392,24 @@ public class PlayerController : MonoBehaviour
             WeaponPickup pickup = collision.transform.parent.GetComponent<WeaponPickup>();
             if (pickup != null)
             {
-                nearbyWeaponPickup = pickup;
-                Debug.Log($"Near weapon pickup: {pickup.weaponData?.weaponName ?? "Unknown"} (Triggered by: {collision.gameObject.name})");
+                // If there's no current nearby weapon, set this one
+                if (nearbyWeaponPickup == null)
+                {
+                    nearbyWeaponPickup = pickup;
+                    Debug.Log($"Near weapon pickup: {pickup.weaponData?.weaponName ?? "Unknown"} (Triggered by: {collision.gameObject.name})");
+                }
+                else
+                {
+                    // Compare distances and pick the closer one
+                    float currentDistance = Vector2.Distance(transform.position, nearbyWeaponPickup.transform.position);
+                    float newDistance = Vector2.Distance(transform.position, pickup.transform.position);
+                    
+                    if (newDistance < currentDistance)
+                    {
+                        nearbyWeaponPickup = pickup;
+                        Debug.Log($"Switched to closer weapon pickup: {pickup.weaponData?.weaponName ?? "Unknown"} (Triggered by: {collision.gameObject.name})");
+                    }
+                }
                 // Optional: Add visual feedback
             }
             else
@@ -492,5 +511,41 @@ public class PlayerController : MonoBehaviour
             // For now, just log that the gun is empty
             Debug.Log("*Click* - Weapon is empty!");
         }
+    }
+
+    // Continuously update which weapon pickup is closest
+    void UpdateClosestWeaponPickup()
+    {
+        // Find all nearby weapon pickups
+        Collider2D[] pickupColliders = Physics2D.OverlapCircleAll(transform.position, 2.0f, LayerMask.GetMask("Pickup"));
+        
+        // If no pickups found, clear the reference
+        if (pickupColliders.Length == 0)
+        {
+            nearbyWeaponPickup = null;
+            return;
+        }
+        
+        // Find the closest one
+        WeaponPickup closestPickup = null;
+        float closestDistance = float.MaxValue;
+        
+        foreach (Collider2D col in pickupColliders)
+        {
+            // Get the parent that has the WeaponPickup component
+            WeaponPickup pickup = col.transform.parent.GetComponent<WeaponPickup>();
+            if (pickup != null)
+            {
+                float distance = Vector2.Distance(transform.position, pickup.transform.position);
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                    closestPickup = pickup;
+                }
+            }
+        }
+        
+        // Update the reference to the closest pickup
+        nearbyWeaponPickup = closestPickup;
     }
 }

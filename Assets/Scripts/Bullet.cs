@@ -35,10 +35,19 @@ public class Bullet : MonoBehaviour
 
         // Check if the shooter is the player before recording a hit
         bool isPlayerShooter = shooter != null && shooter.CompareTag("Player");
+        bool isEnemyShooter = shooter != null && shooter.CompareTag("Enemy");
 
         switch (collision.gameObject.tag)
         {
             case "Enemy":
+                // Prevent enemies from killing each other
+                if (isEnemyShooter)
+                {
+                    // If an enemy shot this bullet and hit another enemy, just destroy the bullet without damage
+                    Destroy(gameObject);
+                    return;
+                }
+                
                 Enemy enemy = collision.gameObject.GetComponent<Enemy>();
                 if (enemy != null && !enemy.isDead)
                 {
