@@ -176,16 +176,16 @@ PolygonCollider2D:
   m_AutoTiling: 0
   m_Points:
     m_Paths:
-    - - {x: 1.2995297, y: -1.9113017}
-      - {x: 2.5029678, y: -1.5214589}
+    - - {x: 2.0390234, y: -4.0188584}
+      - {x: 4.7953978, y: -3.2222943}
       - {x: 5.982832, y: -0.008433923}
       - {x: 5.998201, y: 4.0094423}
       - {x: -0.03819043, y: 5.064329}
       - {x: -6.0061965, y: 3.9612088}
       - {x: -5.997854, y: 0.011630297}
-      - {x: -2.9356751, y: -1.4341785}
-      - {x: -1.6298711, y: -1.7431933}
-      - {x: -0.015618086, y: -2.045977}
+      - {x: -4.78441, y: -3.135014}
+      - {x: -1.9626433, y: -3.9986496}
+      - {x: -0.015618086, y: -3.9686608}
   m_UseDelaunayMesh: 0
 --- !u!1 &5441475329188793735
 GameObject:
@@ -384,20 +384,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bulletPrefab: {fileID: 4780090448626563172, guid: c55fcad0891b0aa4ea65546dde828a13, type: 3}
-  shootInterval: 0.5
+  shootInterval: 0.1
   bulletSpeed: 30
-  bulletOffset: 0.5
+  bulletOffset: 1
   forgetTime: 3
   wallLayer:
     serializedVersion: 2
     m_Bits: 2147487744
-  shotDelayMin: 0.15
-  shotDelayMax: 0.26
+  shotDelayMin: 0.1
+  shotDelayMax: 0.13
   shootSound: {fileID: 2296431436199089768}
   patrolSpeed: 10
-  chaseSpeed: 23
+  chaseSpeed: 20
   randomModeInterval: 2.5
-  rotationSpeed: 8
+  rotationSpeed: 20
   turnPauseDuration: 0.7
   safetyDistance: 1
   deathSprite: {fileID: 4325505437714666157, guid: 20563bb334931394faf8dafbde76c41c, type: 3}
@@ -486,7 +486,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 0.2
       inSlope: 0
       outSlope: 0
       tangentMode: 0

@@ -7,6 +7,7 @@ public class Bullet : MonoBehaviour
     public float lifeDuration = 2f;
     private Rigidbody2D rb;
     private GameObject shooter; // track who fired the bullet
+    private Vector2 travelDirection; // Track the bullet's travel direction
     
     // Shotgun pellet properties
     [HideInInspector] public bool isShotgunPellet = false;
@@ -19,6 +20,7 @@ public class Bullet : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         rb.linearVelocity = transform.up * speed;
+        travelDirection = transform.up; // Store the travel direction
         Destroy(gameObject, lifeDuration);
     }
 
@@ -26,6 +28,12 @@ public class Bullet : MonoBehaviour
     public void SetShooter(GameObject shooterObj)
     {
         shooter = shooterObj;
+    }
+    
+    // Public method to get the bullet's travel direction
+    public Vector2 GetTravelDirection()
+    {
+        return travelDirection;
     }
 
     void OnCollisionEnter2D(Collision2D collision)
@@ -62,7 +70,7 @@ public class Bullet : MonoBehaviour
                             OnEnemyHit?.Invoke();
                         }
                     }
-                    enemy.Die(); // Call Die() only if it's alive
+                    enemy.Die(travelDirection); // Pass bullet direction to Die method
                 }
                 // Regardless of hit, destroy the bullet
                 Destroy(gameObject);
@@ -70,7 +78,7 @@ public class Bullet : MonoBehaviour
             case "Player":
                 // Apply damage/effect to the player
                 PlayerController player = collision.gameObject.GetComponent<PlayerController>();
-                if (player != null) { player.TakeDamage(1); }
+                if (player != null) { player.TakeDamage(1, travelDirection); } // Pass bullet direction
                  Destroy(gameObject); // Destroy bullet after hitting player
                 break;
             case "Environment":

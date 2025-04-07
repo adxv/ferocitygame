@@ -630,18 +630,28 @@ public class Enemy : MonoBehaviour
 
     void Shoot()
     {
-        if (bulletPrefab == null)
+        if (bulletPrefab == null || player == null)
         {
-            Debug.LogError("bulletPrefab not assigned in Enemy!");
+            Debug.LogError("bulletPrefab or player not assigned/found in Enemy!");
             return;
         }
 
         Vector3 spawnPosition = transform.position + (transform.up * bulletOffset);
-        GameObject bullet = Instantiate(bulletPrefab, spawnPosition, transform.rotation);
+
+        // Calculate the precise direction towards the player from the spawn point
+        Vector2 directionToPlayer = (player.position - spawnPosition).normalized;
+
+        // Calculate the rotation needed to face the player
+        Quaternion bulletRotation = Quaternion.LookRotation(Vector3.forward, directionToPlayer); // Use LookRotation for 2D
+
+        // Instantiate the bullet facing the calculated direction
+        GameObject bullet = Instantiate(bulletPrefab, spawnPosition, bulletRotation);
+
         Rigidbody2D bulletRb = bullet.GetComponent<Rigidbody2D>();
         if (bulletRb != null)
         {
-            bulletRb.linearVelocity = transform.up * bulletSpeed;
+            // Set velocity along the calculated direction
+            bulletRb.linearVelocity = directionToPlayer * bulletSpeed; // Use velocity instead of linearVelocity for immediate effect
         }
         Bullet bulletScript = bullet.GetComponent<Bullet>();
         if (bulletScript != null)
@@ -768,7 +778,7 @@ public class Enemy : MonoBehaviour
         return Random.Range(0f, 360f);
     }
 
-    public void Die()
+    public void Die(Vector2 bulletDirection = default)
     {
         if (isDead) return;
 
@@ -787,8 +797,25 @@ public class Enemy : MonoBehaviour
         }
         transform.localScale = new Vector3(3.2f, 3.2f, 3.2f);
 
-        Vector2 nudgeDirection = (transform.position - player.position).normalized;
-        rb.AddForce(nudgeDirection * 10f, ForceMode2D.Impulse);
+        // If we have a valid bullet direction, face that direction
+        if (bulletDirection != default && bulletDirection != Vector2.zero)
+        {
+            // Invert the direction to face WHERE the bullet came FROM
+            Vector2 sourceDirection = -bulletDirection;
+            
+            // Calculate the rotation to face the source of the bullet
+            float angle = Mathf.Atan2(sourceDirection.y, sourceDirection.x) * Mathf.Rad2Deg - 90f;
+            transform.rotation = Quaternion.Euler(0, 0, angle);
+            
+            // Apply force in the direction of the bullet's travel (away from source)
+            rb.AddForce(bulletDirection * 10f, ForceMode2D.Impulse);
+        }
+        else
+        {
+            // Fallback to the original behavior if no bullet direction is provided
+            Vector2 nudgeDirection = (transform.position - player.position).normalized;
+            rb.AddForce(nudgeDirection * 10f, ForceMode2D.Impulse);
+        }
 
         // Disable all colliders on this GameObject and its children
         Collider2D[] allColliders = GetComponentsInChildren<Collider2D>(true); // true includes inactive colliders

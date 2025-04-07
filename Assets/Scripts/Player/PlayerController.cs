@@ -258,9 +258,10 @@ public class PlayerController : MonoBehaviour
 
     public void OnLook(InputAction.CallbackContext context)
     {
-        if (!isDead)
+        if (!isDead && context.performed)
         {
-            isLooking = context.performed;
+            // Toggle the isLooking state
+            isLooking = !isLooking;
         }
     }
 
@@ -348,26 +349,45 @@ public class PlayerController : MonoBehaviour
         shakeMagnitude = magnitude; // Assign to the renamed variable
     }
 
-    public void TakeDamage(int damage)
+    public void TakeDamage(int damage, Vector2 bulletDirection = default)
     {
         if (!isDead)
         {
             health -= damage;
             if (health <= 0)
             {
-                Die();
+                Die(bulletDirection);
             }
         }
     }
 
-    void Die()
+    void Die(Vector2 bulletDirection = default)
     {
         isDead = true;
         rb.linearVelocity = Vector2.zero; 
         transform.localScale = new Vector3(3.2f, 3.2f, 3.2f); 
         GetComponent<SpriteRenderer>().sprite = deathSprite;
-        Vector2 nudgeDirection = -transform.up; 
-        rb.AddForce(nudgeDirection * 1f, ForceMode2D.Impulse); 
+        
+        // If we have a valid bullet direction, face that direction
+        if (bulletDirection != default && bulletDirection != Vector2.zero)
+        {
+            // Invert the direction to face WHERE the bullet came FROM
+            Vector2 sourceDirection = -bulletDirection;
+            
+            // Calculate the rotation to face the source of the bullet
+            float angle = Mathf.Atan2(sourceDirection.y, sourceDirection.x) * Mathf.Rad2Deg - 90f;
+            transform.rotation = Quaternion.Euler(0, 0, angle);
+            
+            // Apply force in the direction of the bullet's travel (away from source)
+            rb.AddForce(bulletDirection * 1f, ForceMode2D.Impulse);
+        }
+        else
+        {
+            // Fallback to the original behavior if no bullet direction is provided
+            Vector2 nudgeDirection = -transform.up;
+            rb.AddForce(nudgeDirection * 1f, ForceMode2D.Impulse);
+        }
+        
         Invoke("StopAfterNudge", 0.1f);
         GetComponent<Collider2D>().enabled = false; 
     }
