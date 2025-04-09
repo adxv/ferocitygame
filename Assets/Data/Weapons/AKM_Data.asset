@@ -21,8 +21,11 @@ MonoBehaviour:
   fireRate: 10
   isFullAuto: 1
   damage: 1
-  bulletOffset: 2
-  bulletOffsetSide: 0.6
+  bulletOffset: 1.1
+  bulletOffsetSide: 0.35
+  range: 26
+  bulletSpeed: 400
+  spread: 3
   magazineSize: 30
   pelletCount: 1
   spreadAngle: 0

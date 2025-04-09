@@ -9,9 +9,26 @@ public class Bullet : MonoBehaviour
     private GameObject shooter; // track who fired the bullet
     private Vector2 travelDirection; // Track the bullet's travel direction
     
+    // Range properties
+    private float maxRange = 50f; // Maximum effective range
+    private bool isOutOfRange = false; // Flag to track if bullet has exceeded its max range
+    private Vector3 startPosition; // Starting position to track distance traveled
+    
     // Shotgun pellet properties
     [HideInInspector] public bool isShotgunPellet = false;
     [HideInInspector] public bool hasRecordedHit = false;
+    
+    // Tracer effect properties
+    [Header("Tracer Effect")]
+    public bool useTracerEffect = true;
+    public float tracerWidth = 0.1f;
+    public float tracerFadeTime = 0.5f;
+    public Color tracerColor = Color.yellow;
+    [Range(0f, 0.5f)]
+    public float colorVariation = 0.1f; // How much the color can vary
+    
+    private LineRenderer lineRenderer;
+    private float tracerTimer;
     
     // Event that fires when this bullet hits an enemy
     public event Action OnEnemyHit;
@@ -22,6 +39,61 @@ public class Bullet : MonoBehaviour
         rb.linearVelocity = transform.up * speed;
         travelDirection = transform.up; // Store the travel direction
         Destroy(gameObject, lifeDuration);
+        
+        // Store start position for range calculation
+        startPosition = transform.position;
+        
+        // Set up tracer effect
+        if (useTracerEffect)
+        {
+            // Add LineRenderer if it doesn't exist
+            if (!TryGetComponent(out lineRenderer))
+            {
+                lineRenderer = gameObject.AddComponent<LineRenderer>();
+            }
+            
+            // Randomize the color slightly
+            Color randomizedColor = RandomizeColor(tracerColor, colorVariation);
+            
+            // Configure LineRenderer
+            lineRenderer.positionCount = 2;
+            lineRenderer.startWidth = tracerWidth;
+            lineRenderer.endWidth = tracerWidth;
+            lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+            lineRenderer.startColor = randomizedColor;
+            lineRenderer.endColor = randomizedColor;
+            
+            // Set start position for line renderer
+            lineRenderer.SetPosition(0, startPosition);
+            lineRenderer.SetPosition(1, startPosition);
+            
+            tracerTimer = tracerFadeTime;
+        }
+    }
+
+    // Set the bullet's speed and range from weapon data
+    public void SetBulletParameters(float speed, float range)
+    {
+        this.speed = speed;
+        this.maxRange = range;
+        
+        // Update velocity with new speed
+        if (rb != null)
+        {
+            rb.linearVelocity = transform.up * speed;
+        }
+    }
+
+    // Randomize color with small variations
+    private Color RandomizeColor(Color baseColor, float variation)
+    {
+        // Add random variation to each RGB component
+        float r = Mathf.Clamp01(baseColor.r + UnityEngine.Random.Range(-variation, variation));
+        float g = Mathf.Clamp01(baseColor.g + UnityEngine.Random.Range(-variation, variation));
+        float b = Mathf.Clamp01(baseColor.b + UnityEngine.Random.Range(-variation, variation));
+        
+        // Keep the same alpha
+        return new Color(r, g, b, baseColor.a);
     }
 
     // Public method to set the shooter when spawned
@@ -57,9 +129,9 @@ public class Bullet : MonoBehaviour
                 }
                 
                 Enemy enemy = collision.gameObject.GetComponent<Enemy>();
-                if (enemy != null && !enemy.isDead)
+                if (enemy != null && !enemy.isDead && !isOutOfRange)
                 {
-                    // Record hit only if player shot a LIVE enemy
+                    // Record hit only if player shot a LIVE enemy and bullet is in range
                     if (isPlayerShooter && ScoreManager.Instance != null)
                     {
                         // For shotgun pellets, only record one hit per shotgun blast
@@ -76,10 +148,13 @@ public class Bullet : MonoBehaviour
                 Destroy(gameObject);
                 break;
             case "Player":
-                // Apply damage/effect to the player
-                PlayerController player = collision.gameObject.GetComponent<PlayerController>();
-                if (player != null) { player.TakeDamage(1, travelDirection); } // Pass bullet direction
-                 Destroy(gameObject); // Destroy bullet after hitting player
+                // Apply damage/effect to the player only if bullet is in range
+                if (!isOutOfRange)
+                {
+                    PlayerController player = collision.gameObject.GetComponent<PlayerController>();
+                    if (player != null) { player.TakeDamage(1, travelDirection); } // Pass bullet direction
+                }
+                Destroy(gameObject); // Destroy bullet after hitting player
                 break;
             case "Environment":
                  // Optionally record a miss if the player shot it (handled by accuracy calculation)
@@ -91,8 +166,32 @@ public class Bullet : MonoBehaviour
                 break;
         }
     }
+    
     void Update()
     {
+        // Check if bullet has exceeded its range
+        float distanceTraveled = Vector3.Distance(startPosition, transform.position);
+        isOutOfRange = distanceTraveled > maxRange;
         
+        // Update tracer effect
+        if (useTracerEffect && lineRenderer != null)
+        {
+            // Update the end position of the line to follow the bullet
+            lineRenderer.SetPosition(1, transform.position);
+            
+            // Fade out the tracer
+            tracerTimer -= Time.deltaTime;
+            if (tracerTimer <= 0)
+            {
+                // Gradually fade out the color
+                Color currentColor = lineRenderer.startColor;
+                float alpha = currentColor.a - (Time.deltaTime / tracerFadeTime);
+                alpha = Mathf.Clamp01(alpha);
+                
+                Color fadeColor = new Color(currentColor.r, currentColor.g, currentColor.b, alpha);
+                lineRenderer.startColor = fadeColor;
+                lineRenderer.endColor = fadeColor;
+            }
+        }
     }
 }

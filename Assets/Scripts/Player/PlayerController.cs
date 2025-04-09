@@ -309,11 +309,20 @@ public class PlayerController : MonoBehaviour
         {
             // Calculate spread angle for this pellet
             float angle = 0;
+            
+            // Apply weapon general spread (random inaccuracy)
+            if (currentWep.spread > 0)
+            {
+                // Random deviation within the spread range
+                angle += Random.Range(-currentWep.spread, currentWep.spread);
+            }
+            
+            // Apply shotgun spread for multiple pellets
             if (currentWep.spreadAngle > 0 && pelletCount > 1)
             {
                 // Distribute pellets evenly across the spread angle
                 float angleStep = currentWep.spreadAngle / (pelletCount - 1);
-                angle = -currentWep.spreadAngle / 2 + angleStep * i;
+                angle += -currentWep.spreadAngle / 2 + angleStep * i;
             }
             
             // Create the bullet with rotation adjusted for spread
@@ -326,6 +335,9 @@ public class PlayerController : MonoBehaviour
                 // Pass the player controller to allow tracking hits
                 bulletScript.SetShooter(gameObject);
                 
+                // Pass weapon data parameters to the bullet
+                bulletScript.SetBulletParameters(currentWep.bulletSpeed, currentWep.range);
+                
                 // Set shotgun flag to track only one hit per shot
                 bulletScript.isShotgunPellet = pelletCount > 1;
                 bulletScript.hasRecordedHit = hasHitEnemy;
@@ -335,7 +347,7 @@ public class PlayerController : MonoBehaviour
             Rigidbody2D bulletRb = bulletGO.GetComponent<Rigidbody2D>();
             if (bulletRb != null)
             {
-                bulletRb.linearVelocity = bulletGO.transform.up * 50f; // Apply velocity in the direction the bullet is facing
+                bulletRb.linearVelocity = bulletGO.transform.up * currentWep.bulletSpeed; // Use weapon's bullet speed
             }
         }
 

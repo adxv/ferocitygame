@@ -17,7 +17,10 @@ public class WeaponData : ScriptableObject
     public float damage = 10f;
     public float bulletOffset = 1.0f;   // Forward offset for bullet spawn
     public float bulletOffsetSide = 0f; // Sideways offset for bullet spawn
-    public float range = 50f; // Example range, adjust as needed
+    public float range = 50f;           // Range in units beyond which bullets won't do damage
+    public float bulletSpeed = 200f;    // Speed of bullets fired by this weapon
+    [Tooltip("The higher the value, the more inaccurate shots will be")]
+    public float spread = 0f;           // General inaccuracy in degrees (0 = perfectly accurate)
     
     [Header("Ammunition")]
     public int magazineSize = 10;       // Maximum rounds in magazine
