@@ -1,0 +1,102 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &9203562969874066756
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1553490355061664824, guid: 5df97a20cdea0124b8397faca83c92cd, type: 3}
+      propertyPath: m_Name
+      value: StairsDoor Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 4372564422350507919, guid: 5df97a20cdea0124b8397faca83c92cd, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 4372564422350507919, guid: 5df97a20cdea0124b8397faca83c92cd, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.65878105
+      objectReference: {fileID: 0}
+    - target: {fileID: 4372564422350507919, guid: 5df97a20cdea0124b8397faca83c92cd, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -6.347234
+      objectReference: {fileID: 0}
+    - target: {fileID: 4372564422350507919, guid: 5df97a20cdea0124b8397faca83c92cd, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.10127529
+      objectReference: {fileID: 0}
+    - target: {fileID: 4372564422350507919, guid: 5df97a20cdea0124b8397faca83c92cd, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4372564422350507919, guid: 5df97a20cdea0124b8397faca83c92cd, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4372564422350507919, guid: 5df97a20cdea0124b8397faca83c92cd, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4372564422350507919, guid: 5df97a20cdea0124b8397faca83c92cd, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4372564422350507919, guid: 5df97a20cdea0124b8397faca83c92cd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4372564422350507919, guid: 5df97a20cdea0124b8397faca83c92cd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4372564422350507919, guid: 5df97a20cdea0124b8397faca83c92cd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents:
+    - {fileID: 8072650917392813148, guid: 5df97a20cdea0124b8397faca83c92cd, type: 3}
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1553490355061664824, guid: 5df97a20cdea0124b8397faca83c92cd, type: 3}
+      insertIndex: 1
+      addedObject: {fileID: 948727853428029669}
+  m_SourcePrefab: {fileID: 100100000, guid: 5df97a20cdea0124b8397faca83c92cd, type: 3}
+--- !u!1 &7653450840672977276 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1553490355061664824, guid: 5df97a20cdea0124b8397faca83c92cd, type: 3}
+  m_PrefabInstance: {fileID: 9203562969874066756}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &948727853428029669
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7653450840672977276}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 847171c6c16f3204287a30068b45dd7c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxOpenAngle: 85
+  pushForce: 0.32
+  doorMass: 0.001
+  doorDamping: 5
+  unlockForce: 0.1
+  unlockDelay: 0.2
+  openDirection: 1
+  audioSource: {fileID: 9206916713810245608}
+  unlockSound: {fileID: 8300000, guid: 19b3bb2adbec0f745af3a2bdf36a22fc, type: 3}
+  lockedSound: {fileID: 8300000, guid: 19b3bb2adbec0f745af3a2bdf36a22fc, type: 3}
+  minTimeBetweenSounds: 1
+  currentFloor: {fileID: 0}
+  autoDetectFloor: 1
+--- !u!82 &9206916713810245608 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 34927338228308652, guid: 5df97a20cdea0124b8397faca83c92cd, type: 3}
+  m_PrefabInstance: {fileID: 9203562969874066756}
+  m_PrefabAsset: {fileID: 0}

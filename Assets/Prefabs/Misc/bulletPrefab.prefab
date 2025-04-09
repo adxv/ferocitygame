@@ -231,7 +231,7 @@ MonoBehaviour:
   m_Color: {r: 0.9924077, g: 1, b: 0.1462264, a: 1}
   m_Intensity: 8.92
   m_LightVolumeIntensity: 0.16
-  m_LightVolumeEnabled: 0
+  m_LightVolumeEnabled: 1
   m_ApplyToSortingLayers: bbeca2965ffc29db5987ec29c71bf3ec53c9e698db6160191138ec71890b60ac00000000
   m_LightCookieSprite: {fileID: 0}
   m_DeprecatedPointLightCookieSprite: {fileID: 0}
@@ -239,10 +239,10 @@ MonoBehaviour:
   m_AlphaBlendOnOverlap: 0
   m_OverlapOperation: 0
   m_NormalMapDistance: 3
-  m_NormalMapQuality: 2
+  m_NormalMapQuality: 1
   m_UseNormalMap: 0
   m_ShadowsEnabled: 1
-  m_ShadowIntensity: 0.75
+  m_ShadowIntensity: 0.681
   m_ShadowSoftness: 0.3
   m_ShadowSoftnessFalloffIntensity: 0.5
   m_ShadowVolumeIntensityEnabled: 1

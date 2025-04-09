@@ -1,0 +1,135 @@
+# Multi-Floor Level Setup Guide
+
+This guide explains how to set up a level with multiple floors where players must clear enemies on each floor to progress.
+
+## Overview
+
+The system consists of two main components:
+1. **FloorManager**: Defines and manages each floor's area and tracks enemies within its bounds
+2. **FloorAccessController**: Controls access points (stairs, elevators, etc.) between floors
+
+You can create as many floors as needed in a single scene, connecting them with access points that only unlock when all enemies on the current floor are defeated.
+
+## Step 1: Create Floor Managers
+
+For each floor in your level:
+
+1. Create an empty GameObject (e.g., "Floor0", "Floor1", "Floor2", etc.)
+2. Position it at the center of the floor area
+3. Add the FloorManager component
+4. Configure the FloorManager properties:
+   - **Floor Name**: A descriptive name (e.g., "Basement", "Ground Floor", "First Floor")
+   - **Floor Index**: Unique numerical index (0, 1, 2, etc.)
+   - **Gizmo Color**: Color for editor visualization
+   - **Floor Bounds**: Set X and Y to cover the entire floor area
+
+Example floor hierarchy:
+```
+- Floor0 (Basement)
+- Floor1 (Ground Floor)
+- Floor2 (First Floor)
+- Floor3 (Rooftop)
+```
+
+## Step 2: Create Access Points Between Floors
+
+For each connection between floors:
+
+1. Create a GameObject to represent the access point (stairs, elevator, ladder, etc.)
+2. Position it where the player should access it
+3. Add a BoxCollider2D with "Is Trigger" checked
+4. Add the FloorAccessController component
+
+Multiple access points can connect the same floors (e.g., multiple staircases between floors).
+
+## Step 3: Configure Access Points
+
+For each FloorAccessController:
+
+1. **Current Floor**: Will be auto-detected based on position, but you can manually assign it
+2. **Destination Floor**: Assign the FloorManager of the floor this access point leads to
+3. **Destination Point**: Create an empty GameObject at the arrival position and assign it here
+4. **Visual Indicators**: Create and assign sprites for locked/unlocked/used states
+5. **Options**:
+   - **Always Unlocked**: Check this for access points that should never lock
+   - **Single Use Only**: When enabled, the access point can only be used once after enemies are cleared
+
+Example connection setup:
+```
+Floor0 → Floor1 (locked until Floor0 enemies cleared, single use only)
+Floor1 → Floor0 (can be always unlocked for easier backtracking)
+Floor1 → Floor2 (locked until Floor1 enemies cleared, single use only)
+Floor2 → Floor1 (can be always unlocked)
+...and so on
+```
+
+## Step 4: Create Visual Indicators
+
+For each access point:
+
+1. Create child GameObjects with SpriteRenderers for:
+   - Locked state (red X, barrier, etc.)
+   - Unlocked state (green arrow, open door, etc.)
+   - Used state (broken stairs, depleted teleporter, etc.)
+2. Assign these to the corresponding slots in the FloorAccessController
+
+## Step 5: Test and Refine
+
+1. Play the scene and verify that:
+   - Access points correctly lock based on enemy status
+   - Player teleports correctly between floors
+   - Visual indicators update properly
+   - Single-use access points become permanently locked after use
+2. Adjust floor bounds if enemies aren't being detected correctly
+3. Fine-tune teleport destinations if player position feels off
+
+## Single-Use Progression System
+
+With the **Single Use Only** option enabled, you can create a strict progression system:
+
+1. Player must clear all enemies on Floor 0
+2. Access point to Floor 1 unlocks
+3. Player can use the access point once to reach Floor 1
+4. The access point becomes permanently locked
+5. Player must clear Floor 1 to unlock access to Floor 2
+6. ...and so on
+
+This creates a one-way progression through your level, preventing backtracking and ensuring players follow your intended path. To allow limited backtracking, you can:
+
+1. Create separate return access points with **Always Unlocked** checked
+2. Strategically place items and enemies to encourage forward progress
+3. Use one-way shortcuts between non-adjacent floors
+
+## Advanced Uses
+
+### One-Way Access Points
+- Set only one direction with a destination, leaving the return point unset
+
+### Shortcuts Between Non-Adjacent Floors
+- Connect any two floors directly (e.g., Floor1 → Floor4 via an elevator)
+
+### Hidden Areas
+- Create small "secret" floor areas with their own FloorManager
+- These can have their own enemy-clearing requirements
+
+### Branching Paths
+- Create multiple paths through your level by connecting floors in a non-linear way
+
+## Troubleshooting
+
+1. **Access point stays locked even when all enemies are dead**:
+   - Check that the floor bounds fully contain all enemies
+   - Verify the FloorManager is correctly assigned
+
+2. **Player teleports to wrong location**:
+   - Ensure the destination point is properly positioned
+   - Check that the correct FloorManager is assigned as the destination floor
+
+3. **Visual indicators not updating**:
+   - Make sure the sprite GameObjects are assigned in the inspector
+
+4. **Access point can be used multiple times despite Single Use Only**:
+   - Check that the singleUseOnly option is enabled
+   - Verify the usedSprite is assigned for proper visual feedback
+
+This system supports any number of floors in a single scene, providing flexible level design while maintaining the core gameplay requirement of clearing enemies to progress. 

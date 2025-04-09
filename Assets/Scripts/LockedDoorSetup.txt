@@ -1,0 +1,138 @@
+# Locked Door System Setup Guide
+
+This guide explains how to set up doors that automatically unlock when all enemies on their current floor are dead.
+
+## Overview
+
+The LockedDoorController works with the FloorManager system to:
+1. Identify which floor the door is on
+2. Monitor the status of enemies only on that floor
+3. Unlock when all enemies on that floor are dead with a sound effect
+4. Wait for a short delay, then automatically crack open in your chosen direction
+5. Allow the door to be pushed open after unlocking
+
+This creates more nuanced level progression where doors within a floor unlock as areas are cleared.
+
+## Step 1: Set Up Floor Managers
+
+First, ensure you have FloorManager components set up properly:
+
+1. Follow the main MultiFloorLevelSetup.txt guide to create FloorManager objects
+2. Make sure each floor's bounds properly contain all its doors and enemies
+
+## Step 2: Create Locked Doors
+
+For each door you want to unlock when enemies are cleared:
+
+1. Create a door GameObject (or duplicate your existing Door prefab)
+2. Add the LockedDoorController component to it
+3. Set up its colliders:
+   - One BoxCollider2D with "Is Trigger" checked (for player/enemy detection)
+   - One BoxCollider2D without "Is Trigger" (for physical collision)
+
+## Step 3: Configure Doors
+
+For each LockedDoorController:
+
+1. **Door Physics**:
+   - **maxOpenAngle**: Maximum angle the door can open (e.g., 90°)
+   - **pushForce**: How strongly the door responds to player/enemy pushing
+   - **doorMass**: Higher values make the door more resistant to movement
+   - **doorDamping**: How quickly the door slows down after pushing
+   - **unlockForce**: Initial force applied when door unlocks (higher = door opens wider)
+   - **unlockDelay**: Time in seconds to wait after unlocking before the door opens (default: 1 second)
+
+2. **Auto-Open Direction**:
+   - **openInPositiveDirection**: Simple checkbox to control which way the door swings when it automatically opens
+     - ✓ Checked = Door opens in positive rotation direction (clockwise)
+     - ☐ Unchecked = Door opens in negative rotation direction (counter-clockwise)
+
+3. **Audio**:
+   - **audioSource**: Reference to an AudioSource component (will be auto-created if missing)
+   - **unlockSound**: Sound effect played when the door unlocks
+   - **lockedSound**: Sound effect played when player tries to open a locked door
+   - **minTimeBetweenSounds**: Minimum time (in seconds) between sound effects
+
+4. **Floor Settings**:
+   - **currentFloor**: Assign the FloorManager this door belongs to
+   - **autoDetectFloor**: If enabled, the door will automatically find its floor based on position
+
+## Step 4: Setting Up Audio
+
+1. Create or import sound effects for:
+   - Door unlocking (e.g., a click, mechanical sound, or magical effect)
+   - Failed attempt to open (e.g., a rattle, thud, or locked sound)
+
+2. Add these audio clips to your project
+
+3. Assign them to the respective slots in the LockedDoorController
+
+## Step 5: Configuring the Unlock Sequence
+
+You can customize how doors behave when they unlock:
+
+1. **Opening Direction**:
+   - Use the openInPositiveDirection checkbox to select which way each door swings when it unlocks
+   - If you're not sure which direction is which, test in Play mode and observe, then adjust
+
+2. **Instant vs Delayed Opening**:
+   - Set unlockDelay to 0 for immediate opening
+   - Set unlockDelay to higher values (e.g., 1-3 seconds) for a more dramatic effect
+   - Audio plays immediately when unlocked, but door waits to open
+
+3. **Opening Force**:
+   - Adjust unlockForce to control how wide the door cracks open
+   - Higher values = door swings open wider
+   - Lower values = door barely moves
+
+This unlock sequence creates a more dramatic and noticeable effect when a door becomes available.
+
+## Step 6: Testing
+
+1. Enter Play mode
+2. Verify that:
+   - Doors correctly detect which floor they're on (check console logs)
+   - Doors remain locked while enemies are alive on their floor
+   - Doors play unlock sound when all enemies are eliminated
+   - After the delay, doors automatically crack open in the selected direction
+   - Doors play locked sound when player tries to open before enemies are cleared
+   - Doors can be pushed open after unlocking
+
+## Examples
+
+### Standard Room Progression
+
+Create a level with multiple rooms on a single floor:
+1. Place enemies in each room
+2. Place locked doors between rooms, configuring each to open in the desired direction
+3. As the player clears each room, the next door unlocks with audio feedback and delayed opening
+
+### Create a Guided Path
+
+1. Set up a series of rooms in sequence
+2. Configure each door's opening direction to naturally lead the player forward
+3. This subtle visual cue helps guide players through your level
+
+## Troubleshooting
+
+1. **Door opens in wrong direction**:
+   - Toggle the openInPositiveDirection checkbox
+   - Test again to confirm it now opens in the desired direction
+
+2. **Door doesn't unlock when enemies are dead**:
+   - Check that the door is correctly assigned to the right floor
+   - Verify the floor bounds contain all relevant enemies
+   - Check console for any error messages
+
+3. **Door detects wrong floor**:
+   - Disable autoDetectFloor and manually assign the correct floor
+
+4. **Door physics feel wrong**:
+   - Adjust doorMass (lower = easier to push)
+   - Adjust pushForce (higher = responds more to pushing)
+   - Adjust doorDamping (lower = door swings longer)
+
+5. **No sound when door unlocks**:
+   - Check that unlockSound and lockedSound clips are assigned
+   - Verify an AudioSource component exists on the door
+   - Check that audio volume is turned up 

@@ -23,6 +23,8 @@ public class Enemy : MonoBehaviour
     public float randomModeInterval = 2.5f;
     public float rotationSpeed = 5f;
     public float turnPauseDuration = 0.7f; // Duration to pause after turning in patrol mode
+    public float minTurnPauseDuration = 0.5f; // Minimum pause time after turning
+    public float maxTurnPauseDuration = 1.5f; // Maximum pause time after turning
     private Rigidbody2D rb;
     private Vector2 patrolDirection;
     private float enemyRadius = 0.25f;
@@ -34,6 +36,8 @@ public class Enemy : MonoBehaviour
     private bool isWaiting;
     private bool isPausedAfterTurn = false; // Track if paused after turning in patrol mode
     private float turnPauseTimer = 0f; // Timer for pause after turning
+    private bool turnRight = true; // Determines if the enemy turns right (true) or left (false)
+    private float directionChangeChance = 0.2f; // Chance to change turn direction on each turn
 
     // A* Pathfinding variables
     private List<Vector2> path = new List<Vector2>();
@@ -81,6 +85,9 @@ public class Enemy : MonoBehaviour
         targetRotation = transform.rotation;
         waitTimer = 0f;
         isWaiting = false;
+        
+        // Randomly determine initial turn direction
+        turnRight = Random.value > 0.5f;
 
         gameObject.layer = LayerMask.NameToLayer("Enemy");
         
@@ -350,14 +357,21 @@ public class Enemy : MonoBehaviour
             RaycastHit2D hit = Physics2D.Raycast(transform.position, patrolDirection, safetyDistance + enemyRadius, wallLayer);
             if (hit.collider != null)
             {
-                // Turn 90 degrees to the RIGHT (clockwise)
-                Vector2 newDirection = Quaternion.Euler(0, 0, -90) * patrolDirection;
+                // Randomly change direction with directionChangeChance probability
+                if (Random.value < directionChangeChance)
+                {
+                    turnRight = !turnRight;
+                }
+                
+                // Turn 90 degrees based on turnRight value
+                float turnAngle = turnRight ? -90 : 90; // Negative for right turn, positive for left turn
+                Vector2 newDirection = Quaternion.Euler(0, 0, turnAngle) * patrolDirection;
                 targetRotation = Quaternion.LookRotation(Vector3.forward, newDirection);
                 patrolDirection = newDirection;
                 
-                // Start pause after turning
+                // Start pause after turning with random duration
                 isPausedAfterTurn = true;
-                turnPauseTimer = turnPauseDuration;
+                turnPauseTimer = Random.Range(minTurnPauseDuration, maxTurnPauseDuration);
             }
             else if (!WouldCollide(desiredPosition))
             {
@@ -797,6 +811,17 @@ public class Enemy : MonoBehaviour
         }
         transform.localScale = new Vector3(3.2f, 3.2f, 3.2f);
 
+        // Reduce spotlight intensity
+        Transform spotlightTransform = transform.Find("spotlight");
+        if (spotlightTransform != null)
+        {
+            Light2D spotlight = spotlightTransform.GetComponent<Light2D>();
+            if (spotlight != null)
+            {
+                spotlight.intensity = 0.1f;
+            }
+        }
+
         // If we have a valid bullet direction, face that direction
         if (bulletDirection != default && bulletDirection != Vector2.zero)
         {
@@ -823,6 +848,7 @@ public class Enemy : MonoBehaviour
         {
             col.enabled = false;
         }
+        
 
         Invoke("StopAfterNudge", 0.1f);
 

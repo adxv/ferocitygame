@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 2798930216175776217}
   - component: {fileID: 5141665906748624129}
   - component: {fileID: 6245379103179007785}
+  - component: {fileID: 4506506692564939083}
   m_Layer: 12
   m_Name: Door
   m_TagString: Door
@@ -117,7 +118,7 @@ Rigidbody2D:
     m_Bits: 0
   m_Interpolate: 0
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 0
 --- !u!61 &7680785759535452060
 BoxCollider2D:
@@ -328,3 +329,56 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &4506506692564939083
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4854605733399859645}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7db70e0ea77f5ac47a8f4565a9406397, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_ShadowGroup: 0
+  m_Priority: 0
+  m_ComponentVersion: 5
+  m_HasRenderer: 1
+  m_UseRendererSilhouette: 1
+  m_CastsShadows: 1
+  m_SelfShadows: 0
+  m_AlphaCutoff: 0.228
+  m_ApplyToSortingLayers: bbeca2965ffc29db5987ec29c71bf3ec53c9e698db6160191138ec71890b60ac00000000
+  m_ShapePath:
+  - {x: -0.5, y: -0.125, z: 0}
+  - {x: -0.5, y: 2.875, z: 0}
+  - {x: 0.5, y: 2.875, z: 0}
+  - {x: 0.5, y: -0.125, z: 0}
+  m_ShapePathHash: 0
+  m_InstanceId: 0
+  m_ShadowShape2DComponent: {fileID: 3805211105252863499}
+  m_ShadowShape2DProvider:
+    rid: 8496052994129264765
+  m_ShadowCastingSource: 2
+  m_ShadowMesh:
+    m_Mesh: {fileID: 0}
+    m_LocalBounds:
+      m_Center: {x: 0, y: 1.375, z: 0}
+      m_Extent: {x: 0.25, y: 1.5, z: 0}
+    m_EdgeProcessing: 1
+    m_TrimEdge: 0
+    m_FlipX: 0
+    m_FlipY: 0
+    m_InitialTrim: 0
+  m_CastingOption: 2
+  m_PreviousTrimEdge: 0
+  m_PreviousEdgeProcessing: 1
+  m_PreviousShadowCastingSource: 2
+  m_PreviousShadowShape2DSource: {fileID: 3805211105252863499}
+  references:
+    version: 2
+    RefIds:
+    - rid: 8496052994129264765
+      type: {class: ShadowShape2DProvider_SpriteRenderer, ns: UnityEngine.Rendering.Universal, asm: Unity.RenderPipelines.Universal.2D.Runtime}
+      data: 

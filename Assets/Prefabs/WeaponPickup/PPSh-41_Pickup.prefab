@@ -147,7 +147,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1729705645
-  m_SortingLayer: -3
+  m_SortingLayer: -4
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: 2b67daf35d1edda4f867dda8b8bf03c1, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -272,7 +272,7 @@ Transform:
   m_GameObject: {fileID: 8983414052935694190}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -0.382, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -291,14 +291,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_ComponentVersion: 2
-  m_LightType: 1
+  m_LightType: 3
   m_BlendStyleIndex: 0
-  m_FalloffIntensity: 0
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_FalloffIntensity: 0.141
+  m_Color: {r: 0.98514766, g: 0.740566, b: 1, a: 1}
   m_Intensity: 1
   m_LightVolumeIntensity: 1
   m_LightVolumeEnabled: 0
-  m_ApplyToSortingLayers: bbeca2965987ec29c71bf3ec1138ec7153c9e698db616019890b60ac00000000
+  m_ApplyToSortingLayers: bbeca29653c9e698
   m_LightCookieSprite: {fileID: 0}
   m_DeprecatedPointLightCookieSprite: {fileID: 0}
   m_LightOrder: 0
@@ -314,33 +314,25 @@ MonoBehaviour:
   m_ShadowVolumeIntensityEnabled: 0
   m_ShadowVolumeIntensity: 0.75
   m_LocalBounds:
-    m_Center: {x: -0.39049834, y: -0.02245, z: 0}
-    m_Extent: {x: 1.1045983, y: 0.30925, z: 0}
+    m_Center: {x: 0, y: -0.00000011920929, z: 0}
+    m_Extent: {x: 0.9985302, y: 0.99853027, z: 0}
   m_PointLightInnerAngle: 360
   m_PointLightOuterAngle: 360
-  m_PointLightInnerRadius: 0
-  m_PointLightOuterRadius: 1
+  m_PointLightInnerRadius: 0.33
+  m_PointLightOuterRadius: 1.71
   m_ShapeLightParametricSides: 5
   m_ShapeLightParametricAngleOffset: 0
   m_ShapeLightParametricRadius: 1
-  m_ShapeLightFalloffSize: 0
+  m_ShapeLightFalloffSize: 0.51
   m_ShapeLightFalloffOffset: {x: 0, y: 0}
   m_ShapePath:
-  - {x: -0.55249447, y: -0.33078194, z: 0}
-  - {x: -0.3407588, y: -0.3275056, z: 0}
-  - {x: -0.33931637, y: -0.049850862, z: 0}
-  - {x: -0.19993846, y: 0.08338662, z: 0}
-  - {x: 0.74382937, y: 0.08537929, z: 0}
-  - {x: 0.7435603, y: 0.28390092, z: 0}
-  - {x: -0.8370439, y: 0.28592473, z: 0}
-  - {x: -1.0298127, y: 0.10580051, z: 0}
-  - {x: -1.3127226, y: 0.11528574, z: 0}
-  - {x: -1.4531231, y: 0.068522006, z: 0}
-  - {x: -1.4648666, y: -0.27552015, z: 0}
-  - {x: -1.0260357, y: -0.17659609, z: 0}
-  - {x: -1.0241083, y: -0.08013068, z: 0}
-  - {x: -0.8911919, y: 0.012687162, z: 0}
-  - {x: -0.8844885, y: -0.08192234, z: 0}
-  - {x: -0.6759101, y: -0.0790651, z: 0}
-  - {x: -0.6689278, y: 0.014453432, z: 0}
-  - {x: -0.5562653, y: -0.045336954, z: 0}
+  - {x: -0.4707042, y: 0.12855798, z: 0}
+  - {x: -0.383832, y: 0.06175737, z: 0}
+  - {x: -0.4217977, y: -0.38298476, z: 0}
+  - {x: -0.11264783, y: -0.38298485, z: 0}
+  - {x: -0.074682064, y: -0.003326869, z: 0}
+  - {x: 0.19650246, y: 0.0075205145, z: 0}
+  - {x: 0.23446824, y: 0.20277312, z: 0}
+  - {x: 0.46768665, y: 0.21362047, z: 0}
+  - {x: 0.4714819, y: 0.41124812, z: 0}
+  - {x: -0.4489164, y: 0.41429675, z: 0}
