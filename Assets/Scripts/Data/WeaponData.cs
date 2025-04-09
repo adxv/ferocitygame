@@ -17,6 +17,7 @@ public class WeaponData : ScriptableObject
     public float damage = 10f;
     public float bulletOffset = 1.0f;   // Forward offset for bullet spawn
     public float bulletOffsetSide = 0f; // Sideways offset for bullet spawn
+    public float range = 50f; // Example range, adjust as needed
     
     [Header("Ammunition")]
     public int magazineSize = 10;       // Maximum rounds in magazine

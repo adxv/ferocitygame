@@ -28,7 +28,7 @@ public class FloorAccessController : MonoBehaviour
         if (currentFloor == null)
         {
             // Find all floor managers
-            FloorManager[] floorManagers = FindObjectsOfType<FloorManager>();
+            FloorManager[] floorManagers = FindObjectsByType<FloorManager>(FindObjectsSortMode.None);
             
             foreach (FloorManager floor in floorManagers)
             {

@@ -50,7 +50,7 @@ public class ScoreManager : MonoBehaviour
         levelActive = true;
         currentScore = 0; // Keep: Explains score reset
 
-        Enemy[] allEnemies = FindObjectsOfType<Enemy>();
+        Enemy[] allEnemies = FindObjectsByType<Enemy>(FindObjectsSortMode.None);
         enemiesTotal = allEnemies.Length;
 
         Debug.Log($"Level started. Enemies found: {enemiesTotal}");

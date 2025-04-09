@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using System.Linq;
 
 public class AmmoDisplay : MonoBehaviour
 {
@@ -12,7 +13,7 @@ public class AmmoDisplay : MonoBehaviour
         // Find player controller if not set
         if (playerController == null)
         {
-            playerController = FindObjectOfType<PlayerController>();
+            playerController = FindObjectsByType<PlayerController>(FindObjectsSortMode.None).FirstOrDefault();
         }
         
         // Get player equipment component

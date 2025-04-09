@@ -30,7 +30,7 @@ public class FloorManager : MonoBehaviour
     // Get a list of all enemies on this floor
     public Enemy[] GetEnemiesOnFloor()
     {
-        Enemy[] allEnemies = FindObjectsOfType<Enemy>();
+        Enemy[] allEnemies = FindObjectsByType<Enemy>(FindObjectsSortMode.None);
         List<Enemy> enemiesOnFloor = new List<Enemy>();
         
         Bounds floorArea = new Bounds(transform.position, new Vector3(floorBounds.x, floorBounds.y, 10f));

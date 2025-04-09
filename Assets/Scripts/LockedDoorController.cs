@@ -72,7 +72,7 @@ public class LockedDoorController : MonoBehaviour
     private void DetectCurrentFloor()
     {
         // Find all floor managers
-        FloorManager[] floorManagers = FindObjectsOfType<FloorManager>();
+        FloorManager[] floorManagers = FindObjectsByType<FloorManager>(FindObjectsSortMode.None);
         
         foreach (FloorManager floor in floorManagers)
         {

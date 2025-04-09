@@ -80,7 +80,7 @@ public class PlayerController : MonoBehaviour
             lastFireTime = -1f; // Default if no weapon somehow
         }
 
-        timerController = FindObjectOfType<TimerController>();
+        timerController = FindFirstObjectByType<TimerController>();
     }
 
     void Update()
@@ -258,10 +258,17 @@ public class PlayerController : MonoBehaviour
 
     public void OnLook(InputAction.CallbackContext context)
     {
-        if (!isDead && context.performed)
+        if (isDead) return; // Don't process look if dead
+
+        if (context.started || context.performed)
         {
-            // Toggle the isLooking state
-            isLooking = !isLooking;
+            // Button is pressed or held
+            isLooking = true;
+        }
+        else if (context.canceled)
+        {
+            // Button is released
+            isLooking = false;
         }
     }
 

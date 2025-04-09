@@ -17,7 +17,7 @@ public class TimerController : MonoBehaviour
     void Start()
     {
         // Find all enemies in the scene at start
-        foreach (Enemy enemy in FindObjectsOfType<Enemy>())
+        foreach (Enemy enemy in FindObjectsByType<Enemy>(FindObjectsSortMode.None))
         {
             enemies.Add(enemy);
         }
