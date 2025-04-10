@@ -6,6 +6,7 @@ public class WeaponData : ScriptableObject
     [Header("Info")]
     public string weaponName = "New Weapon";
     public Sprite playerSprite; // Sprite to show on the player when equipped
+    public Sprite weaponIcon; // Sprite for UI display
     public GameObject pickupPrefab; // Prefab representing this weapon when dropped/on the ground
     public bool canShoot = true; // Add this to easily identify non-shooting weapons like fists
     public bool isMelee = false; // Whether this is a melee weapon

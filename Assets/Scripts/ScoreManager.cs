@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro; // Keep: Needed for TextMeshPro
 using System.Collections.Generic; // Keep: Needed for potential future use
+using System.Collections;
 
 public class ScoreManager : MonoBehaviour
 {
@@ -41,6 +42,16 @@ public class ScoreManager : MonoBehaviour
         }
     }
 
+    void Update()
+    {
+        // Score text update is now handled immediately when score changes
+        // If you want continuous updates, uncomment below:
+        // if (scoreText != null)
+        // {
+        //     scoreText.text = currentScore.ToString();
+        // }
+    }
+
     public void StartLevel()
     {
         shotsFired = 0;
@@ -48,7 +59,7 @@ public class ScoreManager : MonoBehaviour
         enemiesDefeated = 0;
         startTime = Time.time;
         levelActive = true;
-        currentScore = 0; // Keep: Explains score reset
+        currentScore = 0;
 
         Enemy[] allEnemies = FindObjectsByType<Enemy>(FindObjectsSortMode.None);
         enemiesTotal = allEnemies.Length;
@@ -77,7 +88,8 @@ public class ScoreManager : MonoBehaviour
     {
         if (!levelActive) return;
         enemiesDefeated++;
-        currentScore += 250; // Add points for defeating (updated value)
+        currentScore += 250; // Add points directly
+        UpdateScoreUI(); // Update UI immediately
 
         if (enemiesDefeated >= enemiesTotal)
         {
@@ -91,39 +103,44 @@ public class ScoreManager : MonoBehaviour
         levelActive = false;
         CalculateFinalScore();
         Debug.Log("Level Ended. Calculating final score.");
+
+        // Tell UIManager that level is complete if available
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowLevelComplete();
+        }
     }
 
     void CalculateFinalScore()
     {
         float elapsedTime = endTime - startTime;
-        float accuracy = (shotsFired > 0) ? (float)shotsHit / shotsFired : 1.0f; // Avoid division by zero, default to 1.0 if no shots fired
+        float accuracy = (shotsFired > 0) ? (float)shotsHit / shotsFired : 1.0f;
 
-        // --- Final Score Calculation --- 
-        // Base score from enemy kills
-        int enemyKillScore = currentScore; // Score before bonuses
-
-        // Accuracy Multiplier (0.0 to 1.0)
+        int enemyKillScore = currentScore;
         float accuracyMultiplier = accuracy;
-
-        // Time Bonus (Heavily weighted)
-        // Target time: 60 seconds
-        // Bonus: 15 points per 0.1 seconds saved under 60s
         float timeSaved = Mathf.Max(0, 60f - elapsedTime);
-        int timeBonus = Mathf.RoundToInt(timeSaved * 10f * 15f); // timeSaved * (tenths of second) * (points per tenth)
+        int timeBonus = Mathf.RoundToInt(timeSaved * 10f * 15f);
 
-        // Final Score = (Kill Score * Accuracy Multiplier) + Time Bonus
-        currentScore = Mathf.RoundToInt(enemyKillScore * accuracyMultiplier) + timeBonus;
+        int finalScore = Mathf.RoundToInt(enemyKillScore * accuracyMultiplier) + timeBonus;
 
-        Debug.Log($"score: kills: {enemyKillScore} * accuracy ({accuracy:P2}) + time bonus ({timeSaved:F1}s saved): {timeBonus} = Total: {currentScore}");
-    
-        // Update the UI only at the end
-        UpdateUI(); 
+        // Update score directly, no animation
+        currentScore = finalScore;
+        UpdateScoreUI();
+
+        Debug.Log($"score: kills: {enemyKillScore} * accuracy ({accuracy:P2}) + time bonus ({timeSaved:F1}s saved): {timeBonus} = Total: {finalScore}");
     }
 
-    void UpdateUI()
+    private void UpdateScoreUI()
     {
-        if (scoreText == null) return;
-        scoreText.text = currentScore.ToString();
+        if (scoreText != null)
+        {
+            scoreText.text = currentScore.ToString();
+        }
+    }
+
+    public int GetCurrentScore()
+    {
+        return currentScore;
     }
 
     // Optional: Call this if enemies can spawn mid-level

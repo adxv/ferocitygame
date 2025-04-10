@@ -1,10 +1,12 @@
 using UnityEngine;
 using TMPro;
 using System.Linq;
+using UnityEngine.UI;
 
 public class AmmoDisplay : MonoBehaviour
 {
     [SerializeField] public TextMeshProUGUI ammoText;
+    [SerializeField] public Image weaponIconImage;
     [SerializeField] public PlayerController playerController;
     private PlayerEquipment playerEquipment;
     
@@ -75,12 +77,28 @@ public class AmmoDisplay : MonoBehaviour
             {
                 ammoText.text = weapon.currentAmmo.ToString();
                 ammoText.gameObject.SetActive(true);
+                // Update weapon icon if available
+                if (weaponIconImage != null && weapon.weaponIcon != null)
+                {
+                    weaponIconImage.sprite = weapon.weaponIcon;
+                    weaponIconImage.gameObject.SetActive(true);
+                }
+                else if (weaponIconImage != null) // Ensure icon is hidden if no sprite
+                {
+                    weaponIconImage.gameObject.SetActive(false);
+                }
+
                 Debug.Log($"AmmoDisplay: Showing ammo for {weapon.weaponName}: {weapon.currentAmmo}");
             }
             else
             {
                 // Hide ammo display for fists, non-shooting weapons, or melee weapons
                 ammoText.gameObject.SetActive(false);
+                if (weaponIconImage != null)
+                {
+                    weaponIconImage.gameObject.SetActive(false);
+                }
+
                 Debug.Log($"AmmoDisplay: Hiding display for {weapon.weaponName} (canShoot={weapon.canShoot}, magazineSize={weapon.magazineSize}, isMelee={weapon.isMelee})");
             }
         }
@@ -100,8 +118,10 @@ public class AmmoDisplay : MonoBehaviour
             
             if (weapon.canShoot && weapon.magazineSize > 0 && !weapon.isMelee && ammoText.gameObject.activeSelf)
             {
+                int currentAmmo = weapon.currentAmmo;
+
                 // Just update text, don't change visibility (that's done in UpdateAmmoDisplay)
-                ammoText.text = weapon.currentAmmo.ToString();
+                ammoText.text = currentAmmo.ToString();
             }
         }
     }

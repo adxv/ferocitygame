@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using System.Collections.Generic;
+using System.Collections;
 
 public class TimerController : MonoBehaviour
 {
@@ -24,7 +25,9 @@ public class TimerController : MonoBehaviour
         
         // Make sure timer text is initialized but empty
         if (timerText != null)
+        {
             timerText.text = "00.000";
+        }
     }
     
     void Update()
@@ -33,6 +36,7 @@ public class TimerController : MonoBehaviour
         {
             // Calculate and display elapsed time
             float elapsedTime = Time.time - startTime;
+            
             UpdateTimerDisplay(elapsedTime);
             
             // Check if all enemies are dead
@@ -102,5 +106,19 @@ public class TimerController : MonoBehaviour
         
         // Update the TMP Text with the formatted time
         timerText.text = string.Format("{0:00}.{1:000}", seconds, milliseconds);
+    }
+
+    // Get the current time (for UIManager)
+    public float GetCurrentTime()
+    {
+        if (isRunning)
+        {
+            return Time.time - startTime;
+        }
+        else if (hasStarted)
+        {
+            return stopTime - startTime;
+        }
+        return 0f;
     }
 }
