@@ -237,7 +237,6 @@ public class PlayerController : MonoBehaviour
                 }
                 
                 UpdateLastFireTime(); // Update fire time for the new weapon
-                Debug.Log($"Picked up {weaponToPickup.weaponName} with {weaponToPickup.currentAmmo}/{weaponToPickup.magazineSize} ammo");
 
                 Destroy(nearbyWeaponPickup.gameObject);
                 nearbyWeaponPickup = null;
@@ -298,6 +297,19 @@ public class PlayerController : MonoBehaviour
 
         // Use data from WeaponData
         Vector3 spawnPosition = transform.position + (transform.up * currentWep.bulletOffset) + (transform.right * currentWep.bulletOffsetSide);
+        
+        // Spawn muzzle flash if available
+        if (currentWep.muzzleFlashPrefab != null)
+        {
+            // Instantiate muzzle flash at the same position as the bullet spawn
+            GameObject muzzleFlash = Instantiate(currentWep.muzzleFlashPrefab, spawnPosition, transform.rotation);
+            
+            // Set the muzzle flash to automatically destroy after duration
+            Destroy(muzzleFlash, currentWep.muzzleFlashDuration);
+            
+            // Parent muzzle flash to player if needed (uncomment if you want the flash to move with player)
+            // muzzleFlash.transform.parent = transform;
+        }
         
         // Handle shotgun pellets
         bool hasHitEnemy = false; // Track if any pellet hits an enemy
@@ -435,7 +447,6 @@ public class PlayerController : MonoBehaviour
                 if (nearbyWeaponPickup == null)
                 {
                     nearbyWeaponPickup = pickup;
-                    Debug.Log($"Near weapon pickup: {pickup.weaponData?.weaponName ?? "Unknown"} (Triggered by: {collision.gameObject.name})");
                 }
                 else
                 {
@@ -446,7 +457,6 @@ public class PlayerController : MonoBehaviour
                     if (newDistance < currentDistance)
                     {
                         nearbyWeaponPickup = pickup;
-                        Debug.Log($"Switched to closer weapon pickup: {pickup.weaponData?.weaponName ?? "Unknown"} (Triggered by: {collision.gameObject.name})");
                     }
                 }
                 // Optional: Add visual feedback
@@ -467,7 +477,6 @@ public class PlayerController : MonoBehaviour
             if (nearbyWeaponPickup != null && collision.transform.parent == nearbyWeaponPickup.transform)
             {
                 nearbyWeaponPickup = null;
-                Debug.Log("Left weapon pickup area.");
                 // Optional: Remove visual feedback
             }
         }
@@ -505,8 +514,6 @@ public class PlayerController : MonoBehaviour
             {
                 Debug.LogWarning("Dropped weapon pickup prefab does not have a Rigidbody2D!", droppedItem);
             }
-
-            Debug.Log($"Dropped {weaponToDrop.weaponName} with {currentAmmo}/{weaponToDrop.magazineSize} ammo");
 
             // Equip fists
             playerEquipment.EquipWeapon(fistWeaponData);
@@ -547,8 +554,7 @@ public class PlayerController : MonoBehaviour
             playerAudioSource.pitch = 1.0f;
             // playerAudioSource.PlayOneShot(emptyClickSound);
             
-            // For now, just log that the gun is empty
-            Debug.Log("*Click* - Weapon is empty!");
+            // Removed Debug.Log about empty weapon
         }
     }
 

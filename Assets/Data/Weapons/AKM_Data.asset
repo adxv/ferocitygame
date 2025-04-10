@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: AKM_Data
   m_EditorClassIdentifier: 
   weaponName: AKM
-  playerSprite: {fileID: -8255746614142296870, guid: 1939bce7d6ebee3478d2556cde7728f2, type: 3}
+  playerSprite: {fileID: 494839579, guid: 1939bce7d6ebee3478d2556cde7728f2, type: 3}
   pickupPrefab: {fileID: 6688425372488289659, guid: 00f4c8568386fb7478352bf25ec5a7e6, type: 3}
   canShoot: 1
   isMelee: 0
@@ -21,8 +21,8 @@ MonoBehaviour:
   fireRate: 10
   isFullAuto: 1
   damage: 1
-  bulletOffset: 1.1
-  bulletOffsetSide: 0.35
+  bulletOffset: 1
+  bulletOffsetSide: 0.15
   range: 26
   bulletSpeed: 400
   spread: 3
@@ -32,3 +32,5 @@ MonoBehaviour:
   shootSound: {fileID: 8300000, guid: 3b9eb7ca564cf32469045e405a477045, type: 3}
   shootShakeDuration: 0.08
   shootShakeMagnitude: 0.08
+  muzzleFlashPrefab: {fileID: 8542288411728666520, guid: c8555d589afcbf846bfa365113179d24, type: 3}
+  muzzleFlashDuration: 0.1

@@ -106,10 +106,10 @@ TextureImporter:
       name: mikhail_makarov_0
       rect:
         serializedVersion: 2
-        x: 9
-        y: 1
-        width: 25
-        height: 42
+        x: 0
+        y: 0
+        width: 48
+        height: 48
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,10 +128,10 @@ TextureImporter:
       name: mikhail_makarov_1
       rect:
         serializedVersion: 2
-        x: 57
-        y: 1
-        width: 25
-        height: 47
+        x: 48
+        y: 0
+        width: 48
+        height: 48
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -150,7 +150,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: f3f1e858a8798464eb4021115764bfee
     internalID: 0
     vertices: []
     indices: 

@@ -32,3 +32,5 @@ MonoBehaviour:
   shootSound: {fileID: 8300000, guid: 68e9366e41a33a14ba2ce895191afc0b, type: 3}
   shootShakeDuration: 0.05
   shootShakeMagnitude: 0.05
+  muzzleFlashPrefab: {fileID: 8542288411728666520, guid: c8555d589afcbf846bfa365113179d24, type: 3}
+  muzzleFlashDuration: 0.1

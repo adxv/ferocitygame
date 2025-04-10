@@ -48,14 +48,14 @@ TagManager:
   - name: Background
     uniqueID: 2527259835
     locked: 0
+  - name: DeadEnemies
+    uniqueID: 3975355335
+    locked: 0
   - name: Doors
     uniqueID: 3676961887
     locked: 0
   - name: Foreground
     uniqueID: 703367001
-    locked: 0
-  - name: DeadEnemies
-    uniqueID: 3975355335
     locked: 0
   - name: DroppedItems
     uniqueID: 2565261651

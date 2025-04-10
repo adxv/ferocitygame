@@ -2,13 +2,11 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using System.Collections.Generic;
 
+[RequireComponent(typeof(EnemyEquipment))]
 public class Enemy : MonoBehaviour
 {
     private Transform player;
-    public GameObject bulletPrefab;
     public float shootInterval = 1f;
-    public float bulletSpeed = 30f;
-    public float bulletOffset = 0.5f;
     public float forgetTime = 3f;
     public LayerMask wallLayer;
     public float shotDelayMin = 0.19f;
@@ -17,6 +15,8 @@ public class Enemy : MonoBehaviour
     private bool hasSpottedPlayer;
     private float lastSpottedTime;
     public AudioSource shootSound;
+
+    private EnemyEquipment enemyEquipment;
 
     public float patrolSpeed = 2f;
     public float chaseSpeed = 4f;
@@ -86,6 +86,13 @@ public class Enemy : MonoBehaviour
         waitTimer = 0f;
         isWaiting = false;
         
+        // Get the EnemyEquipment component
+        enemyEquipment = GetComponent<EnemyEquipment>();
+        if (enemyEquipment == null)
+        {
+            Debug.LogError("EnemyEquipment component not found on Enemy!", this);
+        }
+
         // Randomly determine initial turn direction
         turnRight = Random.value > 0.5f;
 
@@ -644,36 +651,118 @@ public class Enemy : MonoBehaviour
 
     void Shoot()
     {
-        if (bulletPrefab == null || player == null)
+        // Check if enemy has a weapon that can shoot
+        if (enemyEquipment == null || enemyEquipment.CurrentWeapon == null || player == null)
         {
-            Debug.LogError("bulletPrefab or player not assigned/found in Enemy!");
+            Debug.LogError("Enemy equipment or player not assigned/found in Enemy!");
             return;
         }
 
-        Vector3 spawnPosition = transform.position + (transform.up * bulletOffset);
+        // Get weapon data
+        WeaponData weapon = enemyEquipment.CurrentWeapon;
+        
+        // Check if weapon can shoot, has a projectile, and has ammo
+        if (!weapon.canShoot || weapon.projectilePrefab == null || !weapon.HasAmmo())
+        {
+            // If out of ammo, try to find another weapon or switch to melee attack
+            // For now, just abort shooting
+            return;
+        }
+
+        // Use ammo from the weapon
+        if (!weapon.UseAmmo())
+        {
+            // Couldn't use ammo (weapon is empty)
+            return;
+        }
+
+        // Calculate spawn position using weapon's offset values
+        Vector3 spawnPosition = transform.position + (transform.up * weapon.bulletOffset) + (transform.right * weapon.bulletOffsetSide);
+
+        // Spawn muzzle flash if available
+        if (weapon.muzzleFlashPrefab != null)
+        {
+            // Instantiate muzzle flash at the same position as the bullet spawn
+            GameObject muzzleFlash = Instantiate(weapon.muzzleFlashPrefab, spawnPosition, transform.rotation);
+            
+            // Set the muzzle flash to automatically destroy after duration
+            Destroy(muzzleFlash, weapon.muzzleFlashDuration);
+            
+            // Parent muzzle flash to enemy if needed (uncomment if you want the flash to move with enemy)
+            // muzzleFlash.transform.parent = transform;
+        }
 
         // Calculate the precise direction towards the player from the spawn point
         Vector2 directionToPlayer = (player.position - spawnPosition).normalized;
 
         // Calculate the rotation needed to face the player
-        Quaternion bulletRotation = Quaternion.LookRotation(Vector3.forward, directionToPlayer); // Use LookRotation for 2D
+        Quaternion bulletRotation = Quaternion.LookRotation(Vector3.forward, directionToPlayer);
 
-        // Instantiate the bullet facing the calculated direction
-        GameObject bullet = Instantiate(bulletPrefab, spawnPosition, bulletRotation);
+        // Handle shotgun pellets
+        int pelletCount = Mathf.Max(1, weapon.pelletCount);
+        bool hasHitEnemy = false;
+        
+        for (int i = 0; i < pelletCount; i++)
+        {
+            // Calculate spread angle for this pellet
+            float angle = 0;
+            
+            // Apply weapon general spread (random inaccuracy)
+            if (weapon.spread > 0)
+            {
+                // Random deviation within the spread range
+                angle += Random.Range(-weapon.spread, weapon.spread);
+            }
+            
+            // Apply shotgun spread for multiple pellets
+            if (weapon.spreadAngle > 0 && pelletCount > 1)
+            {
+                // Distribute pellets evenly across the spread angle
+                float angleStep = weapon.spreadAngle / (pelletCount - 1);
+                angle += -weapon.spreadAngle / 2 + angleStep * i;
+            }
+            
+            // Create the bullet with rotation adjusted for spread
+            Quaternion pelletRotation = bulletRotation * Quaternion.Euler(0, 0, angle);
+            GameObject bulletGO = Instantiate(weapon.projectilePrefab, spawnPosition, pelletRotation);
+            
+            Bullet bulletScript = bulletGO.GetComponent<Bullet>();
+            if (bulletScript != null)
+            {
+                // Pass the enemy to allow tracking hits
+                bulletScript.SetShooter(gameObject);
+                
+                // Pass weapon data parameters to the bullet
+                bulletScript.SetBulletParameters(weapon.bulletSpeed, weapon.range);
+                
+                // Set shotgun flag to track only one hit per shot
+                bulletScript.isShotgunPellet = pelletCount > 1;
+                bulletScript.hasRecordedHit = hasHitEnemy;
+                bulletScript.OnEnemyHit += () => hasHitEnemy = true;
+            }
+            
+            Rigidbody2D bulletRb = bulletGO.GetComponent<Rigidbody2D>();
+            if (bulletRb != null)
+            {
+                bulletRb.linearVelocity = bulletGO.transform.up * weapon.bulletSpeed;
+            }
+        }
 
-        Rigidbody2D bulletRb = bullet.GetComponent<Rigidbody2D>();
-        if (bulletRb != null)
+        // Play sound
+        if (shootSound != null)
         {
-            // Set velocity along the calculated direction
-            bulletRb.linearVelocity = directionToPlayer * bulletSpeed; // Use velocity instead of linearVelocity for immediate effect
+            shootSound.pitch = Random.Range(0.8f, 1.1f);
+            
+            // Use weapon's sound if available, otherwise use the enemy's default sound
+            if (weapon.shootSound != null)
+            {
+                shootSound.PlayOneShot(weapon.shootSound);
+            }
+            else if (shootSound.clip != null)
+            {
+                shootSound.PlayOneShot(shootSound.clip);
+            }
         }
-        Bullet bulletScript = bullet.GetComponent<Bullet>();
-        if (bulletScript != null)
-        {
-            bulletScript.SetShooter(gameObject);
-        }
-        shootSound.pitch = Random.Range(0.8f, 1.1f);
-        shootSound.PlayOneShot(shootSound.clip);
     }
 
     void OnTriggerStay2D(Collider2D collision)
@@ -808,6 +897,7 @@ public class Enemy : MonoBehaviour
         {
             spriteRenderer.sprite = deathSprite;
             spriteRenderer.sortingOrder = 0;
+            spriteRenderer.sortingLayerName = "DeadEnemies";
         }
         transform.localScale = new Vector3(3.2f, 3.2f, 3.2f);
 
@@ -819,6 +909,46 @@ public class Enemy : MonoBehaviour
             if (spotlight != null)
             {
                 spotlight.intensity = 0.1f;
+            }
+        }
+
+        // Get the weapon from the enemy
+        WeaponData deadEnemyWeapon = null;
+        if (enemyEquipment != null && enemyEquipment.CurrentWeapon != null)
+        {
+            deadEnemyWeapon = enemyEquipment.CurrentWeapon;
+            
+            // Drop the weapon if it has a pickup prefab
+            if (deadEnemyWeapon.pickupPrefab != null)
+            {
+                // Always drop weapon (removed random chance)
+                GameObject weaponPickup = Instantiate(deadEnemyWeapon.pickupPrefab, transform.position, Quaternion.identity);
+                WeaponPickup pickup = weaponPickup.GetComponent<WeaponPickup>();
+                if (pickup != null)
+                {
+                    // Create a new WeaponData instance with full ammo
+                    WeaponData fullAmmoWeapon = Instantiate(deadEnemyWeapon);
+                    fullAmmoWeapon.currentAmmo = fullAmmoWeapon.magazineSize; // Set to full ammo
+                    
+                    // Assign the new WeaponData with full ammo to the pickup
+                    pickup.weaponData = fullAmmoWeapon;
+                }
+                
+                // Add a small random force to the dropped weapon
+                Rigidbody2D weaponRb = weaponPickup.GetComponent<Rigidbody2D>();
+                if (weaponRb != null)
+                {
+                    // Generate a random direction
+                    float randomAngle = Random.Range(0f, 360f);
+                    Vector2 randomDirection = Quaternion.Euler(0, 0, randomAngle) * Vector2.up;
+                    
+                    // Apply force
+                    float forceMagnitude = Random.Range(30.0f, 60.0f);
+                    weaponRb.AddForce(randomDirection * forceMagnitude, ForceMode2D.Impulse);
+                    
+                    // Add a small random rotation
+                    weaponRb.AddTorque(Random.Range(-2f, 2f), ForceMode2D.Impulse);
+                }
             }
         }
 
@@ -842,15 +972,8 @@ public class Enemy : MonoBehaviour
             rb.AddForce(nudgeDirection * 10f, ForceMode2D.Impulse);
         }
 
-        // Disable all colliders on this GameObject and its children
-        Collider2D[] allColliders = GetComponentsInChildren<Collider2D>(true); // true includes inactive colliders
-        foreach (Collider2D col in allColliders)
-        {
-            col.enabled = false;
-        }
-        
-
         Invoke("StopAfterNudge", 0.1f);
+        GetComponent<Collider2D>().enabled = false;
 
         if (ScoreManager.Instance != null)
         {

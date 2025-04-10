@@ -103,45 +103,45 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: player_akm_0
+      name: mikhail_akm_0
       rect:
         serializedVersion: 2
-        x: 9
-        y: 1
-        width: 25
-        height: 42
+        x: 0
+        y: 0
+        width: 48
+        height: 48
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: adc1a6cf132bd6d80800000000000000
-      internalID: -8255746614142296870
+      spriteID: 6954f5720a1ab104a845b0f87a11f5c2
+      internalID: 494839579
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: player_akm_1
+      name: mikhail_akm_1
       rect:
         serializedVersion: 2
-        x: 57
-        y: 1
-        width: 25
-        height: 47
+        x: 48
+        y: 0
+        width: 48
+        height: 48
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: e46610aebcc2132b0800000000000000
-      internalID: -5606650806783613362
+      spriteID: e9a9e8b305a6519489bd2f38a12dd04b
+      internalID: -1688594924
       vertices: []
       indices: 
       edges: []
@@ -150,7 +150,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: feee53cd93f7d18438ef11fc83ae875f
     internalID: 0
     vertices: []
     indices: 
@@ -160,8 +160,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      player_akm_0: -8255746614142296870
-      player_akm_1: -5606650806783613362
+      mikhail_akm_0: 494839579
+      mikhail_akm_1: -1688594924
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

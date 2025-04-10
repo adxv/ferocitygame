@@ -53,7 +53,6 @@ public class PlayerEquipment : MonoBehaviour
         if (CurrentWeapon != null && CurrentWeapon.playerSprite != null)
         {
             playerSpriteRenderer.sprite = CurrentWeapon.playerSprite;
-            Debug.Log($"Equipped: {CurrentWeapon.weaponName}");
         }
         else if (fistWeaponData != null && fistWeaponData.playerSprite != null) // Ensure fallback exists
         {

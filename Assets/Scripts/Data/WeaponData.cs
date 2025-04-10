@@ -35,11 +35,11 @@ public class WeaponData : ScriptableObject
     public AudioClip shootSound;
     public float shootShakeDuration = 0.05f;
     public float shootShakeMagnitude = 0.05f;
+    public GameObject muzzleFlashPrefab; // Particle effect prefab for muzzle flash
+    public float muzzleFlashDuration = 0.05f; // How long the muzzle flash should last
 
     // Add other weapon-specific properties as needed:
     // public float reloadTime;
-    // public GameObject muzzleFlash;
-    // etc.
     
     // Called when ScriptableObject instance is loaded
     private void OnEnable()

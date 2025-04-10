@@ -6,8 +6,11 @@ public class Bullet : MonoBehaviour
     public float speed = 30f;
     public float lifeDuration = 2f;
     private Rigidbody2D rb;
+    private SpriteRenderer spriteRenderer;
+    private Collider2D bulletCollider;
     private GameObject shooter; // track who fired the bullet
     private Vector2 travelDirection; // Track the bullet's travel direction
+    private bool hasHitSomething = false; // Track if bullet has already hit something
     
     // Range properties
     private float maxRange = 50f; // Maximum effective range
@@ -36,6 +39,9 @@ public class Bullet : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        bulletCollider = GetComponent<Collider2D>();
+        
         rb.linearVelocity = transform.up * speed;
         travelDirection = transform.up; // Store the travel direction
         Destroy(gameObject, lifeDuration);
@@ -108,10 +114,42 @@ public class Bullet : MonoBehaviour
         return travelDirection;
     }
 
+    // Disable bullet visuals and physics after hit
+    private void DisableBullet()
+    {
+        if (hasHitSomething) return; // Already hit something
+        
+        hasHitSomething = true;
+        
+        // Disable the sprite renderer
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.enabled = false;
+        }
+        
+        // Disable the collider
+        if (bulletCollider != null)
+        {
+            bulletCollider.enabled = false;
+        }
+        
+        // Stop moving
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+            rb.isKinematic = true;
+        }
+        
+        // Keep the LineRenderer active for the tracer effect
+    }
+
     void OnCollisionEnter2D(Collision2D collision)
     {
-        // Debug.Log("Bullet hit " + collision.gameObject.name + " fired by " + (shooter != null ? shooter.name : "Unknown"));
-        if (collision.gameObject == shooter) return; // Don't collide with the entity that shot it
+        // Don't process collision if already hit something
+        if (hasHitSomething) return;
+        
+        // Don't collide with the entity that shot it
+        if (collision.gameObject == shooter) return;
 
         // Check if the shooter is the player before recording a hit
         bool isPlayerShooter = shooter != null && shooter.CompareTag("Player");
@@ -123,8 +161,8 @@ public class Bullet : MonoBehaviour
                 // Prevent enemies from killing each other
                 if (isEnemyShooter)
                 {
-                    // If an enemy shot this bullet and hit another enemy, just destroy the bullet without damage
-                    Destroy(gameObject);
+                    // If an enemy shot this bullet and hit another enemy, just disable the bullet without damage
+                    DisableBullet();
                     return;
                 }
                 
@@ -144,8 +182,8 @@ public class Bullet : MonoBehaviour
                     }
                     enemy.Die(travelDirection); // Pass bullet direction to Die method
                 }
-                // Regardless of hit, destroy the bullet
-                Destroy(gameObject);
+                // Disable the bullet after hitting an enemy
+                DisableBullet();
                 break;
             case "Player":
                 // Apply damage/effect to the player only if bullet is in range
@@ -154,15 +192,17 @@ public class Bullet : MonoBehaviour
                     PlayerController player = collision.gameObject.GetComponent<PlayerController>();
                     if (player != null) { player.TakeDamage(1, travelDirection); } // Pass bullet direction
                 }
-                Destroy(gameObject); // Destroy bullet after hitting player
+                // Disable the bullet after hitting the player
+                DisableBullet();
                 break;
             case "Environment":
-                 // Optionally record a miss if the player shot it (handled by accuracy calculation)
-                 Destroy(gameObject); // Destroy bullet after hitting environment
+                // Optionally record a miss if the player shot it (handled by accuracy calculation)
+                // Disable the bullet after hitting the environment
+                DisableBullet();
                 break;
             default:
-                 // Destroy bullet if it hits anything else unaccounted for
-                Destroy(gameObject);
+                // Disable the bullet if it hits anything else unaccounted for
+                DisableBullet();
                 break;
         }
     }

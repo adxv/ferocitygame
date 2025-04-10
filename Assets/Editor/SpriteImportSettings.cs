@@ -9,7 +9,6 @@ public class SpriteImportSettings : AssetPostprocessor
         if (textureImporter != null && textureImporter.assetPath.Contains(".png"))
         {
             textureImporter.textureType = TextureImporterType.Sprite;
-            textureImporter.spritePixelsPerUnit = 48;
             textureImporter.filterMode = FilterMode.Point;
             textureImporter.textureCompression = TextureImporterCompression.Uncompressed;
         }

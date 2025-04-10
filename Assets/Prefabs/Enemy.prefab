@@ -138,7 +138,7 @@ MonoBehaviour:
   m_BlendStyleIndex: 0
   m_FalloffIntensity: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1.5
+  m_Intensity: 3
   m_LightVolumeIntensity: 1
   m_LightVolumeEnabled: 0
   m_ApplyToSortingLayers: 1138ec71
@@ -193,6 +193,7 @@ GameObject:
   - component: {fileID: 1512164128219611355}
   - component: {fileID: 2296431436199089768}
   - component: {fileID: 1766017145600562032}
+  - component: {fileID: 4307344360472361228}
   m_Layer: 9
   m_Name: Enemy
   m_TagString: Enemy
@@ -261,7 +262,7 @@ SpriteRenderer:
   m_SortingLayerID: 1911306257
   m_SortingLayer: -2
   m_SortingOrder: 1
-  m_Sprite: {fileID: 2495607016543911191, guid: 340aea7bf2e75214db215c8b3e037b30, type: 3}
+  m_Sprite: {fileID: -2143751929, guid: c906b75c70d228442a8a856f4f79f6a1, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -284,11 +285,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdef3fb5b7c60f848a023b2cf55c3ca8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bulletPrefab: {fileID: 4780090448626563172, guid: c55fcad0891b0aa4ea65546dde828a13, type: 3}
   shootInterval: 0.1
-  bulletSpeed: 20
-  bulletOffset: 1
-  forgetTime: 3
+  forgetTime: 2
   wallLayer:
     serializedVersion: 2
     m_Bits: 2147487744
@@ -465,3 +463,17 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 0.5
+--- !u!114 &4307344360472361228
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8028187921594231981}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84eb576e1e70d5d46b581dc13002aef0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enemySpriteRenderer: {fileID: 4651323014482287835}
+  defaultWeaponData: {fileID: 11400000, guid: b6609ea70e60d174598ba53bdc2b88d1, type: 2}

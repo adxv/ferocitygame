@@ -1,0 +1,61 @@
+# Enemy Weapon System Setup Guide
+
+This guide explains how to set up enemies with the new weapon system that uses WeaponData.
+
+## 1. Setup Enemy Prefab
+
+1. Select your Enemy prefab or create a new one
+2. Add the `EnemyEquipment` component to your enemy GameObject
+3. Set the `Enemy Sprite Renderer` field to the SpriteRenderer component on your enemy
+4. Create or assign a `Default Weapon Data` asset to the enemy
+   - This is the weapon the enemy will spawn with
+   - You can use an existing WeaponData or create a new one specifically for enemies
+
+## 2. Create Enemy Weapon Data Assets
+
+Create weapon data assets for your enemies to use:
+
+1. Right-click in Project window → Create → Game → Weapon Data
+2. Configure the weapon data as follows:
+   - Set `Weapon Name` (e.g., "Enemy Pistol")
+   - Add a `Player Sprite` that represents how the enemy looks with this weapon
+   - Set `Pickup Prefab` if you want enemies to drop this weapon when they die
+   - Configure shooting properties (spread, fire rate, etc.)
+   - Set `Projectile Prefab` to the bullet prefab for this weapon
+   - Adjust bullet offset values to match the enemy sprite
+
+## 3. Enemy Weapon Variants
+
+To create enemies with different weapons:
+
+1. Duplicate your base enemy prefab
+2. Select the duplicated prefab
+3. In the EnemyEquipment component, change the Default Weapon Data to a different weapon
+
+## 4. Important Notes
+
+- Enemies will now use all features from WeaponData including:
+  - Different projectiles
+  - Different bullet speeds
+  - Spread and accuracy settings
+  - Shotgun functionality (pellet count)
+  - Damage range limitations
+
+- Weapons can be dropped when enemies die (40% chance by default)
+- Players can pick up weapons dropped by enemies
+- Ensure all enemy weapon sprites (in WeaponData) are properly configured
+
+## 5. Example Setup
+
+Example enemy with a shotgun:
+- Create WeaponData asset "EnemyShotgun"
+- Set pelletCount to 5, spreadAngle to 30
+- Set a distinct sprite that shows the enemy holding a shotgun
+- Configure bulletOffset to match where the muzzle appears on the sprite
+- Assign to an enemy prefab's EnemyEquipment component
+
+## 6. Troubleshooting
+
+- If enemies are not shooting: Make sure the WeaponData has canShoot = true and a valid projectile prefab
+- If enemy sprites don't change: Check that the WeaponData has valid playerSprite values
+- If weapon drops don't work: Verify the WeaponData has a valid pickupPrefab assigned 

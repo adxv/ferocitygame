@@ -59,11 +59,7 @@ public class LockedDoorController : MonoBehaviour
         // Door starts locked
         isDoorUnlocked = false;
         
-        if (currentFloor != null)
-        {
-            Debug.Log($"Locked door initialized at {transform.position} on {currentFloor.floorName}");
-        }
-        else
+        if (currentFloor == null)
         {
             Debug.LogError("LockedDoorController: No floor assigned! Door won't function correctly.");
         }
@@ -117,8 +113,6 @@ public class LockedDoorController : MonoBehaviour
         if (currentFloor.AreAllEnemiesDead())
         {
             isDoorUnlocked = true;
-            Debug.Log($"Door unlocked on {currentFloor.floorName}!");
-            
             
             // Start delayed auto-open coroutine
             StartCoroutine(DelayedDoorOpen());

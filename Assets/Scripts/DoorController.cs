@@ -28,7 +28,6 @@ public class DoorController : MonoBehaviour
         // Initialize based on starting angle
         currentRelativeAngle = 0f; 
         wasConsideredClosed = Mathf.Abs(currentRelativeAngle) < closedAngleThreshold;
-        Debug.Log("Door initialized at " + transform.position + " with initial rotation " + initialRotation.eulerAngles);
         
         // Get or add AudioSource component
         if (audioSource == null)
@@ -81,12 +80,6 @@ public class DoorController : MonoBehaviour
             
             // Apply damping after movement
             currentAngularVelocity *= (1f - Time.deltaTime * doorDamping);
-            
-            // Debug to track rotation
-            if (hasBeenPushed)
-            {
-                Debug.Log("Door angle: " + currentRelativeAngle + ", current rotation: " + transform.rotation.eulerAngles);
-            }
         }
         // No 'else' block needed here anymore, as wasConsideredClosed is updated above
     }
@@ -125,9 +118,6 @@ public class DoorController : MonoBehaviour
         
         // Apply a very strong push for immediate visibility
         currentAngularVelocity = pushDirection * pushForce / doorMass;
-        
-        // Debug
-        Debug.Log("STRONG PUSH: " + pushDirection + " * " + pushForce + " = " + currentAngularVelocity);
         
         // Apply immediate rotation for testing
         // Commenting out the direct rotation adjustment as it might interfere with the physics-based rotation in Update

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: IZh-27_Data
   m_EditorClassIdentifier: 
   weaponName: IZh-27
-  playerSprite: {fileID: 870207574199114299, guid: 57acd6e53173f9b408c9d4a0f0f1d23e, type: 3}
+  playerSprite: {fileID: -1929181208, guid: 57acd6e53173f9b408c9d4a0f0f1d23e, type: 3}
   pickupPrefab: {fileID: 6688425372488289659, guid: d59f09093c2bae240808a53bc24cdcc6, type: 3}
   canShoot: 1
   isMelee: 0
@@ -21,8 +21,8 @@ MonoBehaviour:
   fireRate: 2
   isFullAuto: 0
   damage: 1
-  bulletOffset: 0.8
-  bulletOffsetSide: 0.4
+  bulletOffset: 0.3
+  bulletOffsetSide: 0.1
   range: 26
   bulletSpeed: 200
   spread: 4
@@ -32,3 +32,5 @@ MonoBehaviour:
   shootSound: {fileID: 8300000, guid: c52d6b4475453154ab821f03e9161299, type: 3}
   shootShakeDuration: 0.15
   shootShakeMagnitude: 0.5
+  muzzleFlashPrefab: {fileID: 8542288411728666520, guid: 995b2dc06e878a447bb3b46915ac45b3, type: 3}
+  muzzleFlashDuration: 0.1

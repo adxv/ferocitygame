@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: 6245379103179007785}
   - component: {fileID: 4506506692564939083}
   m_Layer: 12
-  m_Name: Door
+  m_Name: Door1
   m_TagString: Door
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -154,17 +154,17 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 1.5}
+  m_Offset: {x: 0.27, y: 1.5}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0}
+    pivot: {x: 0.22916667, y: 0}
     oldSize: {x: 1, y: 3}
     newSize: {x: 1, y: 1}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.5, y: 3.6460638}
+  m_Size: {x: 0.4, y: 3.6460638}
   m_EdgeRadius: 0
 --- !u!114 &2798930216175776217
 MonoBehaviour:
@@ -220,17 +220,17 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 1.4937878}
+  m_Offset: {x: 0.27, y: 1.5}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0}
+    pivot: {x: 0.22916667, y: 0}
     oldSize: {x: 1, y: 3}
     newSize: {x: 1, y: 1}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.5, y: 3.6336398}
+  m_Size: {x: 0.4, y: 3.6460638}
   m_EdgeRadius: 0
 --- !u!82 &6245379103179007785
 AudioSource:
@@ -364,8 +364,8 @@ MonoBehaviour:
   m_ShadowMesh:
     m_Mesh: {fileID: 0}
     m_LocalBounds:
-      m_Center: {x: 0, y: 1.5, z: 0}
-      m_Extent: {x: 0.25, y: 1.5, z: 0}
+      m_Center: {x: 0.269989, y: 1.5, z: 0}
+      m_Extent: {x: 0.19999695, y: 1.8230286, z: 0}
     m_EdgeProcessing: 1
     m_TrimEdge: 0
     m_FlipX: 0
@@ -375,7 +375,7 @@ MonoBehaviour:
   m_PreviousTrimEdge: 0
   m_PreviousEdgeProcessing: 1
   m_PreviousShadowCastingSource: 2
-  m_PreviousShadowShape2DSource: {fileID: 3805211105252863499}
+  m_PreviousShadowShape2DSource: {fileID: 7680785759535452060}
   references:
     version: 2
     RefIds:
