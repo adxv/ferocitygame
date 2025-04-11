@@ -292,7 +292,6 @@ MonoBehaviour:
     m_Bits: 2147487744
   shotDelayMin: 0.15
   shotDelayMax: 0.2
-  shootSound: {fileID: 2296431436199089768}
   patrolSpeed: 10
   chaseSpeed: 20
   randomModeInterval: 2.5
@@ -477,3 +476,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemySpriteRenderer: {fileID: 4651323014482287835}
   defaultWeaponData: {fileID: 11400000, guid: b6609ea70e60d174598ba53bdc2b88d1, type: 2}
+  fistWeaponData: {fileID: 11400000, guid: f672f1d9a22332143b1f4e1e4fcb574c, type: 2}

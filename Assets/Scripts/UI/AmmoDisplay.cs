@@ -16,6 +16,13 @@ public class AmmoDisplay : MonoBehaviour
         if (playerController == null)
         {
             playerController = FindObjectsByType<PlayerController>(FindObjectsSortMode.None).FirstOrDefault();
+            if (playerController == null) 
+            {
+                Debug.LogError("AmmoDisplay: Could not find PlayerController on Start!", this);
+                // Optional: Try again later or disable?
+                // enabled = false;
+                // return;
+            }
         }
         
         // Get player equipment component
@@ -26,7 +33,17 @@ public class AmmoDisplay : MonoBehaviour
             // Subscribe to weapon change events
             if (playerEquipment != null)
             {
+                // Unsubscribe first to prevent double-subscription on scene reload if object persists
+                playerEquipment.OnWeaponChanged -= OnWeaponChanged; 
                 playerEquipment.OnWeaponChanged += OnWeaponChanged;
+                
+                 // ADDED: Call UpdateAmmoDisplay again *after* subscribing
+                 // This ensures the display reflects the state *after* setup.
+                 UpdateAmmoDisplay(); 
+            }
+            else
+            {
+                Debug.LogError("AmmoDisplay: PlayerController found, but missing PlayerEquipment!", this);
             }
         }
         
@@ -109,6 +126,22 @@ public class AmmoDisplay : MonoBehaviour
         }
     }
     
+    // ADDED: Method to reset the display (called on restart)
+    public void ResetDisplay()
+    {
+        // Assuming fists are the default and don't show ammo or icon
+        if (ammoText != null) 
+        {
+            ammoText.gameObject.SetActive(false);
+        }
+        if (weaponIconImage != null)
+        {
+            weaponIconImage.gameObject.SetActive(false);
+            weaponIconImage.sprite = null; // Clear the sprite just in case
+        }
+        Debug.Log("AmmoDisplay: Resetting display");
+    }
+
     void Update()
     {
         // Keep the update method to handle ongoing changes in ammo count

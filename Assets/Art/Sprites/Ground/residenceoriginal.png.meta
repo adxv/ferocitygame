@@ -1,13 +1,10 @@
 fileFormatVersion: 2
-guid: c906b75c70d228442a8a856f4f79f6a1
+guid: 0c060e044b5f006489d32429abe9ec93
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -9071111205825217589
-    second: enemy_fists_0
-  - first:
-      213: 4546017340888315433
-    second: enemy_fists_1
+      213: 8252834025554815413
+    second: residenceoriginal_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -54,7 +51,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 48
+  spritePixelsToUnits: 100
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -103,45 +100,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: enemy_fists_0
+      name: residenceoriginal_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
-        width: 48
-        height: 48
-      alignment: 9
-      pivot: {x: 0.45833334, y: 0.35416666}
+        y: 95
+        width: 192
+        height: 97
+      alignment: 0
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: f35a3b1a0f3179f4d8ddd632568d0f15
-      internalID: -2143751929
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_fists_1
-      rect:
-        serializedVersion: 2
-        x: 48
-        y: 0
-        width: 48
-        height: 48
-      alignment: 9
-      pivot: {x: 0.45833334, y: 0.35416666}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: f985e7990daa5f24b934f0bf6cffbfc7
-      internalID: -701167734
+      spriteID: 5b9a37322d4f78270800000000000000
+      internalID: 8252834025554815413
       vertices: []
       indices: 
       edges: []
@@ -150,7 +125,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: d05f92c77aaebd749b37616a98a60162
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -159,9 +134,7 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable:
-      enemy_fists_0: -2143751929
-      enemy_fists_1: -701167734
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

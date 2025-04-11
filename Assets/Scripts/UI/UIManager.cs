@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using UnityEngine.SceneManagement; // ADDED: For scene management
 
 public class UIManager : MonoBehaviour
 {
@@ -38,6 +39,18 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    // ADDED: Subscribe to scene loaded event
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    // ADDED: Unsubscribe from scene loaded event
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
     private void Start()
     {
         // Find references to other managers
@@ -59,11 +72,8 @@ public class UIManager : MonoBehaviour
         // Initial setup
         SetupUIElements();
 
-        // Initialize UI state - Ensure only HUD is visible initially
-        ShowHUD();
-        HidePauseMenu();
-        HideGameOver();
-        HideLevelComplete();
+        // Initialize UI state - This will also be called by OnSceneLoaded
+        ResetUIState(); 
     }
 
     private void Update()
@@ -89,10 +99,33 @@ public class UIManager : MonoBehaviour
          // }
     }
 
+    // ADDED: Reset UI state when a scene loads
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        Debug.Log("UIManager: Scene Loaded, resetting UI state.");
+        ResetUIState();
+        // Also re-find managers potentially destroyed/recreated in the new scene
+        SetupUIElements(); 
+    }
+    
+    // ADDED: Helper method to reset UI state
+    void ResetUIState()
+    {
+        Time.timeScale = 1f; // Ensure game is not paused
+        ShowHUD();
+        HidePauseMenu();
+        HideGameOver();
+        HideLevelComplete();
+    }
+
     // Setup UI elements and connections
     private void SetupUIElements()
     {
         // Connect UI elements to managers (Managers will update their own text)
+        // Find potentially new instances after scene load
+        scoreManager = FindObjectOfType<ScoreManager>();
+        timerController = FindObjectOfType<TimerController>();
+
         if (timerController != null && timerText != null)
         {
             timerController.timerText = timerText;
@@ -113,6 +146,12 @@ public class UIManager : MonoBehaviour
                  // Also link AmmoDisplay's icon if needed by other systems, though it handles itself
                  // weaponIconImage = ammoDisplayComponent.weaponIconImage;
             }
+            else
+            {
+                // If AmmoDisplay is part of HUD, it might not exist if HUD is initially inactive
+                // Optionally log a warning or handle differently
+                 Debug.LogWarning("UIManager: Could not find AmmoDisplay component to assign ammoText.");
+            }
         }
         // Removed direct ammo/weapon update from UIManager start - handled by AmmoDisplay
     }
@@ -123,9 +162,10 @@ public class UIManager : MonoBehaviour
     {
         if (hudPanel != null) hudPanel.SetActive(true);
         // Hide menus when HUD shows
-        HidePauseMenu();
-        HideGameOver();
-        HideLevelComplete();
+        // REMOVED redundant calls from here, handled by ResetUIState or specific show methods
+        // HidePauseMenu(); 
+        // HideGameOver();
+        // HideLevelComplete();
     }
 
     public void HideHUD()
@@ -181,7 +221,6 @@ public class UIManager : MonoBehaviour
             if (pauseMenuScreen != null) pauseMenuScreen.SetActive(false);
             if (levelCompleteScreen != null) levelCompleteScreen.SetActive(false);
              HideHUD(); // Typically hide HUD on game over
-             Time.timeScale = 0f; // Often good to pause on game over
         }
     }
 

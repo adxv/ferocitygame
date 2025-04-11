@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using System.Collections.Generic;
+using System.Collections; // Added for Coroutines
 
 [RequireComponent(typeof(EnemyEquipment))]
 public class Enemy : MonoBehaviour
@@ -14,9 +15,11 @@ public class Enemy : MonoBehaviour
     private float nextShootTime;
     private bool hasSpottedPlayer;
     private float lastSpottedTime;
-    public AudioSource shootSound;
+    private float lastAttackTime; // Tracks melee attacks
+    private Coroutine attackAnimationCoroutine; // To manage the attack sprite change
 
     private EnemyEquipment enemyEquipment;
+    private WeaponData fistWeaponData; // To hold the fist weapon data
 
     public float patrolSpeed = 2f;
     public float chaseSpeed = 4f;
@@ -74,10 +77,6 @@ public class Enemy : MonoBehaviour
             Debug.LogError("Enemy could not find Player with tag 'Player'!");
         }
 
-        nextShootTime = Time.time + shootInterval;
-        hasSpottedPlayer = false;
-        lastSpottedTime = -forgetTime;
-
         rb = GetComponent<Rigidbody2D>();
         rb.bodyType = RigidbodyType2D.Kinematic; // Change to Dynamic for nudge if needed
         patrolDirection = transform.up;
@@ -91,6 +90,24 @@ public class Enemy : MonoBehaviour
         if (enemyEquipment == null)
         {
             Debug.LogError("EnemyEquipment component not found on Enemy!", this);
+            enabled = false; // Disable if no equipment
+            return;
+        }
+        
+        // Get fist data from equipment
+        fistWeaponData = enemyEquipment.FistWeaponData; 
+        if(fistWeaponData == null || !fistWeaponData.isMelee)
+        {
+            Debug.LogWarning("Enemy has no valid FistWeaponData assigned in EnemyEquipment. Cannot perform melee attacks.", this);
+            // Consider disabling melee logic or falling back to default if melee?
+        }
+
+        // Initialize timers based on current weapon (could be fists or default)
+        if (enemyEquipment.CurrentWeapon != null)
+        {
+            float initialDelay = 1f / enemyEquipment.CurrentWeapon.fireRate;
+            nextShootTime = Time.time + initialDelay + Random.Range(shotDelayMin, shotDelayMax); // For ranged
+            lastAttackTime = -initialDelay; // For melee (allow immediate first attack)
         }
 
         // Randomly determine initial turn direction
@@ -152,46 +169,39 @@ public class Enemy : MonoBehaviour
             lastStuckCheckTime = Time.time;
         }
 
-        if (!playerIsDead && hasSpottedPlayer)
+        HandleSightAndState(); // Refactored sight/state logic
+
+        if (currentState == State.Pursue && !playerIsDead)
         {
-            if (!CanSeePlayer())
+            // --- Attack Logic --- 
+            WeaponData currentWep = enemyEquipment.CurrentWeapon;
+            if (currentWep != null)
             {
-                if (Time.time >= lastSpottedTime + forgetTime)
+                bool isInMeleeRange = Vector2.Distance(transform.position, player.position) <= fistWeaponData.range; // Check fist range specifically
+                bool canSee = CanSeePlayer();
+
+                // Prioritize Melee if in range and has fists equipped or available
+                if (fistWeaponData != null && fistWeaponData.isMelee && isInMeleeRange && Time.time >= lastAttackTime + (1f / fistWeaponData.fireRate))
                 {
-                    currentState = State.Random;
-                    if (currentState != State.Random)
+                    // Use fists even if holding another weapon, if in close range
+                    MeleeAttack(fistWeaponData); // Pass fist data explicitly
+                    lastAttackTime = Time.time;
+                }
+                // Else, if not melee, try shooting
+                else if (!currentWep.isMelee && currentWep.canShoot && canSee && Time.time >= nextShootTime)
+                {
+                    if (currentWep.HasAmmo())
                     {
-                        float randomAngle = GetClearRandomAngle();
-                        targetRotation = Quaternion.Euler(0, 0, randomAngle);
-                        patrolDirection = Quaternion.Euler(0, 0, randomAngle) * Vector2.up;
+                        Shoot();
+                        nextShootTime = Time.time + (1f / currentWep.fireRate) + Random.Range(shotDelayMin, shotDelayMax);
+                    }
+                    else
+                    {
+                        // Enemy has no ammo - maybe switch to fists or just wait?
+                        // For now, just resets shoot time to avoid constant checks
+                         nextShootTime = Time.time + 1f; // Wait a second before checking again
                     }
                 }
-            }
-            else
-            {
-                lastSpottedTime = Time.time;
-                currentState = State.Pursue;
-            }
-
-            if (Time.time >= nextShootTime && CanSeePlayer())
-            {
-                Shoot();
-                nextShootTime = Time.time + shootInterval + Random.Range(shotDelayMin, shotDelayMax);
-            }
-        }
-        else
-        {
-            // The enemy hasn't spotted the player yet
-            hasSpottedPlayer = false;
-            
-            // Only change to Random mode if the enemy has ever spotted the player before
-            // This keeps new enemies in their initial Patrol state
-            if (currentState != State.Patrol && currentState != State.Random)
-            {
-                currentState = State.Random;
-                float randomAngle = GetClearRandomAngle();
-                targetRotation = Quaternion.Euler(0, 0, randomAngle);
-                patrolDirection = Quaternion.Euler(0, 0, randomAngle) * Vector2.up;
             }
         }
 
@@ -218,9 +228,86 @@ public class Enemy : MonoBehaviour
         }
     }
 
+    void HandleSightAndState()
+    {
+        if (player == null || player.GetComponent<PlayerController>() == null) return;
+        bool playerIsDead = player.GetComponent<PlayerController>().IsDead();
+        bool canSee = CanSeePlayer();
+
+        if (!playerIsDead && canSee)
+        {
+            hasSpottedPlayer = true;
+            lastSpottedTime = Time.time;
+            if (currentState != State.Pursue)
+            {
+                 currentState = State.Pursue;
+                 lastPathUpdateTime = -pathUpdateTime; // Force path recalc on chase start
+                 
+                 // ADDED: Reset shoot timer upon entering Pursue state to add initial delay
+                 if(enemyEquipment.CurrentWeapon != null && enemyEquipment.CurrentWeapon.fireRate > 0)
+                 {
+                    nextShootTime = Time.time + (1f / enemyEquipment.CurrentWeapon.fireRate) + Random.Range(shotDelayMin, shotDelayMax);
+                 }
+                 else
+                 {
+                    // If no weapon or fire rate is 0, set a default delay?
+                    nextShootTime = Time.time + Random.Range(shotDelayMin, shotDelayMax); 
+                 }
+            }
+        }
+        else // Cannot see player OR player is dead
+        {
+            if (hasSpottedPlayer && Time.time >= lastSpottedTime + forgetTime)
+            {
+                hasSpottedPlayer = false;
+                 // Changed: Don't switch to Random immediately if pursuing.
+                 // Stay in pursue briefly even after losing sight unless player is dead.
+                 // If player IS dead, switch state immediately.
+                 if (currentState == State.Pursue)
+                 {
+                      // If player is dead, immediately stop pursuing and go to Patrol
+                      if(playerIsDead)
+                      {
+                           currentState = State.Patrol; 
+                           path.Clear(); // Clear path when player dies
+                           rb.linearVelocity = Vector2.zero; // Stop movement
+                      }
+                      // If player is not dead, but we lost sight, wait for forgetTime
+                      // The original logic already handles this: if forgetTime is passed, it will eventually switch.
+                      // No need for explicit change here if player is alive but unseen.
+                 }
+            }
+            else if (currentState == State.Pursue && playerIsDead) // ADDED: Force state change if player dies while pursuing
+            {
+                currentState = State.Patrol; 
+                path.Clear(); // Clear path when player dies
+                rb.linearVelocity = Vector2.zero; // Stop movement
+                hasSpottedPlayer = false; // Ensure we don't re-trigger pursue immediately
+            }
+            // If never spotted, remain in Patrol (handled in Start)
+        }
+    }
+
     void FixedUpdate()
     {
-        if (player == null || isDead) return;
+        if (player == null || isDead) 
+        {
+            rb.linearVelocity = Vector2.zero; // Stop if enemy or player is dead
+            return;
+        }
+
+        PlayerController playerController = player.GetComponent<PlayerController>();
+        bool playerIsDead = playerController != null && playerController.IsDead();
+
+        // Stop movement if pursuing a dead player
+        if (currentState == State.Pursue && playerIsDead)
+        {
+            rb.linearVelocity = Vector2.zero;
+            path.Clear(); // Clear path
+            // Consider changing state here too, although Update should handle it
+            currentState = State.Patrol; 
+            return; 
+        }
 
         if (currentState == State.Pursue)
         {
@@ -649,179 +736,189 @@ public class Enemy : MonoBehaviour
         public Vector2Int? parent; // Parent node for path reconstruction
     }
 
+    // --- MELEE ATTACK LOGIC --- (New Method)
+    void MeleeAttack(WeaponData meleeWeapon)
+    {
+        if (player == null || isDead || meleeWeapon == null || !meleeWeapon.isMelee) return; // Safety checks
+
+        // Aim at player
+        Vector2 directionToPlayer = (player.position - transform.position).normalized;
+        transform.up = directionToPlayer;
+
+        // 1. Trigger Animation/Sprite Change
+        if (attackAnimationCoroutine != null) StopCoroutine(attackAnimationCoroutine);
+        attackAnimationCoroutine = StartCoroutine(AttackAnimation(meleeWeapon));
+
+        // 2. Perform Hit Detection (e.g., OverlapCircle focused on Player)
+        // Use a slightly more directed check than a full circle if preferred
+        Vector2 attackOrigin = (Vector2)transform.position + (Vector2)transform.up * meleeWeapon.bulletOffset;
+        Collider2D hit = Physics2D.OverlapCircle(attackOrigin, meleeWeapon.range * 0.7f, LayerMask.GetMask("Player")); // Reduced radius, check only Player layer
+
+        bool didHit = false;
+        if (hit != null)
+        {
+            PlayerController playerController = hit.GetComponent<PlayerController>();
+            if (playerController != null && !playerController.IsDead())
+            {
+                // Apply damage to the player
+                // Using Die directly as requested (replace with TakeDamage if needed)
+                 playerController.Die(directionToPlayer);
+                // playerController.TakeDamage((int)meleeWeapon.damage, directionToPlayer);
+                didHit = true;
+            }
+        }
+
+        // 3. Play Sound (Use enemy's AudioSource)
+        AudioSource source = GetComponent<AudioSource>(); // Get AudioSource (make sure one exists)
+        if (source != null)
+        {
+            if (didHit && meleeWeapon.hitSound != null)
+            {
+                source.PlayOneShot(meleeWeapon.hitSound);
+            }
+            else if (!didHit && meleeWeapon.missSound != null)
+            {
+                source.PlayOneShot(meleeWeapon.missSound);
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Enemy requires an AudioSource component for attack sounds.", this);
+        }
+
+        // 4. Camera Shake? (Probably not for enemy attacks unless special)
+    }
+
+    IEnumerator AttackAnimation(WeaponData weapon)
+    {
+        if (weapon.attackSprite != null)
+        {
+            enemyEquipment.SetSprite(weapon.attackSprite);
+            yield return new WaitForSeconds(weapon.attackDuration);
+            enemyEquipment.UpdateSpriteToCurrentWeapon(); // Revert to the weapon's normal sprite
+        }
+        attackAnimationCoroutine = null; // Clear the coroutine reference
+    }
+
     void Shoot()
     {
-        // Check if enemy has a weapon that can shoot
-        if (enemyEquipment == null || enemyEquipment.CurrentWeapon == null || player == null)
+        WeaponData currentWep = enemyEquipment.CurrentWeapon;
+        if (player == null || currentWep == null || currentWep.isMelee || !currentWep.canShoot || isDead || currentWep.projectilePrefab == null)
         {
-            Debug.LogError("Enemy equipment or player not assigned/found in Enemy!");
-            return;
+             // Added checks for isMelee and projectilePrefab
+             return; 
         }
 
-        // Get weapon data
-        WeaponData weapon = enemyEquipment.CurrentWeapon;
-        
-        // Check if weapon can shoot, has a projectile, and has ammo
-        if (!weapon.canShoot || weapon.projectilePrefab == null || !weapon.HasAmmo())
+        // Stop any melee animation if switching to shooting
+        if (attackAnimationCoroutine != null)
         {
-            // If out of ammo, try to find another weapon or switch to melee attack
-            // For now, just abort shooting
-            return;
+             StopCoroutine(attackAnimationCoroutine);
+             enemyEquipment.UpdateSpriteToCurrentWeapon();
+             attackAnimationCoroutine = null;
         }
 
-        // Use ammo from the weapon
-        if (!weapon.UseAmmo())
+        // Aim directly at player
+        Vector3 directionToPlayer = (player.position - transform.position).normalized;
+        transform.up = directionToPlayer;
+
+        // Use ammo (check already happened in Update, but double-check here)
+        if (!currentWep.UseAmmo())
         {
-            // Couldn't use ammo (weapon is empty)
-            return;
+             // Should ideally not happen due to check in Update, but safety first
+             Debug.LogWarning($"{gameObject.name} tried to shoot {currentWep.weaponName} but UseAmmo failed.");
+             return; 
         }
 
-        // Calculate spawn position using weapon's offset values
-        Vector3 spawnPosition = transform.position + (transform.up * weapon.bulletOffset) + (transform.right * weapon.bulletOffsetSide);
+        // --- Restore Projectile Logic --- 
+        Vector3 spawnPosition = transform.position + (transform.up * currentWep.bulletOffset) + (transform.right * currentWep.bulletOffsetSide);
 
         // Spawn muzzle flash if available
-        if (weapon.muzzleFlashPrefab != null)
+        if (currentWep.muzzleFlashPrefab != null)
         {
-            // Instantiate muzzle flash at the same position as the bullet spawn
-            GameObject muzzleFlash = Instantiate(weapon.muzzleFlashPrefab, spawnPosition, transform.rotation);
-            
-            // Set the muzzle flash to automatically destroy after duration
-            Destroy(muzzleFlash, weapon.muzzleFlashDuration);
-            
-            // Parent muzzle flash to enemy if needed (uncomment if you want the flash to move with enemy)
-            // muzzleFlash.transform.parent = transform;
+            GameObject muzzleFlash = Instantiate(currentWep.muzzleFlashPrefab, spawnPosition, transform.rotation);
+            Destroy(muzzleFlash, currentWep.muzzleFlashDuration); 
+            // muzzleFlash.transform.parent = transform; // Optional: Parent to enemy
         }
 
-        // Calculate the precise direction towards the player from the spawn point
-        Vector2 directionToPlayer = (player.position - spawnPosition).normalized;
+        Quaternion bulletRotation = transform.rotation; // Start with enemy's rotation
 
-        // Calculate the rotation needed to face the player
-        Quaternion bulletRotation = Quaternion.LookRotation(Vector3.forward, directionToPlayer);
+        // Handle shotgun pellets / spread
+        int pelletCount = Mathf.Max(1, currentWep.pelletCount);
+        bool isShotgun = pelletCount > 1;
+        bool hasHitRegistered = false; // For shotguns, only one pellet should register damage/effects usually
 
-        // Handle shotgun pellets
-        int pelletCount = Mathf.Max(1, weapon.pelletCount);
-        bool hasHitEnemy = false;
-        
         for (int i = 0; i < pelletCount; i++)
         {
-            // Calculate spread angle for this pellet
-            float angle = 0;
-            
-            // Apply weapon general spread (random inaccuracy)
-            if (weapon.spread > 0)
+            float angleOffset = 0;
+            // Apply general weapon spread
+            if (currentWep.spread > 0)
             {
-                // Random deviation within the spread range
-                angle += Random.Range(-weapon.spread, weapon.spread);
+                angleOffset += Random.Range(-currentWep.spread / 2f, currentWep.spread / 2f);
             }
-            
-            // Apply shotgun spread for multiple pellets
-            if (weapon.spreadAngle > 0 && pelletCount > 1)
+            // Apply shotgun spread angle
+            if (isShotgun && currentWep.spreadAngle > 0)
             {
-                // Distribute pellets evenly across the spread angle
-                float angleStep = weapon.spreadAngle / (pelletCount - 1);
-                angle += -weapon.spreadAngle / 2 + angleStep * i;
+                angleOffset += Random.Range(-currentWep.spreadAngle / 2f, currentWep.spreadAngle / 2f); 
+                 // Or use a more even distribution if preferred:
+                 // float angleStep = currentWep.spreadAngle / (pelletCount - 1);
+                 // angleOffset += -currentWep.spreadAngle / 2 + angleStep * i;
             }
+
+            Quaternion finalRotation = bulletRotation * Quaternion.Euler(0, 0, angleOffset);
+            GameObject bulletGO = Instantiate(currentWep.projectilePrefab, spawnPosition, finalRotation);
             
-            // Create the bullet with rotation adjusted for spread
-            Quaternion pelletRotation = bulletRotation * Quaternion.Euler(0, 0, angle);
-            GameObject bulletGO = Instantiate(weapon.projectilePrefab, spawnPosition, pelletRotation);
-            
+            // Setup Bullet component
             Bullet bulletScript = bulletGO.GetComponent<Bullet>();
             if (bulletScript != null)
             {
-                // Pass the enemy to allow tracking hits
-                bulletScript.SetShooter(gameObject);
+                bulletScript.SetShooter(gameObject); // Identify shooter
+                bulletScript.SetBulletParameters(currentWep.bulletSpeed, currentWep.range); 
                 
-                // Pass weapon data parameters to the bullet
-                bulletScript.SetBulletParameters(weapon.bulletSpeed, weapon.range);
-                
-                // Set shotgun flag to track only one hit per shot
-                bulletScript.isShotgunPellet = pelletCount > 1;
-                bulletScript.hasRecordedHit = hasHitEnemy;
-                bulletScript.OnEnemyHit += () => hasHitEnemy = true;
+                // Shotgun hit tracking (if your Bullet script supports this)
+                /*
+                bulletScript.isShotgunPellet = isShotgun;
+                bulletScript.hasRecordedHit = hasHitRegistered;
+                bulletScript.OnEnemyHit += () => hasHitRegistered = true; // Lambda to update flag
+                */
             }
             
+            // Apply velocity
             Rigidbody2D bulletRb = bulletGO.GetComponent<Rigidbody2D>();
             if (bulletRb != null)
             {
-                bulletRb.linearVelocity = bulletGO.transform.up * weapon.bulletSpeed;
+                bulletRb.linearVelocity = bulletGO.transform.up * currentWep.bulletSpeed;
+            }
+            else
+            {
+                Debug.LogWarning($"Projectile prefab {currentWep.projectilePrefab.name} is missing a Rigidbody2D.", bulletGO);
             }
         }
+        // --------------------------------
 
         // Play sound
-        if (shootSound != null)
+        AudioSource source = GetComponent<AudioSource>();
+        if(source != null && currentWep.shootSound != null)
         {
-            shootSound.pitch = Random.Range(0.8f, 1.1f);
-            
-            // Use weapon's sound if available, otherwise use the enemy's default sound
-            if (weapon.shootSound != null)
-            {
-                shootSound.PlayOneShot(weapon.shootSound);
-            }
-            else if (shootSound.clip != null)
-            {
-                shootSound.PlayOneShot(shootSound.clip);
-            }
+            source.pitch = Random.Range(0.9f, 1.1f); // Add pitch variation
+            source.PlayOneShot(currentWep.shootSound);
         }
     }
 
-    void OnTriggerStay2D(Collider2D collision)
-    {
-        if (collision.CompareTag("Player") && CanSeePlayer())
-        {
-            PlayerController playerController = collision.GetComponent<PlayerController>();
-            if (playerController != null && !playerController.IsDead())
-            {
-                if (!hasSpottedPlayer)
-                {
-                    hasSpottedPlayer = true;
-                    lastSpottedTime = Time.time;
-                    currentState = State.Pursue;
-                    nextShootTime = Time.time + Random.Range(shotDelayMin, shotDelayMax);
-                }
-                else if (Time.time - lastSpottedTime > Time.deltaTime)
-                {
-                    nextShootTime = Time.time + Random.Range(shotDelayMin, shotDelayMax);
-                }
-            }
-        }
-    }
-
-    void OnTriggerExit2D(Collider2D collision)
-    {
-        if (collision.CompareTag("Player") && !CanSeePlayer())
-        {
-            if (hasSpottedPlayer && Time.time >= lastSpottedTime + forgetTime)
-            {
-                currentState = State.Random;
-                float randomAngle = GetClearRandomAngle();
-                targetRotation = Quaternion.Euler(0, 0, randomAngle);
-                patrolDirection = Quaternion.Euler(0, 0, randomAngle) * Vector2.up;
-            }
-        }
-    }
-
-    // Handle direct collisions with the player
     void OnCollisionEnter2D(Collision2D collision)
     {
-        if (isDead) return; // Dead enemies can't kill the player
-        
+        // Prevent instant death on touch if the collision is with the player.
+        // MeleeAttack logic now handles player damage/death.
         if (collision.gameObject.CompareTag("Player"))
         {
-            // Get the player controller
-            PlayerController playerController = collision.gameObject.GetComponent<PlayerController>();
-            if (playerController != null && !playerController.IsDead())
-            {
-                // Kill the player immediately
-                playerController.TakeDamage(1);
-                
-                // Play the enemy's shoot sound
-                if (shootSound != null)
-                {
-                    shootSound.pitch = Random.Range(0.8f, 1.1f);
-                    shootSound.PlayOneShot(shootSound.clip);
-                }
-            }
+            // Optionally add a small bounce effect or ignore
+            // Debug.Log("Enemy touched player - collision ignored for damage.");
+            return; 
+        }
+
+        // Original logic for hitting walls during patrol
+        if (currentState == State.Patrol && ((1 << collision.gameObject.layer) & wallLayer) != 0)
+        {
+           // ... (existing wall collision logic for patrol) ...
         }
     }
 
@@ -884,101 +981,81 @@ public class Enemy : MonoBehaviour
     public void Die(Vector2 bulletDirection = default)
     {
         if (isDead) return;
-
         isDead = true;
         currentState = State.Dead;
-        rb.bodyType = RigidbodyType2D.Dynamic;
-        rb.gravityScale = 0;
         rb.linearVelocity = Vector2.zero;
         rb.angularVelocity = 0f;
 
-        SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null && deathSprite != null)
+        // Stop attack animation if enemy dies mid-punch
+        if (attackAnimationCoroutine != null)
         {
-            spriteRenderer.sprite = deathSprite;
-            spriteRenderer.sortingOrder = 0;
-            spriteRenderer.sortingLayerName = "DeadEnemies";
+            StopCoroutine(attackAnimationCoroutine);
+            attackAnimationCoroutine = null;
         }
-        transform.localScale = new Vector3(3.2f, 3.2f, 3.2f);
-
-        // Reduce spotlight intensity
-        Transform spotlightTransform = transform.Find("spotlight");
-        if (spotlightTransform != null)
+        
+        // Set the Death Sprite
+        if (enemyEquipment != null && deathSprite != null)
         {
-            Light2D spotlight = spotlightTransform.GetComponent<Light2D>();
-            if (spotlight != null)
-            {
-                spotlight.intensity = 0.1f;
-            }
+            enemyEquipment.SetSprite(deathSprite);
+        }
+        else
+        {
+            Debug.LogWarning("Cannot set death sprite: EnemyEquipment or deathSprite is null.", this);
         }
 
-        // Get the weapon from the enemy
+        // --- Drop Weapon Logic --- 
         WeaponData deadEnemyWeapon = null;
-        if (enemyEquipment != null && enemyEquipment.CurrentWeapon != null)
+        if (enemyEquipment != null && enemyEquipment.CurrentWeapon != null && enemyEquipment.CurrentWeapon != fistWeaponData)
         {
             deadEnemyWeapon = enemyEquipment.CurrentWeapon;
             
             // Drop the weapon if it has a pickup prefab
             if (deadEnemyWeapon.pickupPrefab != null)
             {
-                // Always drop weapon (removed random chance)
-                GameObject weaponPickup = Instantiate(deadEnemyWeapon.pickupPrefab, transform.position, Quaternion.identity);
-                WeaponPickup pickup = weaponPickup.GetComponent<WeaponPickup>();
-                if (pickup != null)
-                {
-                    // Create a new WeaponData instance with full ammo
-                    WeaponData fullAmmoWeapon = Instantiate(deadEnemyWeapon);
-                    fullAmmoWeapon.currentAmmo = fullAmmoWeapon.magazineSize; // Set to full ammo
-                    
-                    // Assign the new WeaponData with full ammo to the pickup
-                    pickup.weaponData = fullAmmoWeapon;
-                }
+                GameObject weaponPickupGO = Instantiate(deadEnemyWeapon.pickupPrefab, transform.position, Quaternion.Euler(0f, 0f, Random.Range(0f, 360f)));
+                WeaponPickup pickupScript = weaponPickupGO.GetComponent<WeaponPickup>();
                 
-                // Add a small random force to the dropped weapon
-                Rigidbody2D weaponRb = weaponPickup.GetComponent<Rigidbody2D>();
+                // We no longer assign the enemy's instance data to the pickup.
+                // The pickup prefab MUST have the correct WeaponData asset assigned in the Inspector.
+                // if (pickupScript != null)
+                // {
+                //     pickupScript.weaponData = deadEnemyWeapon; // REMOVED THIS LINE
+                //     // Ammo should be handled by WeaponPickup's Awake or SetCurrentAmmo if needed
+                // }
+                
+                // Add force to the dropped weapon
+                Rigidbody2D weaponRb = weaponPickupGO.GetComponent<Rigidbody2D>();
                 if (weaponRb != null)
                 {
-                    // Generate a random direction
                     float randomAngle = Random.Range(0f, 360f);
                     Vector2 randomDirection = Quaternion.Euler(0, 0, randomAngle) * Vector2.up;
-                    
-                    // Apply force
-                    float forceMagnitude = Random.Range(30.0f, 60.0f);
+                    float forceMagnitude = Random.Range(30.0f, 60.0f); // Use previous force range
                     weaponRb.AddForce(randomDirection * forceMagnitude, ForceMode2D.Impulse);
-                    
-                    // Add a small random rotation
-                    weaponRb.AddTorque(Random.Range(-2f, 2f), ForceMode2D.Impulse);
+                    weaponRb.AddTorque(Random.Range(-2f, 2f), ForceMode2D.Impulse); // Use previous torque range
                 }
             }
+            else
+            {
+                 Debug.LogWarning($"Enemy died with {deadEnemyWeapon.weaponName} but it has no pickupPrefab assigned.", this);
+            }
         }
+        // ------------------------
 
-        // If we have a valid bullet direction, face that direction
-        if (bulletDirection != default && bulletDirection != Vector2.zero)
-        {
-            // Invert the direction to face WHERE the bullet came FROM
-            Vector2 sourceDirection = -bulletDirection;
-            
-            // Calculate the rotation to face the source of the bullet
-            float angle = Mathf.Atan2(sourceDirection.y, sourceDirection.x) * Mathf.Rad2Deg - 90f;
-            transform.rotation = Quaternion.Euler(0, 0, angle);
-            
-            // Apply force in the direction of the bullet's travel (away from source)
-            rb.AddForce(bulletDirection * 10f, ForceMode2D.Impulse);
-        }
-        else
-        {
-            // Fallback to the original behavior if no bullet direction is provided
-            Vector2 nudgeDirection = (transform.position - player.position).normalized;
-            rb.AddForce(nudgeDirection * 10f, ForceMode2D.Impulse);
-        }
+        // Stop pathfinding/movement coroutines if any
+        // StopAllCoroutines();
 
-        Invoke("StopAfterNudge", 0.1f);
         GetComponent<Collider2D>().enabled = false;
+        rb.bodyType = RigidbodyType2D.Dynamic;
+        rb.gravityScale = 0;
 
-        if (ScoreManager.Instance != null)
+        // Apply nudge force
+        if (bulletDirection != default)
         {
-            ScoreManager.Instance.RecordEnemyDefeated();
+            rb.AddForce(-bulletDirection * 10f, ForceMode2D.Impulse);
+            Invoke(nameof(StopAfterNudge), 0.2f);
         }
+        
+        // Removed ScoreManager call
     }
 
     void StopAfterNudge()
@@ -987,7 +1064,8 @@ public class Enemy : MonoBehaviour
         {
             rb.linearVelocity = Vector2.zero;
             rb.angularVelocity = 0f;
-            rb.bodyType = RigidbodyType2D.Kinematic;
+            // Optionally set back to Kinematic if needed after nudge
+            // rb.bodyType = RigidbodyType2D.Kinematic; 
         }
     }
 

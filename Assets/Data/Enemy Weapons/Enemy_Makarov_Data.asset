@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   weaponName: Enemy_Makarov
   playerSprite: {fileID: 2495607016543911191, guid: 340aea7bf2e75214db215c8b3e037b30, type: 3}
+  weaponIcon: {fileID: 0}
   pickupPrefab: {fileID: 6688425372488289659, guid: a7f0a4ae67687d148b83ecffaf51245f, type: 3}
   canShoot: 1
   isMelee: 0
@@ -30,7 +31,12 @@ MonoBehaviour:
   pelletCount: 1
   spreadAngle: 0
   shootSound: {fileID: 8300000, guid: 68e9366e41a33a14ba2ce895191afc0b, type: 3}
-  shootShakeDuration: 0
-  shootShakeMagnitude: 0
+  emptyClickSound: {fileID: 0}
+  shootShakeDuration: 0.07
+  shootShakeMagnitude: 0.07
   muzzleFlashPrefab: {fileID: 8542288411728666520, guid: c8555d589afcbf846bfa365113179d24, type: 3}
   muzzleFlashDuration: 0.05
+  hitSound: {fileID: 0}
+  missSound: {fileID: 0}
+  attackSprite: {fileID: 0}
+  attackDuration: 0.2

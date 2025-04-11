@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   weaponName: AKM
   playerSprite: {fileID: 494839579, guid: 1939bce7d6ebee3478d2556cde7728f2, type: 3}
+  weaponIcon: {fileID: 21300000, guid: b6fd88e7c35c8174ca7146727c91edf4, type: 3}
   pickupPrefab: {fileID: 6688425372488289659, guid: 00f4c8568386fb7478352bf25ec5a7e6, type: 3}
   canShoot: 1
   isMelee: 0

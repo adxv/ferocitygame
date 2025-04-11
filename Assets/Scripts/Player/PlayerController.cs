@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Random = UnityEngine.Random;
+using System.Collections; // Added for Coroutines
 
 [RequireComponent(typeof(Rigidbody2D), typeof(PlayerEquipment), typeof(Collider2D))] // Add Collider2D requirement
 public class PlayerController : MonoBehaviour
@@ -19,6 +20,7 @@ public class PlayerController : MonoBehaviour
     private bool shouldShoot;       //workaround for for consistent firerate with InputSystem
     private float lastWeaponPickupTime = 0f; // Keep for potential pickup cooldown
     private float weaponActionCooldown = 0.5f; // Keep for potential pickup cooldown
+    private Coroutine attackAnimationCoroutine; // To manage the attack sprite change
 
     // Camera
     public Camera mainCamera;
@@ -34,6 +36,7 @@ public class PlayerController : MonoBehaviour
     // Timer
     private TimerController timerController;
     private bool hasMovedOnce = false;
+    private UIManager uiManager; // ADDED: Reference to the UIManager
 
     // Audio Source (Consider moving this to a separate Audio Manager or PlayerAudio script later)
     public AudioSource playerAudioSource; // A single AudioSource on the player
@@ -51,11 +54,17 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         playerEquipment = GetComponent<PlayerEquipment>();
         // Get fist data via the public getter
-        fistWeaponData = playerEquipment.FistWeaponData; 
+        fistWeaponData = playerEquipment.FistWeaponData;
         if (fistWeaponData == null)
         {
              // This error should ideally be caught by PlayerEquipment's Awake now
              Debug.LogError("PlayerEquipment did not provide FistWeaponData!", this);
+        }
+
+        // Initialize fists if no weapon is explicitly equipped
+        if (playerEquipment.CurrentWeapon == null)
+        {
+            playerEquipment.EquipWeapon(fistWeaponData);
         }
 
         // Get the shared AudioSource
@@ -70,17 +79,22 @@ public class PlayerController : MonoBehaviour
 
         if (mainCamera == null) mainCamera = Camera.main;
         
-        // Initialize lastFireTime based on the starting weapon's fire rate (likely fists)
+        // Initialize lastFireTime based on the starting weapon's fire rate
         if (playerEquipment.CurrentWeapon != null)
         {
-             lastFireTime = -playerEquipment.CurrentWeapon.fireRate;
+             lastFireTime = -playerEquipment.CurrentWeapon.fireRate; // Initialize negative for immediate first action
         }
         else
         {
-            lastFireTime = -1f; // Default if no weapon somehow
+            lastFireTime = -1f; // Default if no weapon somehow (shouldn't happen now)
         }
 
         timerController = FindFirstObjectByType<TimerController>();
+        uiManager = UIManager.Instance; // ADDED: Get UIManager instance
+        if(uiManager == null) // ADDED: Null check for UIManager
+        {
+             Debug.LogWarning("PlayerController could not find the UIManager instance.", this);
+        }
     }
 
     void Update()
@@ -93,32 +107,54 @@ public class PlayerController : MonoBehaviour
             Vector3 mousePos = mainCamera.ScreenToWorldPoint(Mouse.current.position.ReadValue());
             mousePos.z = 0f;
             Vector3 direction = (mousePos - transform.position).normalized;
-            transform.up = direction;
-
-            // Check if current weapon can shoot and if fire rate allows
-            if (playerEquipment.CurrentWeapon != null && 
-                playerEquipment.CurrentWeapon.canShoot && 
-                playerEquipment.CurrentWeapon.HasAmmo() && 
-                shouldShoot && 
-                Time.time >= lastFireTime + (1f / playerEquipment.CurrentWeapon.fireRate)) // Use 1/fireRate for delay
+            
+            // Only update rotation if the game is not paused
+            if (Time.timeScale != 0f)
             {
-                Shoot();
-                lastFireTime = Time.time;
-                
-                // Only reset the shooting flag for semi-auto weapons
-                if (!playerEquipment.CurrentWeapon.isFullAuto)
-                {
-                    shouldShoot = false; 
-                }
+                transform.up = direction;
             }
-            else if (playerEquipment.CurrentWeapon != null && 
-                     playerEquipment.CurrentWeapon.canShoot && 
-                     !playerEquipment.CurrentWeapon.HasAmmo() && 
-                     shouldShoot)
+
+            // Check if current weapon can act (shoot or melee) and if fire rate allows
+            if (playerEquipment.CurrentWeapon != null &&
+                Time.time >= lastFireTime + (1f / playerEquipment.CurrentWeapon.fireRate))
             {
-                // Play empty click sound if weapon is out of ammo
-                PlayEmptyClickSound();
-                shouldShoot = false; // Reset shooting flag to prevent continuous clicks
+                if (shouldShoot) // Only proceed if input is active
+                {
+                    if (playerEquipment.CurrentWeapon.isMelee)
+                    {
+                        MeleeAttack();
+                        lastFireTime = Time.time;
+                        // Reset flag for semi-auto melee (single click = single punch)
+                        if (!playerEquipment.CurrentWeapon.isFullAuto)
+                        {
+                            shouldShoot = false;
+                        }
+                    }
+                    else if (playerEquipment.CurrentWeapon.canShoot)
+                    {
+                        if (playerEquipment.CurrentWeapon.HasAmmo())
+                        {
+                            Shoot();
+                            lastFireTime = Time.time;
+                            // Reset flag for semi-auto guns
+                            if (!playerEquipment.CurrentWeapon.isFullAuto)
+                            {
+                                shouldShoot = false;
+                            }
+                        }
+                        else
+                        {
+                            // Play empty click sound if gun is out of ammo
+                            PlayEmptyClickSound();
+                            shouldShoot = false; // Reset shooting flag to prevent continuous clicks
+                        }
+                    }
+                    else
+                    {
+                        // If weapon cannot shoot (and isn't melee), just clear the flag
+                        shouldShoot = false;
+                    }
+                }
             }
         }
     }
@@ -151,6 +187,11 @@ public class PlayerController : MonoBehaviour
         {
             rb.linearVelocity = movementInput * moveSpeed;
         }
+        else // ADDED: Ensure dead player doesn't move
+        {
+            rb.linearVelocity = Vector2.zero;
+            rb.angularVelocity = 0f;
+        }
     }
 
     // Input Handling
@@ -174,17 +215,18 @@ public class PlayerController : MonoBehaviour
 
     public void OnShoot(InputAction.CallbackContext context)
     {
-        if (isDead || playerEquipment.CurrentWeapon == null || !playerEquipment.CurrentWeapon.canShoot) 
+        if (isDead || playerEquipment.CurrentWeapon == null)
         {
-             shouldShoot = false; // Ensure cannot shoot if dead, unarmed, or weapon can't shoot
+             shouldShoot = false; // Ensure cannot act if dead or unarmed
              return;
         }
 
         WeaponData currentWep = playerEquipment.CurrentWeapon;
 
+        // Handle both melee and ranged weapons based on input context
         if (currentWep.isFullAuto)
         {
-            // For full-auto, set shooting flag based on button held state
+            // For full-auto, set flag based on button held state
             if (context.performed || context.started) // Started or Performed means held
             {
                 shouldShoot = true;
@@ -196,10 +238,10 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            // For semi-auto, only shoot on the initial press (performed)
+            // For semi-auto, only act on the initial press (performed)
             if (context.performed)
             {
-                shouldShoot = true; // Will be reset after one shot in Update()
+                shouldShoot = true; // Will be reset after one action in Update()
             }
             else if (context.canceled)
             {
@@ -226,6 +268,13 @@ public class PlayerController : MonoBehaviour
                 {
                      DropWeapon(false); // Drop without applying cooldown again
                 }
+                else
+                {
+                    // If we were holding fists and are picking up a weapon,
+                    // make sure the sprite is correct (in case attack animation was interrupted)
+                    if(attackAnimationCoroutine != null) StopCoroutine(attackAnimationCoroutine);
+                    playerEquipment.UpdateSpriteToCurrentWeapon(); // Ensure correct sprite
+                }
 
                 // Equip the new weapon and set its ammo
                 playerEquipment.EquipWeapon(weaponToPickup);
@@ -248,9 +297,13 @@ public class PlayerController : MonoBehaviour
             }
         }
         else if (playerEquipment.CurrentWeapon != fistWeaponData)
-        {   
-            // --- Drop Current Weapon --- 
-            DropWeapon(true); // Drop and apply cooldown
+        {
+            // --- Drop Weapon (when not near a pickup) ---
+            DropWeapon(true); // Apply cooldown when dropping manually
+            // Equip fists after dropping
+            playerEquipment.EquipWeapon(fistWeaponData);
+            UpdateLastFireTime();
+            lastWeaponPickupTime = Time.time; // Apply cooldown after dropping
         }
         // else: Holding fists and no pickup nearby, do nothing.
     }
@@ -372,6 +425,14 @@ public class PlayerController : MonoBehaviour
 
         // Shake camera using WeaponData values
         ShakeCamera(currentWep.shootShakeDuration, currentWep.shootShakeMagnitude);
+
+        // Make sure to stop any attack animation if shooting a gun
+        if (attackAnimationCoroutine != null)
+        {
+            StopCoroutine(attackAnimationCoroutine);
+            playerEquipment.UpdateSpriteToCurrentWeapon(); // Reset sprite immediately
+            attackAnimationCoroutine = null;
+        }
     }
 
     public void ShakeCamera(float duration, float magnitude)
@@ -392,41 +453,55 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void Die(Vector2 bulletDirection = default)
+    public void Die(Vector2 bulletDirection = default)
     {
+        if (isDead) return;
         isDead = true;
-        rb.linearVelocity = Vector2.zero; 
+        rb.linearVelocity = Vector2.zero;
+        rb.angularVelocity = 0f;
+        movementInput = Vector2.zero;
+        shouldShoot = false; // Stop shooting/attacking
+
+        // ADDED: Stop timer and show Game Over UI
+        if (timerController != null) 
+        {
+            timerController.StopTimer();
+        }
+        if (uiManager != null)
+        {
+             uiManager.ShowGameOver();
+        }
+
+        // Stop attack animation if player dies mid-punch
+        if (attackAnimationCoroutine != null)
+        {
+            StopCoroutine(attackAnimationCoroutine);
+            attackAnimationCoroutine = null;
+        }
+
+        // Set scale via transform, not Rigidbody2D
         transform.localScale = new Vector3(3.2f, 3.2f, 3.2f); 
         GetComponent<SpriteRenderer>().sprite = deathSprite;
-        
-        // If we have a valid bullet direction, face that direction
-        if (bulletDirection != default && bulletDirection != Vector2.zero)
+        GetComponent<Collider2D>().enabled = false; // Disable collider on death
+          
+        // Nudge the player back
+        if (bulletDirection != default)
         {
-            // Invert the direction to face WHERE the bullet came FROM
-            Vector2 sourceDirection = -bulletDirection;
-            
-            // Calculate the rotation to face the source of the bullet
-            float angle = Mathf.Atan2(sourceDirection.y, sourceDirection.x) * Mathf.Rad2Deg - 90f;
-            transform.rotation = Quaternion.Euler(0, 0, angle);
-            
-            // Apply force in the direction of the bullet's travel (away from source)
-            rb.AddForce(bulletDirection * 1f, ForceMode2D.Impulse);
+            rb.bodyType = RigidbodyType2D.Dynamic; // Keep dynamic for nudge force
+            rb.AddForce(-bulletDirection * 50f, ForceMode2D.Impulse);
+            Invoke(nameof(StopAfterNudge), 0.2f);
         }
-        else
+        else // If no nudge, make static immediately
         {
-            // Fallback to the original behavior if no bullet direction is provided
-            Vector2 nudgeDirection = -transform.up;
-            rb.AddForce(nudgeDirection * 1f, ForceMode2D.Impulse);
+            rb.bodyType = RigidbodyType2D.Static; 
         }
-        
-        Invoke("StopAfterNudge", 0.1f);
-        GetComponent<Collider2D>().enabled = false; 
     }
 
     void StopAfterNudge()
     {
         rb.linearVelocity = Vector2.zero; 
         rb.angularVelocity = 0f; 
+        rb.bodyType = RigidbodyType2D.Static; // Set to Static after nudge
     }
     public bool IsDead()
     {
@@ -484,17 +559,23 @@ public class PlayerController : MonoBehaviour
 
     void DropWeapon(bool applyCooldown)
     {
-        WeaponData weaponToDrop = playerEquipment.CurrentWeapon;
+        WeaponData currentWep = playerEquipment.CurrentWeapon;
+        if (currentWep != null && currentWep != fistWeaponData && currentWep.pickupPrefab != null)
+        {
+            // Stop any attack animation before dropping
+            if (attackAnimationCoroutine != null)
+            {
+                StopCoroutine(attackAnimationCoroutine);
+                attackAnimationCoroutine = null;
+                // No need to reset sprite here, EquipWeapon(fistWeaponData) will handle it
+            }
 
-        // Check if it's a droppable weapon with a valid pickup prefab
-        if (weaponToDrop != null && weaponToDrop != fistWeaponData && weaponToDrop.pickupPrefab != null)
-        {            
             // Remember current ammo count
-            int currentAmmo = weaponToDrop.currentAmmo;
+            int currentAmmo = currentWep.currentAmmo;
             
             // Instantiate the pickup prefab slightly in front of the player
             Vector3 dropPosition = transform.position + transform.up * 0.5f; // Adjust offset as needed
-            GameObject droppedItem = Instantiate(weaponToDrop.pickupPrefab, dropPosition, Quaternion.Euler(0f, 0f, Random.Range(0f, 360f)));
+            GameObject droppedItem = Instantiate(currentWep.pickupPrefab, dropPosition, Quaternion.Euler(0f, 0f, Random.Range(0f, 360f)));
             
             // Set the dropped weapon's ammo count
             WeaponPickup pickup = droppedItem.GetComponent<WeaponPickup>();
@@ -524,9 +605,9 @@ public class PlayerController : MonoBehaviour
                  lastWeaponPickupTime = Time.time; // Apply cooldown only if this was the primary action
             }
         }
-        else if (weaponToDrop != fistWeaponData) // Log error if trying to drop non-fist without prefab
+        else if (currentWep != fistWeaponData) // Log error if trying to drop non-fist without prefab
         {
-             Debug.LogWarning($"Cannot drop {weaponToDrop?.weaponName ?? "current weapon"}: Missing pickupPrefab in its WeaponData.", this);
+             Debug.LogWarning($"Cannot drop {currentWep?.weaponName ?? "current weapon"}: Missing pickupPrefab in its WeaponData.", this);
         }
         // Do nothing if trying to drop fists
     }
@@ -592,5 +673,69 @@ public class PlayerController : MonoBehaviour
         
         // Update the reference to the closest pickup
         nearbyWeaponPickup = closestPickup;
+    }
+
+    // --- MELEE ATTACK LOGIC --- (New Method)
+    void MeleeAttack()
+    {
+        WeaponData meleeWeapon = playerEquipment.CurrentWeapon;
+        if (!meleeWeapon.isMelee) return; // Safety check
+
+        // 1. Trigger Animation/Sprite Change
+        if (attackAnimationCoroutine != null) StopCoroutine(attackAnimationCoroutine);
+        attackAnimationCoroutine = StartCoroutine(AttackAnimation(meleeWeapon));
+
+        // 2. Perform Hit Detection (e.g., OverlapCircle)
+        Vector2 attackOrigin = (Vector2)transform.position + (Vector2)transform.up * meleeWeapon.bulletOffset; // Use bulletOffset for attack origin
+        Collider2D[] hits = Physics2D.OverlapCircleAll(attackOrigin, meleeWeapon.range, LayerMask.GetMask("Enemy")); // Use range for attack radius, check only Enemy layer
+
+        bool didHit = false;
+        foreach (Collider2D hit in hits)
+        {
+            Enemy enemy = hit.GetComponent<Enemy>();
+            if (enemy != null && !enemy.isDead) // Make sure we hit an enemy script and it's not already dead
+            {
+                // Calculate direction for potential knockback/effects
+                Vector2 directionToEnemy = (enemy.transform.position - transform.position).normalized;
+
+                // Apply damage to the enemy
+                enemy.Die(directionToEnemy); // Assuming fists insta-kill enemies based on original logic
+                // enemy.TakeDamage(meleeWeapon.damage, directionToEnemy); // Use this if fists shouldn't insta-kill
+                didHit = true;
+                // Potentially add knockback here
+            }
+        }
+
+        // 3. Play Sound
+        if (didHit)
+        {
+            if (playerAudioSource != null && meleeWeapon.hitSound != null)
+            {
+                playerAudioSource.PlayOneShot(meleeWeapon.hitSound);
+            }
+        }
+        else
+        {
+            if (playerAudioSource != null && meleeWeapon.missSound != null)
+            {
+                playerAudioSource.PlayOneShot(meleeWeapon.missSound);
+            }
+        }
+
+        // 4. Camera Shake (Optional)
+        ShakeCamera(meleeWeapon.shootShakeDuration, meleeWeapon.shootShakeMagnitude);
+    }
+
+    IEnumerator AttackAnimation(WeaponData weapon)
+    {
+        if (weapon.attackSprite != null)
+        {
+            playerEquipment.SetSprite(weapon.attackSprite); // Use a direct setter on PlayerEquipment
+            yield return new WaitForSeconds(weapon.attackDuration);
+            // Ensure we revert to the correct sprite *for the currently equipped weapon*
+            // This handles cases where the weapon might change during the animation
+            playerEquipment.UpdateSpriteToCurrentWeapon();
+        }
+        attackAnimationCoroutine = null; // Clear the coroutine reference
     }
 }

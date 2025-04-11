@@ -49,25 +49,51 @@ public class PlayerEquipment : MonoBehaviour
 
         CurrentWeapon = newWeapon;
 
-        // Update Player Sprite
+        // Update Player Sprite using the new central method
+        UpdateSpriteToCurrentWeapon();
+
+        // Notify listeners that the weapon has changed
+        OnWeaponChanged?.Invoke();
+    }
+
+    // New method to directly set the sprite (used for attack animations)
+    public void SetSprite(Sprite newSprite)
+    {
+        if (playerSpriteRenderer != null && newSprite != null)
+        {
+            playerSpriteRenderer.sprite = newSprite;
+        }
+        else if (playerSpriteRenderer == null)
+        {
+             Debug.LogError("Player Sprite Renderer is null in PlayerEquipment!", this);
+        }
+        // Don't log error if newSprite is null, might be intentional
+    }
+
+    // New method to update the sprite based on the *currently equipped* weapon
+    public void UpdateSpriteToCurrentWeapon()
+    {
+        if (playerSpriteRenderer == null) 
+        {
+            Debug.LogError("Player Sprite Renderer is null in PlayerEquipment! Cannot update sprite.", this);
+            return;
+        }
+
         if (CurrentWeapon != null && CurrentWeapon.playerSprite != null)
         {
             playerSpriteRenderer.sprite = CurrentWeapon.playerSprite;
         }
         else if (fistWeaponData != null && fistWeaponData.playerSprite != null) // Ensure fallback exists
         {
-            // Fallback if something is wrong (e.g., null weapon passed, or its sprite is null)
-            CurrentWeapon = fistWeaponData; // Equip fists as a safe default
-            playerSpriteRenderer.sprite = fistWeaponData.playerSprite; 
-            Debug.LogWarning($"Equipped weapon or its sprite was null. Defaulting to fists.", this);
+            // Fallback if CurrentWeapon is null or its sprite is null
+            if(CurrentWeapon == null) EquipWeapon(fistWeaponData); // Re-equip fists if current weapon became null
+            playerSpriteRenderer.sprite = fistWeaponData.playerSprite;
+            Debug.LogWarning("Current weapon or its sprite was null. Defaulting sprite to fists.", this);
         }
         else
         {
-             Debug.LogError("Cannot equip weapon: Both new weapon/sprite and fist data/sprite are invalid!", this);
+             Debug.LogError("Cannot update sprite: Both current weapon/sprite and fist data/sprite are invalid!", this);
         }
-
-        // Notify listeners that the weapon has changed
-        OnWeaponChanged?.Invoke();
     }
 
     // REMOVED SwitchToNext/PreviousWeapon
