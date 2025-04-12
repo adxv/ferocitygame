@@ -2,6 +2,10 @@ using UnityEngine;
 using TMPro; // Keep: Needed for TextMeshPro
 using System.Collections.Generic; // Keep: Needed for potential future use
 using System.Collections;
+using UnityEngine.SceneManagement;
+using System.Linq;
+using System.Reflection; // Add for reflection support
+using static FloorAccessController;
 
 public class ScoreManager : MonoBehaviour
 {
@@ -30,16 +34,59 @@ public class ScoreManager : MonoBehaviour
         }
     }
 
-    void Start()
+    void OnEnable()
     {
+        // Subscribe to scene loaded event
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    void OnDisable()
+    {
+        // Unsubscribe to prevent memory leaks
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Reset state on scene reload
+        ResetState();
+        
+        // Start level automatically after a small delay
+        Invoke("StartLevel", 0.1f);
+    }
+
+    void ResetState()
+    {
+        shotsFired = 0;
+        shotsHit = 0;
+        enemiesDefeated = 0;
+        enemiesTotal = 0;
+        startTime = 0f;
+        endTime = 0f;
+        levelActive = false;
+        currentScore = 0;
+        
+        // Reset UI
         if (scoreText != null)
         {
-            scoreText.text = ""; // Clear score text at start
+            scoreText.text = "0";
+        }
+    }
+
+    void Start()
+    {
+        // Initial setup
+        if (scoreText != null)
+        {
+            scoreText.text = "0"; // Initialize with 0 rather than empty string
         }
         else
         {
             Debug.LogWarning("ScoreManager: Score Text UI not assigned!");
         }
+        
+        // Start level automatically after a small delay
+        Invoke("StartLevel", 0.1f);
     }
 
     void Update()
@@ -61,7 +108,9 @@ public class ScoreManager : MonoBehaviour
         levelActive = true;
         currentScore = 0;
 
-        Enemy[] allEnemies = FindObjectsByType<Enemy>(FindObjectsSortMode.None);
+        var allEnemies = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None)
+            .Where(obj => obj.GetType().Name == "Enemy")
+            .ToArray();
         enemiesTotal = allEnemies.Length;
 
         Debug.Log($"Level started. Enemies found: {enemiesTotal}");
@@ -104,10 +153,37 @@ public class ScoreManager : MonoBehaviour
         CalculateFinalScore();
         Debug.Log("Level Ended. Calculating final score.");
 
-        // Tell UIManager that level is complete if available
-        if (UIManager.Instance != null)
+        // Find any object that has a ShowLevelComplete method
+        var allMonoBehaviours = FindObjectsOfType<MonoBehaviour>();
+        bool levelCompleteShown = false;
+           // In your game completion logic:
+        FloorAccessController.isLevelComplete = true;
+        
+        foreach (var behaviour in allMonoBehaviours)
         {
-            UIManager.Instance.ShowLevelComplete();
+            // Try to find the UIManager by checking for a levelCompleteScreen field
+            var fields = behaviour.GetType().GetFields(System.Reflection.BindingFlags.Public | 
+                                                      System.Reflection.BindingFlags.Instance);
+            
+            foreach (var field in fields)
+            {
+                if (field.Name == "levelCompleteScreen")
+                {
+                    // Found the UIManager, call ShowLevelComplete
+                    behaviour.SendMessage("ShowLevelComplete", null, SendMessageOptions.DontRequireReceiver);
+                    Debug.Log($"Sent ShowLevelComplete to {behaviour.name}");
+                    levelCompleteShown = true;
+                    break;
+                }
+            }
+            
+            if (levelCompleteShown)
+                break;
+        }
+        
+        if (!levelCompleteShown)
+        {
+            Debug.LogWarning("Could not find an object with levelCompleteScreen field to show level complete screen");
         }
     }
 

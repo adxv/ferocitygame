@@ -19,9 +19,6 @@ public class AmmoDisplay : MonoBehaviour
             if (playerController == null) 
             {
                 Debug.LogError("AmmoDisplay: Could not find PlayerController on Start!", this);
-                // Optional: Try again later or disable?
-                // enabled = false;
-                // return;
             }
         }
         
@@ -37,9 +34,8 @@ public class AmmoDisplay : MonoBehaviour
                 playerEquipment.OnWeaponChanged -= OnWeaponChanged; 
                 playerEquipment.OnWeaponChanged += OnWeaponChanged;
                 
-                 // ADDED: Call UpdateAmmoDisplay again *after* subscribing
-                 // This ensures the display reflects the state *after* setup.
-                 UpdateAmmoDisplay(); 
+                // Initial update after subscribing
+                UpdateAmmoDisplay();
             }
             else
             {
@@ -109,30 +105,34 @@ public class AmmoDisplay : MonoBehaviour
             }
             else
             {
-                // Hide ammo display for fists, non-shooting weapons, or melee weapons
-                ammoText.gameObject.SetActive(false);
+                // Instead of disabling the text, set it to empty string
+                ammoText.text = "";
+                ammoText.gameObject.SetActive(true); // Keep the text object active
                 if (weaponIconImage != null)
                 {
                     weaponIconImage.gameObject.SetActive(false);
                 }
 
-                Debug.Log($"AmmoDisplay: Hiding display for {weapon.weaponName} (canShoot={weapon.canShoot}, magazineSize={weapon.magazineSize}, isMelee={weapon.isMelee})");
+                Debug.Log($"AmmoDisplay: Empty display for {weapon.weaponName} (canShoot={weapon.canShoot}, magazineSize={weapon.magazineSize}, isMelee={weapon.isMelee})");
             }
         }
         else
         {
-            ammoText.gameObject.SetActive(false);
-            Debug.Log("AmmoDisplay: No weapon equipped, hiding display");
+            // When no weapon is equipped at all (edge case)
+            ammoText.text = "";
+            ammoText.gameObject.SetActive(true); // Keep the text object active
+            Debug.Log("AmmoDisplay: No weapon equipped, showing empty display");
         }
     }
     
     // ADDED: Method to reset the display (called on restart)
     public void ResetDisplay()
     {
-        // Assuming fists are the default and don't show ammo or icon
+        // Keep ammoText active but set to empty string
         if (ammoText != null) 
         {
-            ammoText.gameObject.SetActive(false);
+            ammoText.text = "";
+            ammoText.gameObject.SetActive(true);
         }
         if (weaponIconImage != null)
         {
@@ -157,5 +157,24 @@ public class AmmoDisplay : MonoBehaviour
                 ammoText.text = currentAmmo.ToString();
             }
         }
+    }
+
+    // Add this method to handle scene loading events
+    void OnEnable()
+    {
+        // Subscribe to scene loaded event
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    void OnDisable()
+    {
+        // Unsubscribe to prevent memory leaks
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
+    {
+        // Re-initialize after scene load (this will find references and subscribe to events again)
+        Start();
     }
 }

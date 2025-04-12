@@ -2,6 +2,7 @@ using UnityEngine;
 using TMPro;
 using System.Collections.Generic;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class TimerController : MonoBehaviour
 {
@@ -14,6 +15,45 @@ public class TimerController : MonoBehaviour
     
     // Reference to track all enemies
     private List<Enemy> enemies = new List<Enemy>();
+    
+    private void OnEnable()
+    {
+        // Subscribe to scene loaded event
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        // Unsubscribe from scene loaded event
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Reset timer state when scene is reloaded
+        ResetTimer();
+    }
+
+    private void ResetTimer()
+    {
+        startTime = 0;
+        stopTime = 0;
+        isRunning = false;
+        hasStarted = false;
+        
+        // Reset timer display
+        if (timerText != null)
+        {
+            timerText.text = "00.000";
+        }
+        
+        // Clear and refind enemies
+        enemies.Clear();
+        foreach (Enemy enemy in FindObjectsByType<Enemy>(FindObjectsSortMode.None))
+        {
+            enemies.Add(enemy);
+        }
+    }
     
     void Start()
     {

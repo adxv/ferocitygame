@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Enemy_Fists_Data
   m_EditorClassIdentifier: 
   weaponName: Fists
-  playerSprite: {fileID: -5702716246923843966, guid: 974e582f6684d3847913020db55f7c4b, type: 3}
+  playerSprite: {fileID: -2143751929, guid: c906b75c70d228442a8a856f4f79f6a1, type: 3}
   weaponIcon: {fileID: -701167734, guid: c906b75c70d228442a8a856f4f79f6a1, type: 3}
   pickupPrefab: {fileID: 0}
   canShoot: 0
@@ -24,7 +24,7 @@ MonoBehaviour:
   damage: 1
   bulletOffset: 1
   bulletOffsetSide: 0
-  range: 1
+  range: 3
   bulletSpeed: 200
   spread: 0
   magazineSize: 1

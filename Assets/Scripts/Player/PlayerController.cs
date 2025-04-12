@@ -2,6 +2,9 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using Random = UnityEngine.Random;
 using System.Collections; // Added for Coroutines
+using UnityEngine.UI;
+using System;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(Rigidbody2D), typeof(PlayerEquipment), typeof(Collider2D))] // Add Collider2D requirement
 public class PlayerController : MonoBehaviour
@@ -462,6 +465,13 @@ public class PlayerController : MonoBehaviour
         movementInput = Vector2.zero;
         shouldShoot = false; // Stop shooting/attacking
 
+        // ADDED: Reset the ammo display but keep it enabled
+        AmmoDisplay ammoDisplay = FindObjectOfType<AmmoDisplay>();
+        if (ammoDisplay != null)
+        {
+            ammoDisplay.ResetDisplay();
+        }
+
         // ADDED: Stop timer and show Game Over UI
         if (timerController != null) 
         {
@@ -480,7 +490,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // Set scale via transform, not Rigidbody2D
-        transform.localScale = new Vector3(3.2f, 3.2f, 3.2f); 
+        transform.localScale = new Vector3(3.4f, 3.4f, 3.4f); 
         GetComponent<SpriteRenderer>().sprite = deathSprite;
         GetComponent<Collider2D>().enabled = false; // Disable collider on death
           

@@ -22,7 +22,7 @@ Physics2DSettings:
   m_ContactThreshold: 0
   m_JobOptions:
     serializedVersion: 2
-    useMultithreading: 0
+    useMultithreading: 1
     useConsistencySorting: 0
     m_InterpolationPosesPerJob: 100
     m_NewContactsPerJob: 30
@@ -53,4 +53,4 @@ Physics2DSettings:
   m_ReuseCollisionCallbacks: 1
   m_AutoSyncTransforms: 0
   m_GizmoOptions: 10
-  m_LayerCollisionMatrix: fff9ffbffff9ffbffff9ffbfbff3ffbffff9ffbffff9ffbf77f9ffbf3fd2ffbf7ff9ff3f88f2ffff00f8ffff77fdffffffffff7f7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00feffbfffeeffff
+  m_LayerCollisionMatrix: fff9ffbffff9ffbffff9ffbfbfe3ffbffff9ffbffff9ffbf77fbffbf3f92ffbf7ffbff3fc8e3ffff00f8ffff77fdfffff7fdff7f7fffffff7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00feffbfffeeffff

@@ -8,10 +8,26 @@ public class WeaponPickup : MonoBehaviour
     // Variable to store current ammo state
     private int currentAmmo = -1;
     private SpriteRenderer spriteRenderer;
+    
+    // Reference to the TriggerZone's component
+    private WeaponPickupTrigger triggerComponent;
 
     void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
+        
+        // Find the TriggerZone child and its component
+        Transform triggerZone = transform.Find("TriggerZone");
+        if (triggerZone != null)
+        {
+            triggerComponent = triggerZone.GetComponent<WeaponPickupTrigger>();
+            if (triggerComponent == null)
+            {
+                // Add the component if it doesn't exist
+                triggerComponent = triggerZone.gameObject.AddComponent<WeaponPickupTrigger>();
+            }
+        }
+        
         // Optional: Set the pickup's sprite based on the WeaponData's player sprite
         // (You might want a different sprite for the pickup item itself)
         if (weaponData != null && weaponData.playerSprite != null)

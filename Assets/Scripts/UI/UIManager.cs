@@ -103,19 +103,34 @@ public class UIManager : MonoBehaviour
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         Debug.Log("UIManager: Scene Loaded, resetting UI state.");
+        
+        // Ensure time is running
+        Time.timeScale = 1f;
+        
+        // Reset all screens to their initial state
         ResetUIState();
-        // Also re-find managers potentially destroyed/recreated in the new scene
-        SetupUIElements(); 
+        
+        // Re-find managers potentially destroyed/recreated in the new scene
+        SetupUIElements();
     }
     
     // ADDED: Helper method to reset UI state
     void ResetUIState()
     {
-        Time.timeScale = 1f; // Ensure game is not paused
+        // Ensure game is not paused
+        Time.timeScale = 1f;
+        
+        // Reset all screens to default state
         ShowHUD();
         HidePauseMenu();
         HideGameOver();
         HideLevelComplete();
+        
+        // Ensure all screens are properly inactive
+        if (levelCompleteScreen != null) 
+        {
+            levelCompleteScreen.SetActive(false);
+        }
     }
 
     // Setup UI elements and connections
@@ -220,7 +235,20 @@ public class UIManager : MonoBehaviour
              // Ensure other menus are hidden
             if (pauseMenuScreen != null) pauseMenuScreen.SetActive(false);
             if (levelCompleteScreen != null) levelCompleteScreen.SetActive(false);
-             HideHUD(); // Typically hide HUD on game over
+            
+            // Find and reset the AmmoDisplay instead of hiding the entire HUD
+            AmmoDisplay ammoDisplay = FindObjectOfType<AmmoDisplay>();
+            if (ammoDisplay != null)
+            {
+                ammoDisplay.ResetDisplay(); // This keeps the display enabled with empty text
+            }
+            
+            // Hide the rest of the HUD
+            if (hudPanel != null)
+            {
+                // Keep the panel active but hide other HUD elements if needed
+                // For now we're just letting AmmoDisplay stay visible
+            }
         }
     }
 
@@ -243,8 +271,26 @@ public class UIManager : MonoBehaviour
              // Ensure other menus are hidden
             if (pauseMenuScreen != null) pauseMenuScreen.SetActive(false);
             if (gameOverScreen != null) gameOverScreen.SetActive(false);
-             HideHUD(); // Typically hide HUD on level complete
-             Time.timeScale = 0f; // Often good to pause on level complete
+            
+            // Find and reset the AmmoDisplay instead of disabling it
+            AmmoDisplay ammoDisplay = FindObjectOfType<AmmoDisplay>();
+            if (ammoDisplay != null)
+            {
+                ammoDisplay.ResetDisplay(); // This keeps the display enabled with empty text
+            }
+            
+            // Instead of hiding the entire HUD, ensure HUD elements remain visible
+            if (hudPanel != null)
+            {
+                // Keep the panel active and all HUD elements visible
+                hudPanel.SetActive(true);
+                
+                // Keep timer visible
+                if (timerText != null) timerText.gameObject.SetActive(true);
+                
+                // Ensure score is visible
+                if (scoreText != null) scoreText.gameObject.SetActive(true);
+            }
         }
     }
 

@@ -1,2 +1,2 @@
 # ferocitygame
-2D Top-down shooter inspired by Hotline Miami and made in Unity
+Fast-Paced Top-down shooter made in Unity

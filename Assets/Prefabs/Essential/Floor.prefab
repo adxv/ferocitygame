@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3286595228870349575}
+  - component: {fileID: 3561018787796685163}
   m_Layer: 0
   m_Name: Floor
   m_TagString: Untagged
@@ -35,6 +36,23 @@ Transform:
   - {fileID: 6015901947393137847}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3561018787796685163
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1876174318401513971}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 541ea71a13bd82f4d85645ba9af67f6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  floorName: Floor 1
+  floorIndex: 0
+  gizmoColor: {r: 0, g: 1, b: 1, a: 1}
+  floorBounds: {x: 60, y: 60}
+  stairwaysOnFloor: []
 --- !u!1 &2717129560455066592
 GameObject:
   m_ObjectHideFlags: 0

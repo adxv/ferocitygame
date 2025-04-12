@@ -9,8 +9,8 @@ TagManager:
   - Enemy
   - Environment
   - WeaponPickup
-  - Weapon
   - Door
+  - FadeCanvas
   layers:
   - Default
   - TransparentFX
@@ -26,8 +26,8 @@ TagManager:
   - Weapon
   - Door
   - EnemyFOV
-  - 
-  - 
+  - DoorTrigger
+  - LockedDoor
   - 
   - 
   - 
