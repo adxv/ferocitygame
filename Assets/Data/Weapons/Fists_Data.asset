@@ -18,6 +18,7 @@ MonoBehaviour:
   pickupPrefab: {fileID: 0}
   canShoot: 0
   isMelee: 1
+  isSilent: 1
   projectilePrefab: {fileID: 0}
   fireRate: 5
   isFullAuto: 0

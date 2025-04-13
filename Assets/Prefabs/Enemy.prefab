@@ -78,16 +78,16 @@ PolygonCollider2D:
   m_AutoTiling: 0
   m_Points:
     m_Paths:
-    - - {x: 2.0390234, y: -4.0188584}
-      - {x: 4.7953978, y: -3.2222943}
+    - - {x: 2.0390234, y: -3.0188584}
+      - {x: 4.7953978, y: -2.2222943}
       - {x: 5.982832, y: -0.008433923}
-      - {x: 5.998201, y: 3.0094423}
-      - {x: -0.03819043, y: 4.064329}
-      - {x: -6.0061965, y: 2.9612088}
+      - {x: 4.998201, y: 3.0094423}
+      - {x: 0.002820719, y: 3.6063714}
+      - {x: -5.0061965, y: 2.9612088}
       - {x: -5.997854, y: 0.011630297}
-      - {x: -4.78441, y: -3.135014}
-      - {x: -1.9626433, y: -3.9986496}
-      - {x: -0.015618086, y: -3.9686608}
+      - {x: -4.78441, y: -2.135014}
+      - {x: -1.9626433, y: -2.9986496}
+      - {x: -0.015618086, y: -2.9686608}
   m_UseDelaunayMesh: 0
 --- !u!1 &5441475329188793735
 GameObject:
@@ -179,6 +179,87 @@ MonoBehaviour:
   - {x: 0.13814208, y: 0.46027443, z: 0}
   - {x: 0.048713066, y: 0.3295705, z: 0}
   - {x: 0.062471367, y: 0.19198738, z: 0}
+--- !u!1 &7985702381802418363
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3702857645171476429}
+  - component: {fileID: 5200842232106537951}
+  - component: {fileID: 3419860609337129049}
+  m_Layer: 9
+  m_Name: IncomingSoundDetector
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3702857645171476429
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7985702381802418363}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 359076084518987058}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!58 &5200842232106537951
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7985702381802418363}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_Radius: 10
+--- !u!114 &3419860609337129049
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7985702381802418363}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b19db2719f3bd0a4ea53432cc4fef409, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &8028187921594231981
 GameObject:
   m_ObjectHideFlags: 0
@@ -216,6 +297,7 @@ Transform:
   m_Children:
   - {fileID: 4583888169151099324}
   - {fileID: 7833515032756162496}
+  - {fileID: 3702857645171476429}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &4651323014482287835
@@ -299,7 +381,7 @@ MonoBehaviour:
   turnPauseDuration: 0.7
   minTurnPauseDuration: 1
   maxTurnPauseDuration: 3
-  safetyDistance: 1
+  safetyDistance: 2
   deathSprite: {fileID: 4325505437714666157, guid: 20563bb334931394faf8dafbde76c41c, type: 3}
   isDead: 0
 --- !u!50 &1512164128219611355
@@ -310,7 +392,7 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8028187921594231981}
-  m_BodyType: 1
+  m_BodyType: 0
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
