@@ -721,6 +721,7 @@ public class PlayerController : MonoBehaviour
         {
             if (playerAudioSource != null && meleeWeapon.hitSound != null)
             {
+                playerAudioSource.pitch = Random.Range(1f, 1.3f); // Keep random pitch
                 playerAudioSource.PlayOneShot(meleeWeapon.hitSound);
             }
         }
@@ -728,6 +729,7 @@ public class PlayerController : MonoBehaviour
         {
             if (playerAudioSource != null && meleeWeapon.missSound != null)
             {
+                playerAudioSource.pitch = Random.Range(0.8f, 1.1f); // Keep random pitch
                 playerAudioSource.PlayOneShot(meleeWeapon.missSound);
             }
         }

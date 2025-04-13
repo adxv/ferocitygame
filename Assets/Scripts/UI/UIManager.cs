@@ -25,6 +25,11 @@ public class UIManager : MonoBehaviour
     private TimerController timerController;
     private PlayerEquipment playerEquipment;
 
+    // Add these fields for escape key holding functionality
+    private bool isHoldingEscape = false;
+    private float escapeHeldTime = 0f;
+    public float escapeHoldDuration = 0.75f;
+
     private void Awake()
     {
         // Singleton setup
@@ -78,15 +83,62 @@ public class UIManager : MonoBehaviour
 
     private void Update()
     {
+        // Check current scene name
+        string currentScene = SceneManager.GetActiveScene().name;
+        
+        // Skip pause functionality if in MainMenu or LevelSelect
+        if (currentScene == "MainMenu" || currentScene == "LevelSelect")
+        {
+            return;
+        }
+        
         // Check for pause input (escape key)
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            // Ensure we don't pause if game over or level complete screen is showing
-            if ((gameOverScreen == null || !gameOverScreen.activeSelf) && 
+            // If game is paused, start tracking escape hold time
+            if (Time.timeScale == 0f)
+            {
+                isHoldingEscape = true;
+                escapeHeldTime = Time.unscaledTime;
+            }
+            // Otherwise handle normal pause toggle (if not in game over or level complete)
+            else if ((gameOverScreen == null || !gameOverScreen.activeSelf) && 
                 (levelCompleteScreen == null || !levelCompleteScreen.activeSelf))
             {
-                 TogglePauseMenu();
+                TogglePauseMenu();
             }
+        }
+        else if (Input.GetKeyUp(KeyCode.Escape))
+        {
+            // If escape was being held but not long enough to trigger main menu return,
+            // and the game is paused, then unpause on key release
+            if (isHoldingEscape && Time.timeScale == 0f && 
+                (Time.unscaledTime - escapeHeldTime <= escapeHoldDuration))
+            {
+                HidePauseMenu(); // Unpause the game
+            }
+            
+            isHoldingEscape = false;
+            escapeHeldTime = 0f;
+        }
+        
+        // Check if escape is being held while paused to return to main menu
+        if (isHoldingEscape && Time.timeScale == 0f && Time.unscaledTime - escapeHeldTime > escapeHoldDuration)
+        {
+            isHoldingEscape = false;
+            escapeHeldTime = 0f;
+            
+            // Hide the timer and other HUD elements before scene change
+            if (hudPanel != null) hudPanel.SetActive(false);
+            
+            // Specifically hide the timer if it exists
+            if (timerText != null) timerText.gameObject.SetActive(false);
+            
+            // Ensure time is restored before scene change
+            Time.timeScale = 1f;
+            
+            // Load the main menu scene
+            SceneManager.LoadScene("MainMenu");
         }
     }
 

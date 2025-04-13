@@ -283,7 +283,7 @@ MonoBehaviour:
   openDirection: 0
   audioSource: {fileID: 5468600615402026817}
   unlockSound: {fileID: 8300000, guid: 19b3bb2adbec0f745af3a2bdf36a22fc, type: 3}
-  lockedSound: {fileID: 0}
+  lockedSound: {fileID: 8300000, guid: 0a5cc8fdf642b9645b077c60f3ec753d, type: 3}
   minTimeBetweenSounds: 1
   currentFloor: {fileID: 0}
   autoDetectFloor: 1

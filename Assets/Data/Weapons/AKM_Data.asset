@@ -31,7 +31,12 @@ MonoBehaviour:
   pelletCount: 1
   spreadAngle: 0
   shootSound: {fileID: 8300000, guid: 3b9eb7ca564cf32469045e405a477045, type: 3}
+  emptyClickSound: {fileID: 8300000, guid: 12b075290ff78f04d900af810cdbed06, type: 3}
   shootShakeDuration: 0.08
   shootShakeMagnitude: 0.08
   muzzleFlashPrefab: {fileID: 8542288411728666520, guid: c8555d589afcbf846bfa365113179d24, type: 3}
   muzzleFlashDuration: 0.1
+  hitSound: {fileID: 0}
+  missSound: {fileID: 0}
+  attackSprite: {fileID: 0}
+  attackDuration: 0.2

@@ -36,7 +36,7 @@ MonoBehaviour:
   shootShakeMagnitude: 0.01
   muzzleFlashPrefab: {fileID: 0}
   muzzleFlashDuration: 0.05
-  hitSound: {fileID: 0}
-  missSound: {fileID: 0}
+  hitSound: {fileID: 8300000, guid: 90509ebd36edd644dbbf0c157f9a5093, type: 3}
+  missSound: {fileID: 8300000, guid: 119b89877848a0f4ea67c515f64cf6c5, type: 3}
   attackSprite: {fileID: -701167734, guid: c906b75c70d228442a8a856f4f79f6a1, type: 3}
   attackDuration: 0.1

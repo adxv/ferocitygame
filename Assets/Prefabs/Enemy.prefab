@@ -138,7 +138,7 @@ MonoBehaviour:
   m_BlendStyleIndex: 0
   m_FalloffIntensity: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 3
+  m_Intensity: 4
   m_LightVolumeIntensity: 1
   m_LightVolumeEnabled: 0
   m_ApplyToSortingLayers: 1138ec71
@@ -289,7 +289,7 @@ MonoBehaviour:
   forgetTime: 2
   wallLayer:
     serializedVersion: 2
-    m_Bits: 2147487744
+    m_Bits: 2147520512
   shotDelayMin: 0.15
   shotDelayMax: 0.2
   patrolSpeed: 10
