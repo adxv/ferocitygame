@@ -14,11 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   weaponName: PPSh-41
   playerSprite: {fileID: -971394281, guid: 5787ca3e6d0b829469e72e87929708e5, type: 3}
+  weaponIcon: {fileID: 0}
   pickupPrefab: {fileID: 5990495428314443080, guid: 7bac46a9588181b4b977987e39e87ad4, type: 3}
   canShoot: 1
   isMelee: 0
+  isSilent: 0
   projectilePrefab: {fileID: 4780090448626563172, guid: c55fcad0891b0aa4ea65546dde828a13, type: 3}
-  fireRate: 15
+  fireRate: 8
   isFullAuto: 1
   damage: 1
   bulletOffset: 1
@@ -30,5 +32,12 @@ MonoBehaviour:
   pelletCount: 1
   spreadAngle: 0
   shootSound: {fileID: 8300000, guid: dea68ea8c539bf743bc6027c55adea3e, type: 3}
+  emptyClickSound: {fileID: 0}
   shootShakeDuration: 0.1
   shootShakeMagnitude: 0.1
+  muzzleFlashPrefab: {fileID: 0}
+  muzzleFlashDuration: 0.05
+  hitSound: {fileID: 0}
+  missSound: {fileID: 0}
+  attackSprite: {fileID: 0}
+  attackDuration: 0.2

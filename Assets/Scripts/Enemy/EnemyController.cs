@@ -6,14 +6,16 @@ using System.Collections; // Added for Coroutines
 [RequireComponent(typeof(EnemyEquipment))]
 public class Enemy : MonoBehaviour
 {
+    [Header("Enemy Type")]
+    public EnemyData enemyData;
+    
     private Transform player;
-    public float shootInterval = 1f;
-    public float forgetTime = 3f;
     public LayerMask wallLayer;
-    public float shotDelayMin = 0.19f;
-    public float shotDelayMax = 0.23f;
+    public float minReactionTime = 0.19f;
+    public float maxReactionTime = 0.23f;
     private float nextShootTime;
     private bool hasSpottedPlayer;
+    private bool hasReacted = false; // Track if enemy has reacted to seeing player
     private float lastSpottedTime;
     private float lastAttackTime; // Tracks melee attacks
     private Coroutine attackAnimationCoroutine; // To manage the attack sprite change
@@ -21,10 +23,7 @@ public class Enemy : MonoBehaviour
     private EnemyEquipment enemyEquipment;
     private WeaponData fistWeaponData; // To hold the fist weapon data
 
-    public float patrolSpeed = 2f;
-    public float chaseSpeed = 4f;
     public float randomModeInterval = 2.5f;
-    public float rotationSpeed = 5f;
     public float turnPauseDuration = 0.7f; // Duration to pause after turning in patrol mode
     public float minTurnPauseDuration = 0.5f; // Minimum pause time after turning
     public float maxTurnPauseDuration = 1.5f; // Maximum pause time after turning
@@ -61,12 +60,25 @@ public class Enemy : MonoBehaviour
     private enum State { Patrol, Pursue, Random, Dead } // Added Dead state
     private State currentState = State.Patrol;
 
-    // Death Sprite System
-    public Sprite deathSprite; // Assign in Inspector
+    // Health system - using data from EnemyData
+    private float currentHealth;
+
+    // Keep this property in EnemyController since it's runtime state
     public bool isDead = false;
 
     void Start()
     {
+        // Check if enemyData is assigned
+        if (enemyData == null)
+        {
+            Debug.LogError("EnemyData not assigned to Enemy!", this);
+            enabled = false;
+            return;
+        }
+        
+        // Initialize health from enemy data
+        currentHealth = enemyData.health;
+        
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
         {
@@ -79,6 +91,8 @@ public class Enemy : MonoBehaviour
 
         rb = GetComponent<Rigidbody2D>();
         rb.bodyType = RigidbodyType2D.Kinematic; // Change to Dynamic for nudge if needed
+        rb.freezeRotation = true; // Freeze all rotation (which is what we want for a 2D game)
+        
         patrolDirection = transform.up;
         randomModeTimer = randomModeInterval;
         targetRotation = transform.rotation;
@@ -106,7 +120,7 @@ public class Enemy : MonoBehaviour
         if (enemyEquipment.CurrentWeapon != null)
         {
             float initialDelay = 1f / enemyEquipment.CurrentWeapon.fireRate;
-            nextShootTime = Time.time + initialDelay + Random.Range(shotDelayMin, shotDelayMax); // For ranged
+            nextShootTime = Time.time + initialDelay + Random.Range(minReactionTime, maxReactionTime); // For ranged
             lastAttackTime = -initialDelay; // For melee (allow immediate first attack)
         }
 
@@ -183,17 +197,53 @@ public class Enemy : MonoBehaviour
                 // Prioritize Melee if in range and has fists equipped or available
                 if (fistWeaponData != null && fistWeaponData.isMelee && isInMeleeRange && Time.time >= lastAttackTime + (1f / fistWeaponData.fireRate))
                 {
-                    // Use fists even if holding another weapon, if in close range
-                    MeleeAttack(fistWeaponData); // Pass fist data explicitly
-                    lastAttackTime = Time.time;
+                    // First check if the enemy has reacted to spotting the player
+                    if (!hasReacted && Time.time >= nextShootTime)
+                    {
+                        // First attack after spotting player - apply reaction time
+                        MeleeAttack(fistWeaponData); // Pass fist data explicitly
+                        lastAttackTime = Time.time;
+                        
+                        // Mark that the enemy has reacted
+                        hasReacted = true;
+                    }
+                    else if (hasReacted)
+                    {
+                        // Subsequent attacks use normal fire rate
+                        MeleeAttack(fistWeaponData); // Pass fist data explicitly
+                        lastAttackTime = Time.time;
+                    }
                 }
                 // Else, if not melee, try shooting
                 else if (!currentWep.isMelee && currentWep.canShoot && canSee && Time.time >= nextShootTime)
                 {
                     if (currentWep.HasAmmo())
                     {
-                        Shoot();
-                        nextShootTime = Time.time + (1f / currentWep.fireRate) + Random.Range(shotDelayMin, shotDelayMax);
+                        // If the enemy hasn't reacted yet to seeing the player
+                        if (!hasReacted)
+                        {
+                            Shoot();
+                            
+                            // Set the next shoot time based only on weapon fire rate for subsequent shots
+                            if (currentWep.isFullAuto)
+                            {
+                                // For full auto weapons, just use fire rate with no additional delay
+                                nextShootTime = Time.time + (1f / currentWep.fireRate);
+                            }
+                            else
+                            {
+                                // For semi-auto weapons, still use fire rate with no additional delay
+                                nextShootTime = Time.time + (1f / currentWep.fireRate);
+                            }
+                            
+                            hasReacted = true; // Mark that the enemy has reacted
+                        }
+                        else
+                        {
+                            // For subsequent shots, just use the weapon's fire rate
+                            Shoot();
+                            nextShootTime = Time.time + (1f / currentWep.fireRate);
+                        }
                     }
                     else
                     {
@@ -217,7 +267,7 @@ public class Enemy : MonoBehaviour
         // Apply smooth rotation for Patrol and Random states
         if (currentState == State.Patrol || currentState == State.Random)
         {
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, enemyData.rotationSpeed * Time.deltaTime);
         }
         
         // Update path to player at regular intervals when in pursue mode
@@ -236,55 +286,76 @@ public class Enemy : MonoBehaviour
 
         if (!playerIsDead && canSee)
         {
-            hasSpottedPlayer = true;
-            lastSpottedTime = Time.time;
+            // If previously not spotted, reset reaction state
+            if (!hasSpottedPlayer)
+            {
+                 hasSpottedPlayer = true;
+                 lastSpottedTime = Time.time;
+                 hasReacted = false; // Reset reaction flag - enemy needs to react again
+                 
+                 // Apply reaction time before enemy can shoot or melee
+                 float reactionDelay = Random.Range(minReactionTime, maxReactionTime);
+                 nextShootTime = Time.time + reactionDelay;
+                 // Also delay melee attacks by setting lastAttackTime appropriately
+                 if (fistWeaponData != null) {
+                     lastAttackTime = Time.time - (1f / fistWeaponData.fireRate) + reactionDelay;
+                 }
+            }
+            
             if (currentState != State.Pursue)
             {
                  currentState = State.Pursue;
                  lastPathUpdateTime = -pathUpdateTime; // Force path recalc on chase start
                  
-                 // ADDED: Reset shoot timer upon entering Pursue state to add initial delay
-                 if(enemyEquipment.CurrentWeapon != null && enemyEquipment.CurrentWeapon.fireRate > 0)
+                 // Only apply reaction time if not already in reaction delay
+                 // This prevents resetting reaction time if already triggered by sound
+                 if(!hasReacted && Time.time >= nextShootTime && enemyEquipment.CurrentWeapon != null)
                  {
-                    nextShootTime = Time.time + (1f / enemyEquipment.CurrentWeapon.fireRate) + Random.Range(shotDelayMin, shotDelayMax);
-                 }
-                 else
-                 {
-                    // If no weapon or fire rate is 0, set a default delay?
-                    nextShootTime = Time.time + Random.Range(shotDelayMin, shotDelayMax); 
+                    // Set a random reaction time delay
+                    nextShootTime = Time.time + Random.Range(minReactionTime, maxReactionTime);
                  }
             }
         }
         else // Cannot see player OR player is dead
         {
-            if (hasSpottedPlayer && Time.time >= lastSpottedTime + forgetTime)
+            if (hasSpottedPlayer && Time.time >= lastSpottedTime + enemyData.forgetTime)
             {
-                hasSpottedPlayer = false;
-                 // Changed: Don't switch to Random immediately if pursuing.
-                 // Stay in pursue briefly even after losing sight unless player is dead.
-                 // If player IS dead, switch state immediately.
-                 if (currentState == State.Pursue)
-                 {
-                      // If player is dead, immediately stop pursuing and go to Patrol
-                      if(playerIsDead)
-                      {
-                           currentState = State.Patrol; 
-                           path.Clear(); // Clear path when player dies
-                           rb.linearVelocity = Vector2.zero; // Stop movement
-                      }
-                      // If player is not dead, but we lost sight, wait for forgetTime
-                      // The original logic already handles this: if forgetTime is passed, it will eventually switch.
-                      // No need for explicit change here if player is alive but unseen.
-                 }
+                // Timer expired after spotting player
+                hasSpottedPlayer = false; 
+                hasReacted = false; // Reset the reaction flag when forgetting player
+
+                if (currentState == State.Pursue)
+                {
+                     // MODIFIED: If player is not dead, switch to Patrol (or Random) after forgetTime
+                     if (!playerIsDead) 
+                     {
+                         currentState = State.Patrol; // Or State.Random if you prefer
+                         path.Clear(); // Clear path
+                         rb.linearVelocity = Vector2.zero; // Stop movement briefly
+                         // Optional: Initiate Random mode behavior if switching to Random
+                         // randomModeTimer = randomModeInterval; 
+                         // isMovingInRandomMode = false;
+                     }
+                     // If player IS dead, switch to Patrol (already handled below, but explicit here is ok too)
+                     else 
+                     {
+                         currentState = State.Patrol; 
+                         path.Clear(); // Clear path when player dies
+                         rb.linearVelocity = Vector2.zero; // Stop movement
+                     }
+                }
+                // If not in Pursue state when forgetTime expires (shouldn't happen often), just ensure hasSpotted is false.
             }
-            else if (currentState == State.Pursue && playerIsDead) // ADDED: Force state change if player dies while pursuing
+            else if (currentState == State.Pursue && playerIsDead) 
             {
+                // This handles the case where the player dies WHILE being pursued, before forgetTime expires
                 currentState = State.Patrol; 
-                path.Clear(); // Clear path when player dies
-                rb.linearVelocity = Vector2.zero; // Stop movement
-                hasSpottedPlayer = false; // Ensure we don't re-trigger pursue immediately
+                path.Clear(); 
+                rb.linearVelocity = Vector2.zero; 
+                hasSpottedPlayer = false; 
+                hasReacted = false;
             }
-            // If never spotted, remain in Patrol (handled in Start)
+            // If never spotted or already forgotten, remain in current non-Pursue state
         }
     }
 
@@ -369,7 +440,7 @@ public class Enemy : MonoBehaviour
                 }
                 
                 // Calculate the desired position with speed modifier
-                Vector2 desiredPosition = (Vector2)transform.position + moveDirection * chaseSpeed * speedMultiplier * Time.fixedDeltaTime;
+                Vector2 desiredPosition = (Vector2)transform.position + moveDirection * enemyData.chaseSpeed * speedMultiplier * Time.fixedDeltaTime;
                 
                 // Move if not colliding with a wall
                 if (!WouldCollide(desiredPosition))
@@ -383,7 +454,7 @@ public class Enemy : MonoBehaviour
                     {
                         // Try deflecting both left and right
                         Vector2 deflectedDirection = Quaternion.Euler(0, 0, i) * moveDirection;
-                        Vector2 deflectedPosition = (Vector2)transform.position + deflectedDirection * chaseSpeed * 0.5f * Time.fixedDeltaTime;
+                        Vector2 deflectedPosition = (Vector2)transform.position + deflectedDirection * enemyData.chaseSpeed * 0.5f * Time.fixedDeltaTime;
                         
                         if (!WouldCollide(deflectedPosition))
                         {
@@ -392,7 +463,7 @@ public class Enemy : MonoBehaviour
                         }
                         
                         deflectedDirection = Quaternion.Euler(0, 0, -i) * moveDirection;
-                        deflectedPosition = (Vector2)transform.position + deflectedDirection * chaseSpeed * 0.5f * Time.fixedDeltaTime;
+                        deflectedPosition = (Vector2)transform.position + deflectedDirection * enemyData.chaseSpeed * 0.5f * Time.fixedDeltaTime;
                         
                         if (!WouldCollide(deflectedPosition))
                         {
@@ -407,7 +478,7 @@ public class Enemy : MonoBehaviour
                 {
                     float angle = Mathf.Atan2(moveDirection.y, moveDirection.x) * Mathf.Rad2Deg - 90f;
                     Quaternion targetRot = Quaternion.Euler(0, 0, angle);
-                    transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotationSpeed * Time.fixedDeltaTime);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, enemyData.rotationSpeed * Time.fixedDeltaTime);
                 }
             }
             else
@@ -416,7 +487,7 @@ public class Enemy : MonoBehaviour
                 Vector2 directDirection = (player.position - transform.position).normalized;
                 Vector2 repulsion = CalculateRepulsion();
                 Vector2 finalDirection = (directDirection + repulsion).normalized;
-                Vector2 desiredPosition = (Vector2)transform.position + finalDirection * chaseSpeed * Time.fixedDeltaTime;
+                Vector2 desiredPosition = (Vector2)transform.position + finalDirection * enemyData.chaseSpeed * Time.fixedDeltaTime;
                 
                 if (!WouldCollide(desiredPosition))
                 {
@@ -426,7 +497,7 @@ public class Enemy : MonoBehaviour
                 // Smooth rotation
                 float angle = Mathf.Atan2(finalDirection.y, finalDirection.x) * Mathf.Rad2Deg - 90f;
                 Quaternion targetRot = Quaternion.Euler(0, 0, angle);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotationSpeed * Time.fixedDeltaTime);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, enemyData.rotationSpeed * Time.fixedDeltaTime);
             }
         }
         else if (currentState == State.Patrol)
@@ -445,7 +516,7 @@ public class Enemy : MonoBehaviour
             // Updated patrol logic - move forward until hitting a wall, then turn RIGHT 90 degrees
             Vector2 repulsion = CalculateRepulsion();
             Vector2 finalDirection = (patrolDirection + repulsion * 0.3f).normalized; // Reduced repulsion influence
-            Vector2 desiredPosition = (Vector2)transform.position + finalDirection * patrolSpeed * Time.fixedDeltaTime;
+            Vector2 desiredPosition = (Vector2)transform.position + finalDirection * enemyData.patrolSpeed * Time.fixedDeltaTime;
 
             // Check if there's a wall directly ahead
             RaycastHit2D hit = Physics2D.Raycast(transform.position, patrolDirection, safetyDistance + enemyRadius, wallLayer);
@@ -479,7 +550,7 @@ public class Enemy : MonoBehaviour
             {
                 Vector2 repulsion = CalculateRepulsion();
                 Vector2 finalDirection = (patrolDirection + repulsion).normalized;
-                Vector2 desiredPosition = (Vector2)transform.position + finalDirection * patrolSpeed * Time.fixedDeltaTime;
+                Vector2 desiredPosition = (Vector2)transform.position + finalDirection * enemyData.patrolSpeed * Time.fixedDeltaTime;
 
                 RaycastHit2D hit = Physics2D.Raycast(transform.position, patrolDirection, safetyDistance + enemyRadius, wallLayer);
                 if (hit.collider != null)
@@ -1000,9 +1071,9 @@ public class Enemy : MonoBehaviour
         }
         
         // Set the Death Sprite
-        if (enemyEquipment != null && deathSprite != null)
+        if (enemyEquipment != null && enemyData.deathSprite != null)
         {
-            enemyEquipment.SetSprite(deathSprite);
+            enemyEquipment.SetSprite(enemyData.deathSprite);
         }
         else
         {
@@ -1057,12 +1128,10 @@ public class Enemy : MonoBehaviour
         }
         // ------------------------
 
-        // Stop pathfinding/movement coroutines if any
-        // StopAllCoroutines();
-
         GetComponent<Collider2D>().enabled = false;
         rb.bodyType = RigidbodyType2D.Dynamic;
         rb.gravityScale = 0;
+        rb.freezeRotation = true; // Keep rotation frozen even when transitioning to Dynamic
 
         // Apply nudge force
         if (bulletDirection != default)
@@ -1119,5 +1188,46 @@ public class Enemy : MonoBehaviour
         }
         
         return isBlocked;
+    }
+
+    public void HearSound()
+    {
+        hasSpottedPlayer = true;
+        lastSpottedTime = Time.time;
+        hasReacted = false; // Reset reaction flag - enemy needs to react to the sound
+        
+        // Apply reaction time to the heard sound
+        float reactionDelay = Random.Range(minReactionTime, maxReactionTime);
+        nextShootTime = Time.time + reactionDelay;
+        
+        // Also delay melee attacks
+        if (fistWeaponData != null) {
+            lastAttackTime = Time.time - (1f / fistWeaponData.fireRate) + reactionDelay;
+        }
+        
+        if (currentState != State.Pursue)
+        {
+            currentState = State.Pursue;
+            lastPathUpdateTime = -pathUpdateTime; // Force path recalc
+        }
+        else
+        {
+            // Even if already in Pursue state, still reset reaction time for new sound detection
+            // This ensures sounds always trigger a reaction time delay before shooting
+            hasReacted = false;
+        }
+    }
+
+    // Add method to take damage
+    public void TakeDamage(float amount)
+    {
+        if (isDead) return;
+        
+        currentHealth -= amount;
+        
+        if (currentHealth <= 0)
+        {
+            Die();
+        }
     }
 }

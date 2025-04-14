@@ -106,10 +106,10 @@ TextureImporter:
       name: enemy_generic_0
       rect:
         serializedVersion: 2
-        x: 4
+        x: 0
         y: 0
-        width: 30
-        height: 43
+        width: 48
+        height: 48
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,9 +128,9 @@ TextureImporter:
       name: enemy_generic_1
       rect:
         serializedVersion: 2
-        x: 53
+        x: 48
         y: 0
-        width: 30
+        width: 48
         height: 48
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -150,7 +150,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 1db4219d67bbe264d94b2273db156b6d
     internalID: 0
     vertices: []
     indices: 

@@ -419,6 +419,9 @@ public class PlayerController : MonoBehaviour
             }
         }
 
+        // Notify PlayerEquipment that a weapon was fired (for sound detection)
+        playerEquipment.Shoot();
+
         // Play sound from WeaponData using the player's AudioSource
         if (playerAudioSource != null && currentWep.shootSound != null)
         {

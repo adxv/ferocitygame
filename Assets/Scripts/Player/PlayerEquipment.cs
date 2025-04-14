@@ -98,4 +98,17 @@ public class PlayerEquipment : MonoBehaviour
 
     // REMOVED SwitchToNext/PreviousWeapon
     // REMOVED AddWeapon / RemoveWeapon
+
+    public void Shoot()
+    {
+        if (CurrentWeapon != null && !CurrentWeapon.isSilent)
+        {
+            // Notify the sound detection field
+            var soundField = GetComponentInChildren<SoundDetectionField>();
+            if (soundField != null)
+            {
+                soundField.WeaponFired(CurrentWeapon.isSilent);
+            }
+        }
+    }
 }

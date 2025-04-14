@@ -10,6 +10,7 @@ public class WeaponData : ScriptableObject
     public GameObject pickupPrefab; // Prefab representing this weapon when dropped/on the ground
     public bool canShoot = true; // Set to false for fists if they use a different input/logic later
     public bool isMelee = false; // IMPORTANT: Set this to true for fists
+    public bool isSilent = false; // Whether this weapon makes noise when fired
 
     [Header("Shooting (Guns)")]
     public GameObject projectilePrefab; // Optional: if the weapon shoots projectiles

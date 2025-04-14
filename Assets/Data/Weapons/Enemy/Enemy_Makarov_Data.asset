@@ -18,8 +18,9 @@ MonoBehaviour:
   pickupPrefab: {fileID: 6688425372488289659, guid: a7f0a4ae67687d148b83ecffaf51245f, type: 3}
   canShoot: 1
   isMelee: 0
+  isSilent: 0
   projectilePrefab: {fileID: 4780090448626563172, guid: c55fcad0891b0aa4ea65546dde828a13, type: 3}
-  fireRate: 6
+  fireRate: 4
   isFullAuto: 0
   damage: 1
   bulletOffset: 1.3
