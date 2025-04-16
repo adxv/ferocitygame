@@ -18,6 +18,7 @@ MonoBehaviour:
   pickupPrefab: {fileID: 6688425372488289659, guid: a7f0a4ae67687d148b83ecffaf51245f, type: 3}
   canShoot: 1
   isMelee: 0
+  isSilent: 0
   projectilePrefab: {fileID: 4780090448626563172, guid: c55fcad0891b0aa4ea65546dde828a13, type: 3}
   fireRate: 6
   isFullAuto: 0
@@ -26,7 +27,7 @@ MonoBehaviour:
   bulletOffsetSide: 0.45
   range: 26
   bulletSpeed: 300
-  spread: 5
+  spread: 2
   magazineSize: 8
   pelletCount: 1
   spreadAngle: 0
@@ -39,4 +40,6 @@ MonoBehaviour:
   hitSound: {fileID: 0}
   missSound: {fileID: 0}
   attackSprite: {fileID: 0}
+  attackSprite2: {fileID: 0}
+  useAlternatingSprites: 0
   attackDuration: 0.2

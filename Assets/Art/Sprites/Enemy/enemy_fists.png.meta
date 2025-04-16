@@ -110,8 +110,8 @@ TextureImporter:
         y: 0
         width: 48
         height: 48
-      alignment: 9
-      pivot: {x: 0.45833334, y: 0.35416666}
+      alignment: 0
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -132,8 +132,8 @@ TextureImporter:
         y: 0
         width: 48
         height: 48
-      alignment: 9
-      pivot: {x: 0.45833334, y: 0.35416666}
+      alignment: 0
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -142,6 +142,28 @@ TextureImporter:
       bones: []
       spriteID: f985e7990daa5f24b934f0bf6cffbfc7
       internalID: -701167734
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_fists_2
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 0
+        width: 48
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6c32c1c31e66c474c9f50e7ef24dc667
+      internalID: -1127761252
       vertices: []
       indices: 
       edges: []
@@ -162,6 +184,7 @@ TextureImporter:
     nameFileIdTable:
       enemy_fists_0: -2143751929
       enemy_fists_1: -701167734
+      enemy_fists_2: -1127761252
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

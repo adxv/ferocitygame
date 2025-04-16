@@ -712,8 +712,7 @@ public class PlayerController : MonoBehaviour
                 Vector2 directionToEnemy = (enemy.transform.position - transform.position).normalized;
 
                 // Apply damage to the enemy
-                enemy.Die(directionToEnemy); // Assuming fists insta-kill enemies based on original logic
-                // enemy.TakeDamage(meleeWeapon.damage, directionToEnemy); // Use this if fists shouldn't insta-kill
+                enemy.TakeDamage(meleeWeapon.damage); // Use weapon's damage value
                 didHit = true;
                 // Potentially add knockback here
             }
@@ -745,7 +744,16 @@ public class PlayerController : MonoBehaviour
     {
         if (weapon.attackSprite != null)
         {
-            playerEquipment.SetSprite(weapon.attackSprite); // Use a direct setter on PlayerEquipment
+            // Choose which sprite to use
+            Sprite spriteToUse = weapon.attackSprite;
+            
+            // If alternating sprites is enabled and second sprite exists, randomly choose
+            if (weapon.useAlternatingSprites && weapon.attackSprite2 != null)
+            {
+                spriteToUse = (Random.value < 0.5f) ? weapon.attackSprite : weapon.attackSprite2;
+            }
+            
+            playerEquipment.SetSprite(spriteToUse);
             yield return new WaitForSeconds(weapon.attackDuration);
             // Ensure we revert to the correct sprite *for the currently equipped weapon*
             // This handles cases where the weapon might change during the animation

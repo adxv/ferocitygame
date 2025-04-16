@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Enemy_PPSh-41_Data
   m_EditorClassIdentifier: 
   weaponName: PPSh-41
-  playerSprite: {fileID: -971394281, guid: 5787ca3e6d0b829469e72e87929708e5, type: 3}
-  weaponIcon: {fileID: 0}
+  playerSprite: {fileID: 264102348, guid: 2b6611a45892f5d4fb61e476f2e8eeb8, type: 3}
+  weaponIcon: {fileID: 21300000, guid: 2b67daf35d1edda4f867dda8b8bf03c1, type: 3}
   pickupPrefab: {fileID: 5990495428314443080, guid: 7bac46a9588181b4b977987e39e87ad4, type: 3}
   canShoot: 1
   isMelee: 0

@@ -12,7 +12,7 @@ public class LevelExitTrigger : MonoBehaviour
     
     // Trigger settings
     [Header("Trigger Settings")]
-    public string levelSelectSceneName = "LevelSelect";
+    public string scoreScreenName = "ScoreScreen"; // Changed from levelSelectSceneName
     public float activationDelay = 1.0f; // Delay after level completion before exit becomes active
     
     // Indicator animation settings
@@ -165,6 +165,10 @@ public class LevelExitTrigger : MonoBehaviour
         // Ensure we're not in a paused state
         Time.timeScale = 1f;
         
+        // Store the current level name for potential retry
+        PlayerPrefs.SetString("LastPlayedLevel", SceneManager.GetActiveScene().name);
+        PlayerPrefs.Save();
+        
         // Ensure we have a reference to the fade canvas
         EnsureFadeCanvasGroup();
         
@@ -209,7 +213,19 @@ public class LevelExitTrigger : MonoBehaviour
             uiManager.HideGameOver();
         }
         
-        // Load the level select scene
-        SceneManager.LoadScene(levelSelectSceneName);
+        // Get score data for the score screen
+        if (ScoreManager.Instance != null)
+        {
+            // Transfer score data to ScoreScreenManager using the new properties
+            ScoreScreenManager.KillsScore = ScoreManager.Instance.GetKillsScore();
+            ScoreScreenManager.ComboBonus = ScoreManager.Instance.GetComboBonus();
+            ScoreScreenManager.TimeBonus = ScoreManager.Instance.GetTimeBonus();
+            ScoreScreenManager.Accuracy = ScoreManager.Instance.GetAccuracy();
+            ScoreScreenManager.FinalScore = ScoreManager.Instance.GetCurrentScore();
+            ScoreScreenManager.Grade = ScoreManager.Instance.GetGrade();
+        }
+        
+        // Load the score screen instead of level select
+        SceneManager.LoadScene(scoreScreenName);
     }
 } 

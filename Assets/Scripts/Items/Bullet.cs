@@ -12,6 +12,9 @@ public class Bullet : MonoBehaviour
     private Vector2 travelDirection; // Track the bullet's travel direction
     private bool hasHitSomething = false; // Track if bullet has already hit something
     
+    // Damage property
+    private float damage = 1f; // Default damage value
+    
     // Range properties
     private float maxRange = 50f; // Maximum effective range
     private bool isOutOfRange = false; // Flag to track if bullet has exceeded its max range
@@ -88,6 +91,12 @@ public class Bullet : MonoBehaviour
         {
             rb.linearVelocity = transform.up * speed;
         }
+    }
+    
+    // Set the bullet's damage from the weapon data
+    public void SetDamage(float damage)
+    {
+        this.damage = damage;
     }
 
     // Randomize color with small variations
@@ -178,9 +187,19 @@ public class Bullet : MonoBehaviour
                             ScoreManager.Instance.RecordHit();
                             // Notify that this pellet hit an enemy
                             OnEnemyHit?.Invoke();
+                            
+                            // Mark that a hit has been recorded for this shotgun blast
+                            hasRecordedHit = true;
                         }
                     }
-                    enemy.Die(travelDirection); // Pass bullet direction to Die method
+                    // Apply damage to the enemy instead of calling Die directly
+                    enemy.TakeDamage(damage); 
+                    
+                    // If enemy dies from this damage, pass the bullet direction so they die in the right direction
+                    if (enemy.isDead)
+                    {
+                        enemy.Die(travelDirection);
+                    }
                 }
                 // Disable the bullet after hitting an enemy
                 DisableBullet();

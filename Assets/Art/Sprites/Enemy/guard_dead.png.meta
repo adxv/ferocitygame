@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 3fd5a5cc32d2a4246a974fe7a11cb46d
+guid: c1e1f17096448fb4588e98c34c3c729d
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 5984045551922781174
-    second: player_fists2_0
+      213: 8144445154746895456
+    second: guard_dead_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,23 +100,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: player_fists2_0
+      name: guard_dead_0
       rect:
         serializedVersion: 2
-        x: 0
+        x: 2
         y: 0
-        width: 48
+        width: 46
         height: 48
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 6fb1d1289b99b0350800000000000000
-      internalID: 5984045551922781174
+      spriteID: 06c075597b1e60170800000000000000
+      internalID: 8144445154746895456
       vertices: []
       indices: 
       edges: []
@@ -125,7 +125,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 98bad13edc44e114fae487da5092601d
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      player_fists2_0: 5984045551922781174
+      guard_dead_0: 8144445154746895456
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -19,6 +19,7 @@ public class Enemy : MonoBehaviour
     private float lastSpottedTime;
     private float lastAttackTime; // Tracks melee attacks
     private Coroutine attackAnimationCoroutine; // To manage the attack sprite change
+    private bool playerInFOV = false; // Flag to track if player is within enemy's FOV collider
 
     private EnemyEquipment enemyEquipment;
     private WeaponData fistWeaponData; // To hold the fist weapon data
@@ -831,11 +832,20 @@ public class Enemy : MonoBehaviour
             PlayerController playerController = hit.GetComponent<PlayerController>();
             if (playerController != null && !playerController.IsDead())
             {
-                // Apply damage to the player
-                // Using Die directly as requested (replace with TakeDamage if needed)
-                 playerController.Die(directionToPlayer);
-                // playerController.TakeDamage((int)meleeWeapon.damage, directionToPlayer);
-                didHit = true;
+                // Check if there's a wall between enemy and player before dealing damage
+                Vector2 direction = (player.position - transform.position).normalized;
+                float distance = Vector2.Distance(transform.position, player.position);
+                RaycastHit2D wallHit = Physics2D.Raycast(transform.position, direction, distance, wallLayer);
+                
+                // Only damage player if there's no wall in between
+                if (wallHit.collider == null)
+                {
+                    // Apply damage to the player
+                    // Using Die directly as requested (replace with TakeDamage if needed)
+                    playerController.Die(directionToPlayer);
+                    // playerController.TakeDamage((int)meleeWeapon.damage, directionToPlayer);
+                    didHit = true;
+                }
             }
         }
 
@@ -864,7 +874,16 @@ public class Enemy : MonoBehaviour
     {
         if (weapon.attackSprite != null)
         {
-            enemyEquipment.SetSprite(weapon.attackSprite);
+            // Choose which sprite to use
+            Sprite spriteToUse = weapon.attackSprite;
+            
+            // If alternating sprites is enabled and second sprite exists, randomly choose
+            if (weapon.useAlternatingSprites && weapon.attackSprite2 != null)
+            {
+                spriteToUse = (Random.value < 0.5f) ? weapon.attackSprite : weapon.attackSprite2;
+            }
+            
+            enemyEquipment.SetSprite(spriteToUse);
             yield return new WaitForSeconds(weapon.attackDuration);
             enemyEquipment.UpdateSpriteToCurrentWeapon(); // Revert to the weapon's normal sprite
         }
@@ -998,6 +1017,11 @@ public class Enemy : MonoBehaviour
         if (player == null || isDead) return false;
         PlayerController playerController = player.GetComponent<PlayerController>();
         if (playerController != null && playerController.IsDead()) return false;
+        
+        // First check if player is in FOV collider
+        if (!playerInFOV) return false;
+        
+        // Then check for line of sight (no walls obstructing)
         Vector2 direction = (player.position - transform.position).normalized;
         float distance = Vector2.Distance(transform.position, player.position);
         RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, distance, wallLayer);
@@ -1228,6 +1252,22 @@ public class Enemy : MonoBehaviour
         if (currentHealth <= 0)
         {
             Die();
+        }
+    }
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            playerInFOV = true;
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            playerInFOV = false;
         }
     }
 }

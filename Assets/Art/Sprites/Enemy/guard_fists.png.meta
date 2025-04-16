@@ -1,10 +1,16 @@
 fileFormatVersion: 2
-guid: 3fd5a5cc32d2a4246a974fe7a11cb46d
+guid: 5ebbea0524dc38e44a8fcb921bf157fc
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 5984045551922781174
-    second: player_fists2_0
+      213: -9176272833644259563
+    second: enemy_fists - Copy_0
+  - first:
+      213: 1993839642732987204
+    second: enemy_fists - Copy_1
+  - first:
+      213: -6334585802152570618
+    second: enemy_fists - Copy_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,7 +52,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -100,7 +106,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: player_fists2_0
+      name: guard_fists_0
       rect:
         serializedVersion: 2
         x: 0
@@ -108,15 +114,59 @@ TextureImporter:
         width: 48
         height: 48
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 6fb1d1289b99b0350800000000000000
-      internalID: 5984045551922781174
+      spriteID: 62e2493866b75574bbad2270effd00b4
+      internalID: -1819475895
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: guard_fists_1
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 0
+        width: 48
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9a7a2ad9c1203004480ae7e30de16b55
+      internalID: -2003784211
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: guard_fists_2
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 0
+        width: 48
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 29a97635db7d39d4691aaba93c624459
+      internalID: 1324605338
       vertices: []
       indices: 
       edges: []
@@ -125,7 +175,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 98bad13edc44e114fae487da5092601d
+    spriteID: 25d18f3faeb3c004f979539c8b645c2e
     internalID: 0
     vertices: []
     indices: 
@@ -135,7 +185,9 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      player_fists2_0: 5984045551922781174
+      guard_fists_0: -1819475895
+      guard_fists_1: -2003784211
+      guard_fists_2: 1324605338
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

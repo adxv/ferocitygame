@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   weaponName: Fists
   playerSprite: {fileID: -2143751929, guid: c906b75c70d228442a8a856f4f79f6a1, type: 3}
-  weaponIcon: {fileID: -701167734, guid: c906b75c70d228442a8a856f4f79f6a1, type: 3}
+  weaponIcon: {fileID: -5243550030590857066, guid: 849907a0739fccc498c7e805d668adf8, type: 3}
   pickupPrefab: {fileID: 0}
   canShoot: 0
   isMelee: 1
+  isSilent: 0
   projectilePrefab: {fileID: 0}
   fireRate: 3
   isFullAuto: 0
@@ -39,4 +40,6 @@ MonoBehaviour:
   hitSound: {fileID: 8300000, guid: 90509ebd36edd644dbbf0c157f9a5093, type: 3}
   missSound: {fileID: 8300000, guid: 119b89877848a0f4ea67c515f64cf6c5, type: 3}
   attackSprite: {fileID: -701167734, guid: c906b75c70d228442a8a856f4f79f6a1, type: 3}
-  attackDuration: 0.1
+  attackSprite2: {fileID: -1127761252, guid: c906b75c70d228442a8a856f4f79f6a1, type: 3}
+  useAlternatingSprites: 1
+  attackDuration: 0.2

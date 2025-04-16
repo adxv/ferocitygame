@@ -1,10 +1,13 @@
 fileFormatVersion: 2
-guid: 3fd5a5cc32d2a4246a974fe7a11cb46d
+guid: df9d08450e8c00f4aba282ad8d7699be
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 5984045551922781174
-    second: player_fists2_0
+      213: -427202518951688969
+    second: enemy_izh-27_0
+  - first:
+      213: 5560341105210769132
+    second: enemy_izh-27_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,7 +49,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -100,7 +103,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: player_fists2_0
+      name: enemy_izh-27_0
       rect:
         serializedVersion: 2
         x: 0
@@ -108,15 +111,37 @@ TextureImporter:
         width: 48
         height: 48
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 6fb1d1289b99b0350800000000000000
-      internalID: 5984045551922781174
+      spriteID: 1244b5bf18292704ba2e3e71d27c5267
+      internalID: 1188786054
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_izh-27_1
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 0
+        width: 48
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 72cbf453fef1ecd4285997c96e56e344
+      internalID: -1360334936
       vertices: []
       indices: 
       edges: []
@@ -125,7 +150,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 98bad13edc44e114fae487da5092601d
+    spriteID: 70fdef26e91831b40a175e7cbba91733
     internalID: 0
     vertices: []
     indices: 
@@ -135,7 +160,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      player_fists2_0: 5984045551922781174
+      enemy_izh-27_0: 1188786054
+      enemy_izh-27_1: -1360334936
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

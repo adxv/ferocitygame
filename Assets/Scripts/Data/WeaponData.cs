@@ -45,6 +45,8 @@ public class WeaponData : ScriptableObject
     public AudioClip hitSound;          // Sound when melee attack hits
     public AudioClip missSound;         // Sound when melee attack misses (swing/whoosh)
     public Sprite attackSprite;        // Sprite to show during the melee attack animation
+    public Sprite attackSprite2;       // Alternative sprite to show during melee attack
+    public bool useAlternatingSprites = false; // Whether to randomly alternate between attack sprites
     public float attackDuration = 0.2f; // Duration of the attack animation/sprite change
     // Add other weapon-specific properties as needed:
     // public float reloadTime;

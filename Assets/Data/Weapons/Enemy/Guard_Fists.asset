@@ -10,17 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6d8aa359b5944334189703fbbe6e7523, type: 3}
-  m_Name: Fists_Data
+  m_Name: Guard_Fists
   m_EditorClassIdentifier: 
   weaponName: Fists
-  playerSprite: {fileID: 563900936, guid: 974e582f6684d3847913020db55f7c4b, type: 3}
-  weaponIcon: {fileID: -1931272283, guid: 974e582f6684d3847913020db55f7c4b, type: 3}
+  playerSprite: {fileID: -1819475895, guid: 5ebbea0524dc38e44a8fcb921bf157fc, type: 3}
+  weaponIcon: {fileID: -2003784211, guid: 5ebbea0524dc38e44a8fcb921bf157fc, type: 3}
   pickupPrefab: {fileID: 0}
   canShoot: 0
   isMelee: 1
-  isSilent: 1
+  isSilent: 0
   projectilePrefab: {fileID: 0}
-  fireRate: 5
+  fireRate: 3
   isFullAuto: 0
   damage: 1
   bulletOffset: 1
@@ -33,13 +33,13 @@ MonoBehaviour:
   spreadAngle: 0
   shootSound: {fileID: 0}
   emptyClickSound: {fileID: 0}
-  shootShakeDuration: 0.1
-  shootShakeMagnitude: 0.1
+  shootShakeDuration: 0.01
+  shootShakeMagnitude: 0.01
   muzzleFlashPrefab: {fileID: 0}
   muzzleFlashDuration: 0.05
-  hitSound: {fileID: 8300000, guid: 90509ebd36edd644dbbf0c157f9a5093, type: 3}
+  hitSound: {fileID: 8300000, guid: 18838561845786c44897fbf1112482c9, type: 3}
   missSound: {fileID: 8300000, guid: 119b89877848a0f4ea67c515f64cf6c5, type: 3}
-  attackSprite: {fileID: -1931272283, guid: 974e582f6684d3847913020db55f7c4b, type: 3}
-  attackSprite2: {fileID: 1544140472, guid: 974e582f6684d3847913020db55f7c4b, type: 3}
+  attackSprite: {fileID: -2003784211, guid: 5ebbea0524dc38e44a8fcb921bf157fc, type: 3}
+  attackSprite2: {fileID: 1324605338, guid: 5ebbea0524dc38e44a8fcb921bf157fc, type: 3}
   useAlternatingSprites: 1
-  attackDuration: 0.1
+  attackDuration: 0.4

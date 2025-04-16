@@ -100,7 +100,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: player_fists_0
+      name: mikhail_fists_0
       rect:
         serializedVersion: 2
         x: 0
@@ -108,21 +108,21 @@ TextureImporter:
         width: 48
         height: 48
       alignment: 9
-      pivot: {x: 0.45833334, y: 0.3541667}
+      pivot: {x: 0.4791667, y: 0.375}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 2866147a9c1ebd0b0800000000000000
-      internalID: -5702716246923843966
+      spriteID: 36e5f884304a1f247bfccedcfaa817b5
+      internalID: 563900936
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: player_fists_1
+      name: mikhail_fists_1
       rect:
         serializedVersion: 2
         x: 48
@@ -130,15 +130,37 @@ TextureImporter:
         width: 48
         height: 48
       alignment: 9
-      pivot: {x: 0.45833334, y: 0.35416666}
+      pivot: {x: 0.4791667, y: 0.39583334}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 7b7e1aaa3a8091c4bad59a3c8fdd6e73
-      internalID: 1369673727
+      spriteID: 45aa77d77cbb69340b449320e8325dfc
+      internalID: -1931272283
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mikhail_fists_2
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 0
+        width: 48
+        height: 48
+      alignment: 9
+      pivot: {x: 0.5, y: 0.375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c037692330d9edd41ae2a5fe2378a253
+      internalID: 1544140472
       vertices: []
       indices: 
       edges: []
@@ -157,8 +179,9 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      player_fists_0: -5702716246923843966
-      player_fists_1: 1369673727
+      mikhail_fists_0: 563900936
+      mikhail_fists_1: -1931272283
+      mikhail_fists_2: 1544140472
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
