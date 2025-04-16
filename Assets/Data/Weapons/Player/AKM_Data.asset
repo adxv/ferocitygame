@@ -26,7 +26,7 @@ MonoBehaviour:
   bulletOffset: 1
   bulletOffsetSide: 0.15
   range: 26
-  bulletSpeed: 400
+  bulletSpeed: 120
   spread: 2
   magazineSize: 30
   pelletCount: 1

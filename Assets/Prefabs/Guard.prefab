@@ -373,6 +373,7 @@ MonoBehaviour:
     m_Bits: 2147532800
   minReactionTime: 0.16
   maxReactionTime: 0.23
+  bulletPrefabInvisible: {fileID: 4780090448626563172, guid: a0157aabaff02054794a8db5a8141974, type: 3}
   randomModeInterval: 2.5
   turnPauseDuration: 0.7
   minTurnPauseDuration: 1
@@ -405,7 +406,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 0
+  m_Constraints: 4
 --- !u!82 &4015268622365995783
 AudioSource:
   m_ObjectHideFlags: 0

@@ -26,7 +26,7 @@ MonoBehaviour:
   bulletOffset: 0.3
   bulletOffsetSide: 0.1
   range: 26
-  bulletSpeed: 200
+  bulletSpeed: 120
   spread: 4
   magazineSize: 2
   pelletCount: 8
@@ -40,4 +40,6 @@ MonoBehaviour:
   hitSound: {fileID: 0}
   missSound: {fileID: 0}
   attackSprite: {fileID: 0}
+  attackSprite2: {fileID: 0}
+  useAlternatingSprites: 0
   attackDuration: 0.2

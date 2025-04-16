@@ -10,6 +10,10 @@ public class SoundDetectionField : MonoBehaviour
     
     public LayerMask wallLayer;
 
+    // Tracking variables for weapon sound notifications
+    private float autoWeaponNotificationDelay = 1.0f; // Minimum time between notifications for any weapon
+    private Dictionary<IncomingSoundDetector, float> enemyNotificationTimes = new Dictionary<IncomingSoundDetector, float>();
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -60,6 +64,16 @@ public class SoundDetectionField : MonoBehaviour
         IncomingSoundDetector soundDetector = other.GetComponent<IncomingSoundDetector>();
         if (soundDetector != null)
         {
+            // Check if this enemy was recently notified
+            if (enemyNotificationTimes.TryGetValue(soundDetector, out float lastTime))
+            {
+                // If the enemy was notified recently, don't notify again yet
+                if (Time.time - lastTime < autoWeaponNotificationDelay)
+                {
+                    return;
+                }
+            }
+            
             Vector2 startPoint = transform.position;
             Vector2 endPoint = soundDetector.transform.position;
 
@@ -68,6 +82,9 @@ public class SoundDetectionField : MonoBehaviour
             if (hit.collider == null)
             {
                 soundDetector.DetectSound();
+                
+                // Update the last notification time for this enemy
+                enemyNotificationTimes[soundDetector] = Time.time;
             }
         }
     }
@@ -75,6 +92,20 @@ public class SoundDetectionField : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // Clean up old entries in the notification dictionary
+        List<IncomingSoundDetector> keysToRemove = new List<IncomingSoundDetector>();
         
+        foreach (var entry in enemyNotificationTimes)
+        {
+            if (Time.time - entry.Value > autoWeaponNotificationDelay * 2)
+            {
+                keysToRemove.Add(entry.Key);
+            }
+        }
+        
+        foreach (var key in keysToRemove)
+        {
+            enemyNotificationTimes.Remove(key);
+        }
     }
 }

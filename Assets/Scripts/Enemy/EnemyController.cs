@@ -568,6 +568,17 @@ public class Enemy : MonoBehaviour
                 }
             }
         }
+        
+        // Ensure rotation is only on Z-axis
+        if (!isDead && rb != null)
+        {
+            // Reset rotation to ensure Z-axis only rotation
+            transform.rotation = Quaternion.Euler(0, 0, transform.rotation.eulerAngles.z);
+            
+            // Ensure freeze rotation is set
+            rb.freezeRotation = true;
+            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+        }
     }
     
     // A* Pathfinding implementation
@@ -816,6 +827,14 @@ public class Enemy : MonoBehaviour
         // Aim at player
         Vector2 directionToPlayer = (player.position - transform.position).normalized;
         transform.up = directionToPlayer;
+        
+        // Ensure rotation stays on Z-axis only after aiming
+        transform.rotation = Quaternion.Euler(0, 0, transform.rotation.eulerAngles.z);
+        if (rb != null)
+        {
+            rb.freezeRotation = true;
+            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+        }
 
         // 1. Trigger Animation/Sprite Change
         if (attackAnimationCoroutine != null) StopCoroutine(attackAnimationCoroutine);
@@ -910,6 +929,14 @@ public class Enemy : MonoBehaviour
         // Aim directly at player
         Vector3 directionToPlayer = (player.position - transform.position).normalized;
         transform.up = directionToPlayer;
+        
+        // Ensure rotation stays on Z-axis only after aiming
+        transform.rotation = Quaternion.Euler(0, 0, transform.rotation.eulerAngles.z);
+        if (rb != null)
+        {
+            rb.freezeRotation = true;
+            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+        }
 
         // Use ammo (check already happened in Update, but double-check here)
         if (!currentWep.UseAmmo())
@@ -1248,6 +1275,16 @@ public class Enemy : MonoBehaviour
         if (isDead) return;
         
         currentHealth -= amount;
+        
+        // Reset rotation to ensure Z-axis only rotation
+        transform.rotation = Quaternion.Euler(0, 0, transform.rotation.eulerAngles.z);
+        
+        // Ensure freeze rotation is set
+        if (rb != null)
+        {
+            rb.freezeRotation = true;
+            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+        }
         
         if (currentHealth <= 0)
         {

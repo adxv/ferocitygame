@@ -22,11 +22,11 @@ MonoBehaviour:
   projectilePrefab: {fileID: 4780090448626563172, guid: c55fcad0891b0aa4ea65546dde828a13, type: 3}
   fireRate: 2
   isFullAuto: 0
-  damage: 15
+  damage: 20
   bulletOffset: 0.3
   bulletOffsetSide: 0.1
   range: 26
-  bulletSpeed: 200
+  bulletSpeed: 120
   spread: 2
   magazineSize: 2
   pelletCount: 8
