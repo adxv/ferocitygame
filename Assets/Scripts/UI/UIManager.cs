@@ -131,8 +131,8 @@ public class UIManager : MonoBehaviour
             // Hide the timer and other HUD elements before scene change
             if (hudPanel != null) hudPanel.SetActive(false);
             
-            // Specifically hide the timer if it exists
-            if (timerText != null) timerText.gameObject.SetActive(false);
+            // Instead of disabling the timer, set its text to empty string
+            if (timerText != null) timerText.text = "";
             
             // Ensure time is restored before scene change
             Time.timeScale = 1f;
@@ -164,6 +164,12 @@ public class UIManager : MonoBehaviour
         
         // Re-find managers potentially destroyed/recreated in the new scene
         SetupUIElements();
+        
+        // Ensure timer text is properly set up if needed
+        if (timerText != null && timerText.gameObject != null)
+        {
+            timerText.gameObject.SetActive(true);
+        }
     }
     
     // ADDED: Helper method to reset UI state
@@ -370,6 +376,10 @@ public class UIManager : MonoBehaviour
     public void RestartLevel()
     {
         Time.timeScale = 1f; // Ensure time is resumed before loading
+        
+        // Reset static variables
+        FloorAccessController.isLevelComplete = false;
+        
         // Use UnityEngine.SceneManagement
         UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
     }

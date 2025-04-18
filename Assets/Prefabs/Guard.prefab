@@ -252,9 +252,9 @@ PolygonCollider2D:
     - - {x: 2.0390234, y: -2.0188584}
       - {x: 2.7953978, y: -1.2222943}
       - {x: 3.3395848, y: 0.0028511034}
-      - {x: 2.998201, y: 3.0094423}
-      - {x: 0.002820719, y: 3.6063714}
-      - {x: -3.0061965, y: 2.9612088}
+      - {x: 2.998201, y: 4.0094423}
+      - {x: 0.002820719, y: 4.6063714}
+      - {x: -3.0061965, y: 3.9612088}
       - {x: -3.3415487, y: -0.0070483275}
       - {x: -2.78441, y: -1.135014}
       - {x: -1.9626433, y: -1.9986496}
@@ -373,7 +373,6 @@ MonoBehaviour:
     m_Bits: 2147532800
   minReactionTime: 0.16
   maxReactionTime: 0.23
-  bulletPrefabInvisible: {fileID: 4780090448626563172, guid: a0157aabaff02054794a8db5a8141974, type: 3}
   randomModeInterval: 2.5
   turnPauseDuration: 0.7
   minTurnPauseDuration: 1

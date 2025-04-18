@@ -82,12 +82,10 @@ public class AmmoDisplay : MonoBehaviour
         {
             WeaponData weapon = playerEquipment.CurrentWeapon;
             
-            // Only show ammo count for weapons that:
-            // 1. Actually shoot
-            // 2. Have magazines
-            // 3. Are NOT melee weapons
-            if (weapon.canShoot && weapon.magazineSize > 0 && !weapon.isMelee)
+            // Modified condition to handle weapons with magazineSize of 0
+            if (weapon.canShoot && !weapon.isMelee)
             {
+                // Display the current ammo (will show "0" for weapons with magazineSize of 0)
                 ammoText.text = weapon.currentAmmo.ToString();
                 ammoText.gameObject.SetActive(true);
                 // Update weapon icon if available
@@ -105,7 +103,7 @@ public class AmmoDisplay : MonoBehaviour
             }
             else
             {
-                // Instead of disabling the text, set it to empty string
+                // Instead of disabling the text, set it to empty string for melee weapons
                 ammoText.text = "";
                 ammoText.gameObject.SetActive(true); // Keep the text object active
                 if (weaponIconImage != null)
@@ -149,7 +147,8 @@ public class AmmoDisplay : MonoBehaviour
         {
             WeaponData weapon = playerEquipment.CurrentWeapon;
             
-            if (weapon.canShoot && weapon.magazineSize > 0 && !weapon.isMelee && ammoText.gameObject.activeSelf)
+            // Updated to match UpdateAmmoDisplay logic - show ammo count for non-melee weapons that can shoot
+            if (weapon.canShoot && !weapon.isMelee && ammoText.gameObject.activeSelf)
             {
                 int currentAmmo = weapon.currentAmmo;
 

@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d8aa359b5944334189703fbbe6e7523, type: 3}
+  m_Name: Bayonet_Data
+  m_EditorClassIdentifier: 
+  weaponName: Fists
+  playerSprite: {fileID: -6658083888684618801, guid: f0483bf2a9fd6f54cbc9e87888df0ff8, type: 3}
+  weaponIcon: {fileID: 21300000, guid: 9cfd7a48e22276c4ba0d55de495f048d, type: 3}
+  pickupPrefab: {fileID: 6688425372488289659, guid: 158b36ea22cdef64b8ca6628171b8581, type: 3}
+  canShoot: 0
+  isMelee: 1
+  isSilent: 1
+  projectilePrefab: {fileID: 0}
+  fireRate: 5
+  isFullAuto: 0
+  damage: 4
+  bulletOffset: 1
+  bulletOffsetSide: 0
+  range: 1.5
+  bulletSpeed: 120
+  spread: 0
+  magazineSize: 1
+  pelletCount: 1
+  spreadAngle: 0
+  shootSound: {fileID: 0}
+  emptyClickSound: {fileID: 0}
+  shootShakeDuration: 0.1
+  shootShakeMagnitude: 0.1
+  muzzleFlashPrefab: {fileID: 0}
+  muzzleFlashDuration: 0.05
+  hitSound: {fileID: 8300000, guid: feed3348e70aa1f4d84fb877589aa330, type: 3}
+  missSound: {fileID: 8300000, guid: c13d7eaa7dca6fd45b9360e806fe6768, type: 3}
+  attackSprite: {fileID: 4018803620785235379, guid: f0483bf2a9fd6f54cbc9e87888df0ff8, type: 3}
+  attackSprite2: {fileID: 0}
+  useAlternatingSprites: 0
+  attackDuration: 0.1

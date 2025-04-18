@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5219f999fff6c3741a4a9049e2d0de4b, type: 3}
+  m_Name: 0patrol_Default 1
+  m_EditorClassIdentifier: 
+  forgetTime: 3
+  patrolSpeed: 0
+  chaseSpeed: 20
+  rotationSpeed: 20
+  deathSprite: {fileID: 4325505437714666157, guid: 20563bb334931394faf8dafbde76c41c, type: 3}
+  health: 1

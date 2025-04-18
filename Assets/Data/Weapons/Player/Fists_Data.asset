@@ -25,7 +25,7 @@ MonoBehaviour:
   damage: 1
   bulletOffset: 1
   bulletOffsetSide: 0
-  range: 2
+  range: 1
   bulletSpeed: 120
   spread: 0
   magazineSize: 1

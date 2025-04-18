@@ -103,7 +103,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: mikhail_ppsh-41_0
+      name: enemy_ppsh-41_0
       rect:
         serializedVersion: 2
         x: 0
@@ -118,14 +118,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 1e582039eb670eb47a3eb9f8c1559752
-      internalID: 264102348
+      spriteID: 475e0b4f73567bf42ae9f1fd9de82cc7
+      internalID: 690419656
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: mikhail_ppsh-41_1
+      name: enemy_ppsh-41_1
       rect:
         serializedVersion: 2
         x: 48
@@ -140,8 +140,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: b7f0f070152a2c64da1ff1b117bd4856
-      internalID: -513798770
+      spriteID: 27feec433a9d60f4daabd83242bd9b55
+      internalID: -768959684
       vertices: []
       indices: 
       edges: []
@@ -160,8 +160,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      mikhail_ppsh-41_0: 264102348
-      mikhail_ppsh-41_1: -513798770
+      enemy_ppsh-41_0: 690419656
+      enemy_ppsh-41_1: -768959684
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -30,8 +30,26 @@ public class TimerController : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Reset timer state when scene is reloaded
-        ResetTimer();
+        // Only reset timer for gameplay scenes (not menus)
+        if (scene.name.Contains("map_") || scene.name.Contains("Level"))
+        {
+            Debug.Log("TimerController: Resetting timer for scene: " + scene.name);
+            ResetTimer();
+        }
+        else
+        {
+            // For non-gameplay scenes, make sure the timer is still in a clean state
+            startTime = 0;
+            stopTime = 0;
+            isRunning = false;
+            hasStarted = false;
+            
+            // Reset timer display
+            if (timerText != null)
+            {
+                timerText.text = "00.000";
+            }
+        }
     }
 
     private void ResetTimer()

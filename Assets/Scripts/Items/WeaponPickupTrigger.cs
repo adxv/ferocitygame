@@ -30,6 +30,20 @@ public class WeaponPickupTrigger : MonoBehaviour
                 Enemy enemy = collision.GetComponent<Enemy>();
                 if (enemy != null && !enemy.isDead)
                 {
+                    // Get the thrown weapon data to check if it's melee
+                    WeaponPickup parentPickup = transform.parent.GetComponent<WeaponPickup>();
+                    if (parentPickup != null && parentPickup.weaponData != null)
+                    {
+                        // Check if the thrown weapon is a melee weapon
+                        if (parentPickup.weaponData.isMelee)
+                        {
+                            // Kill the enemy directly instead of disarming
+                            enemy.TakeDamage(1000); // Use high damage to ensure death
+                            return; // Skip the rest of the method
+                        }
+                    }
+                    
+                    // For non-melee weapons, continue with the original disarming logic
                     EnemyEquipment enemyEquipment = enemy.GetComponent<EnemyEquipment>();
                     if (enemyEquipment != null && 
                         enemyEquipment.CurrentWeapon != null && 

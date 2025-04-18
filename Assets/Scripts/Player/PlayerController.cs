@@ -5,6 +5,7 @@ using System.Collections; // Added for Coroutines
 using UnityEngine.UI;
 using System;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(Rigidbody2D), typeof(PlayerEquipment), typeof(Collider2D))] // Add Collider2D requirement
 public class PlayerController : MonoBehaviour
@@ -54,6 +55,7 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
+                // After loading, reload the scene to fix the timer
         rb = GetComponent<Rigidbody2D>();
         playerEquipment = GetComponent<PlayerEquipment>();
         // Get fist data via the public getter
@@ -98,6 +100,12 @@ public class PlayerController : MonoBehaviour
         {
              Debug.LogWarning("PlayerController could not find the UIManager instance.", this);
         }
+    }
+
+    public static void ResetStaticVariables()
+    {
+        // Reset FloorAccessController variables
+        FloorAccessController.isLevelComplete = false;
     }
 
     void Update()
@@ -644,11 +652,12 @@ public class PlayerController : MonoBehaviour
     {
         if (playerAudioSource != null)
         {
-            // You can add a specific empty click sound here
-            playerAudioSource.pitch = 1.0f;
-            // playerAudioSource.PlayOneShot(emptyClickSound);
-            
-            // Removed Debug.Log about empty weapon
+            WeaponData currentWep = playerEquipment.CurrentWeapon;
+            if (currentWep != null && currentWep.emptyClickSound != null)
+            {
+                playerAudioSource.pitch = 1.0f;
+                playerAudioSource.PlayOneShot(currentWep.emptyClickSound);
+            }
         }
     }
 

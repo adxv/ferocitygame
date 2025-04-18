@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
+using System.Collections;
 
 public class LevelSelectManager : MonoBehaviour
 {
@@ -14,7 +15,15 @@ public class LevelSelectManager : MonoBehaviour
     [Header("Level Data")]
     public List<LevelData> availableLevels = new List<LevelData>();
     
+    [Header("Screen Transition")]
+    public CanvasGroup fadeCanvasGroup;
+    public float fadeDuration = 0.5f;
+    
     private int selectedLevelIndex = 0;
+    private string sceneToLoad;
+    
+    // Static flag to indicate a scene needs to fade in after loading
+    public static bool shouldFadeInOnLoad = false;
     
     [System.Serializable]
     public class LevelData
@@ -43,6 +52,7 @@ public class LevelSelectManager : MonoBehaviour
         {
             SelectLevel(0);
         }
+        
     }
     
     void Update()
@@ -164,8 +174,13 @@ public class LevelSelectManager : MonoBehaviour
             
             if (!levelToLoad.isLocked)
             {
-                Debug.Log("Loading level: " + levelToLoad.sceneName);
-                SceneManager.LoadScene(levelToLoad.sceneName);
+                // Reset important static variables before loading level
+                FloorAccessController.isLevelComplete = false;
+                
+                sceneToLoad = levelToLoad.sceneName;
+                
+                Debug.Log("Loading level: " + sceneToLoad);
+                SceneManager.LoadScene(sceneToLoad);
             }
         }
     }

@@ -25,14 +25,14 @@ MonoBehaviour:
   damage: 1
   bulletOffset: 1
   bulletOffsetSide: 0
-  range: 2
+  range: 2.5
   bulletSpeed: 200
   spread: 0
   magazineSize: 1
   pelletCount: 1
   spreadAngle: 0
   shootSound: {fileID: 0}
-  emptyClickSound: {fileID: 0}
+  emptyClickSound: {fileID: 8300000, guid: 12b075290ff78f04d900af810cdbed06, type: 3}
   shootShakeDuration: 0.01
   shootShakeMagnitude: 0.01
   muzzleFlashPrefab: {fileID: 0}
@@ -42,4 +42,4 @@ MonoBehaviour:
   attackSprite: {fileID: -701167734, guid: c906b75c70d228442a8a856f4f79f6a1, type: 3}
   attackSprite2: {fileID: -1127761252, guid: c906b75c70d228442a8a856f4f79f6a1, type: 3}
   useAlternatingSprites: 1
-  attackDuration: 0.2
+  attackDuration: 0.1

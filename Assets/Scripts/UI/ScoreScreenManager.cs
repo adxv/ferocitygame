@@ -62,11 +62,30 @@ public class ScoreScreenManager : MonoBehaviour
     
     public void ContinueToLevelSelect()
     {
+        // Find and reset the fade canvas alpha
+        CanvasGroup fadeCanvas = FindObjectOfType<CanvasGroup>();
+        if (fadeCanvas != null)
+        {
+            fadeCanvas.alpha = 0f;
+            fadeCanvas.blocksRaycasts = false;
+        }
+        
         SceneManager.LoadScene(levelSelectScene);
     }
     
     public void RetryLevel()
     {
+        // Reset level completion flag before reloading
+        FloorAccessController.isLevelComplete = false;
+        
+        // Find and reset the fade canvas alpha
+        CanvasGroup fadeCanvas = FindObjectOfType<CanvasGroup>();
+        if (fadeCanvas != null)
+        {
+            fadeCanvas.alpha = 0f;
+            fadeCanvas.blocksRaycasts = false;
+        }
+        
         // Store the current level name to reload it
         string currentLevel = PlayerPrefs.GetString("LastPlayedLevel", "Level1");
         SceneManager.LoadScene(currentLevel);

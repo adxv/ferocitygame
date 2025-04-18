@@ -23,7 +23,7 @@ public class Enemy : MonoBehaviour
 
     private EnemyEquipment enemyEquipment;
     private WeaponData fistWeaponData; // To hold the fist weapon data
-
+    private byte emptyClickSoundCount = 0;
     public float randomModeInterval = 2.5f;
     public float turnPauseDuration = 0.7f; // Duration to pause after turning in patrol mode
     public float minTurnPauseDuration = 0.5f; // Minimum pause time after turning
@@ -251,6 +251,11 @@ public class Enemy : MonoBehaviour
                         // Enemy has no ammo - maybe switch to fists or just wait?
                         // For now, just resets shoot time to avoid constant checks
                          nextShootTime = Time.time + 1f; // Wait a second before checking again
+                         
+                         if (emptyClickSoundCount < 3) {
+                            PlayEmptyClickSound(); // Play empty click sound when enemy tries to shoot with no ammo
+                            emptyClickSoundCount++;
+                         }
                     }
                 }
             }
@@ -943,6 +948,11 @@ public class Enemy : MonoBehaviour
         {
              // Should ideally not happen due to check in Update, but safety first
              Debug.LogWarning($"{gameObject.name} tried to shoot {currentWep.weaponName} but UseAmmo failed.");
+
+            if (emptyClickSoundCount < 3) {
+                PlayEmptyClickSound(); // Play empty click sound when enemy tries to shoot with no ammo
+                emptyClickSoundCount++;
+            }
              return; 
         }
 
@@ -1305,6 +1315,21 @@ public class Enemy : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             playerInFOV = false;
+        }
+    }
+
+    // Play a sound for empty magazine
+    void PlayEmptyClickSound()
+    {
+        WeaponData currentWep = enemyEquipment.CurrentWeapon;
+        if (currentWep != null && currentWep.emptyClickSound != null)
+        {
+            AudioSource source = GetComponent<AudioSource>();
+            if (source != null)
+            {
+                source.pitch = 1.0f;
+                source.PlayOneShot(currentWep.emptyClickSound);
+            }
         }
     }
 }

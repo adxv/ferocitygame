@@ -18,6 +18,16 @@ public class MainMenuManager : MonoBehaviour
     
     private bool isInOptionsMenu = false;
     
+    // Helper method to reset static game variables
+    private void ResetGameState()
+    {
+        // Reset FloorAccessController variables
+        FloorAccessController.isLevelComplete = false;
+        
+        // Reset any other static variables that need to be reset between levels
+        // This ensures a clean state when starting a new level
+    }
+    
     private void Start()
     {
         // Hide options panel initially
@@ -29,6 +39,8 @@ public class MainMenuManager : MonoBehaviour
         {
             // New Game button
             menuButtons[0].onClick.AddListener(() => {
+                // Reset game state before loading level select
+                ResetGameState();
                 // Load level select scene - replace with your actual scene name
                 SceneManager.LoadScene("LevelSelect");
             });
