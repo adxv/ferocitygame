@@ -318,7 +318,7 @@ CircleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 5
+  m_Radius: 9
 --- !u!114 &4938788987429677656
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -390,7 +390,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 25
-  health: 55
+  health: 1
   deathSprite: {fileID: 707186291679641980, guid: 55a74e6e361e7364e8b327ca53b13ae5, type: 3}
   mainCamera: {fileID: 0}
   cameraSmoothSpeed: 0.4

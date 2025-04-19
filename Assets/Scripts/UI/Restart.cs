@@ -29,7 +29,7 @@ public class Restart : MonoBehaviour
         // Get references
         uiManager = UIManager.Instance; 
         scoreManager = ScoreManager.Instance;
-        ammoDisplay = FindObjectOfType<AmmoDisplay>();
+        ammoDisplay = FindFirstObjectByType<AmmoDisplay>();
         
         if (uiManager == null) Debug.LogWarning("Restart script could not find UIManager.", this);
         if (ammoDisplay == null) Debug.LogWarning("Restart script could not find AmmoDisplay.", this);

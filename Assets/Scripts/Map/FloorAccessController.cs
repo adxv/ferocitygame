@@ -107,7 +107,7 @@ public class FloorAccessController : MonoBehaviour
         // Try to find the fade canvas if not assigned
         if (fadeCanvasGroup == null)
         {
-            fadeCanvasGroup = GameObject.FindObjectOfType<Canvas>()?.GetComponentInChildren<CanvasGroup>();
+            fadeCanvasGroup = GameObject.FindFirstObjectByType<Canvas>()?.GetComponentInChildren<CanvasGroup>();
             
             // Initialize fade canvas if found
             if (fadeCanvasGroup != null)

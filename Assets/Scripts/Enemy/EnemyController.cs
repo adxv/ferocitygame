@@ -40,7 +40,6 @@ public class Enemy : MonoBehaviour
     private bool isPausedAfterTurn = false; // Track if paused after turning in patrol mode
     private float turnPauseTimer = 0f; // Timer for pause after turning
     private bool turnRight = true; // Determines if the enemy turns right (true) or left (false)
-    private float directionChangeChance = 0.2f; // Chance to change turn direction on each turn
 
     // A* Pathfinding variables
     private List<Vector2> path = new List<Vector2>();
@@ -528,11 +527,8 @@ public class Enemy : MonoBehaviour
             RaycastHit2D hit = Physics2D.Raycast(transform.position, patrolDirection, safetyDistance + enemyRadius, wallLayer);
             if (hit.collider != null)
             {
-                // Randomly change direction with directionChangeChance probability
-                if (Random.value < directionChangeChance)
-                {
-                    turnRight = !turnRight;
-                }
+                // Simple 50/50 chance to turn right or left each time
+                turnRight = Random.value > 0.5f;
                 
                 // Turn 90 degrees based on turnRight value
                 float turnAngle = turnRight ? -90 : 90; // Negative for right turn, positive for left turn
@@ -864,6 +860,10 @@ public class Enemy : MonoBehaviour
                 // Only damage player if there's no wall in between
                 if (wallHit.collider == null)
                 {
+                    // Instantiate blood particle effect at the player position with proper rotation
+                    GameObject bloodEffect = Instantiate(Resources.Load<GameObject>("Particles/Blood"),
+                        player.position, Quaternion.LookRotation(Vector3.forward, directionToPlayer));
+                    
                     // Apply damage to the player
                     // Using Die directly as requested (replace with TakeDamage if needed)
                     playerController.Die(directionToPlayer);
@@ -972,7 +972,6 @@ public class Enemy : MonoBehaviour
         // Handle shotgun pellets / spread
         int pelletCount = Mathf.Max(1, currentWep.pelletCount);
         bool isShotgun = pelletCount > 1;
-        bool hasHitRegistered = false; // For shotguns, only one pellet should register damage/effects usually
 
         for (int i = 0; i < pelletCount; i++)
         {
@@ -1000,6 +999,8 @@ public class Enemy : MonoBehaviour
             {
                 bulletScript.SetShooter(gameObject); // Identify shooter
                 bulletScript.SetBulletParameters(currentWep.bulletSpeed, currentWep.range); 
+                bulletScript.SetDamage(currentWep.damage);
+                bulletScript.SetWeaponData(currentWep);
                 
                 // Shotgun hit tracking (if your Bullet script supports this)
                 /*
@@ -1075,6 +1076,8 @@ public class Enemy : MonoBehaviour
         Vector2 repulsion = Vector2.zero;
         int rayCount = 8;
         float angleStep = 360f / rayCount;
+        
+        // Wall repulsion
         for (int i = 0; i < rayCount; i++)
         {
             float angle = i * angleStep;
@@ -1091,6 +1094,28 @@ public class Enemy : MonoBehaviour
                 }
             }
         }
+        
+        // Enemy repulsion - Check for nearby enemies
+        Collider2D[] nearbyEnemies = Physics2D.OverlapCircleAll(transform.position, safetyDistance * 1.5f, LayerMask.GetMask("Enemy"));
+        foreach (Collider2D enemyCollider in nearbyEnemies)
+        {
+            // Skip self
+            if (enemyCollider.gameObject == gameObject)
+                continue;
+                
+            // Calculate distance and direction
+            Vector2 enemyPos = enemyCollider.transform.position;
+            float distance = Vector2.Distance(transform.position, enemyPos);
+            
+            // Apply stronger repulsion for enemies than for walls to prevent overlapping
+            if (distance < safetyDistance * 1.5f)
+            {
+                Vector2 repulsionDirection = (Vector2)transform.position - enemyPos;
+                float repulsionStrength = (safetyDistance * 1.5f - distance) / (safetyDistance * 1.5f);
+                repulsion += repulsionDirection.normalized * repulsionStrength * 1.5f; // Stronger than wall repulsion
+            }
+        }
+        
         return repulsion;
     }
 
@@ -1286,6 +1311,10 @@ public class Enemy : MonoBehaviour
         
         currentHealth -= amount;
         
+        // Instantiate blood particle effect at the enemy position
+        GameObject bloodEffect = Instantiate(Resources.Load<GameObject>("Particles/Blood"),
+            transform.position, Quaternion.identity);
+        
         // Reset rotation to ensure Z-axis only rotation
         transform.rotation = Quaternion.Euler(0, 0, transform.rotation.eulerAngles.z);
         
@@ -1298,7 +1327,29 @@ public class Enemy : MonoBehaviour
         
         if (currentHealth <= 0)
         {
+            // Stop any active shooting logic to ensure dying can happen
+            if (attackAnimationCoroutine != null)
+            {
+                StopCoroutine(attackAnimationCoroutine);
+                attackAnimationCoroutine = null;
+            }
+            
             Die();
+        }
+    }
+
+    // Add method to handle healing (used for boss invulnerability)
+    public void HealDamage(float amount)
+    {
+        if (isDead) return;
+        
+        // Add the damage back as healing
+        currentHealth += amount;
+        
+        // Make sure we don't exceed max health
+        if (currentHealth > enemyData.health)
+        {
+            currentHealth = enemyData.health;
         }
     }
 

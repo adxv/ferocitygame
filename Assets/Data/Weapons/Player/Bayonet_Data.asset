@@ -20,12 +20,12 @@ MonoBehaviour:
   isMelee: 1
   isSilent: 1
   projectilePrefab: {fileID: 0}
-  fireRate: 5
+  fireRate: 6
   isFullAuto: 0
-  damage: 4
+  damage: 1
   bulletOffset: 1
   bulletOffsetSide: 0
-  range: 1.5
+  range: 2.5
   bulletSpeed: 120
   spread: 0
   magazineSize: 1

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d8aa359b5944334189703fbbe6e7523, type: 3}
   m_Name: Guard_Fists
   m_EditorClassIdentifier: 
-  weaponName: Fists
+  weaponName: Guard_Fists
   playerSprite: {fileID: -1819475895, guid: 5ebbea0524dc38e44a8fcb921bf157fc, type: 3}
   weaponIcon: {fileID: -2003784211, guid: 5ebbea0524dc38e44a8fcb921bf157fc, type: 3}
   pickupPrefab: {fileID: 0}
@@ -25,7 +25,7 @@ MonoBehaviour:
   damage: 1
   bulletOffset: 1
   bulletOffsetSide: 0
-  range: 1.25
+  range: 3
   bulletSpeed: 200
   spread: 0
   magazineSize: 1

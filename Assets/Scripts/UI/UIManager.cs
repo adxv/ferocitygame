@@ -59,8 +59,8 @@ public class UIManager : MonoBehaviour
     private void Start()
     {
         // Find references to other managers
-        scoreManager = FindObjectOfType<ScoreManager>();
-        timerController = FindObjectOfType<TimerController>();
+        scoreManager = FindFirstObjectByType<ScoreManager>();
+        timerController = FindFirstObjectByType<TimerController>();
 
         // Find player equipment
         GameObject player = GameObject.FindWithTag("Player");
@@ -196,8 +196,8 @@ public class UIManager : MonoBehaviour
     {
         // Connect UI elements to managers (Managers will update their own text)
         // Find potentially new instances after scene load
-        scoreManager = FindObjectOfType<ScoreManager>();
-        timerController = FindObjectOfType<TimerController>();
+        scoreManager = FindFirstObjectByType<ScoreManager>();
+        timerController = FindFirstObjectByType<TimerController>();
 
         if (timerController != null && timerText != null)
         {
@@ -212,7 +212,7 @@ public class UIManager : MonoBehaviour
         // Find and assign AmmoDisplay's text if not assigned in inspector
         if (ammoText == null)
         {
-            AmmoDisplay ammoDisplayComponent = FindObjectOfType<AmmoDisplay>();
+            AmmoDisplay ammoDisplayComponent = FindFirstObjectByType<AmmoDisplay>();
             if (ammoDisplayComponent != null)
             {
                  ammoText = ammoDisplayComponent.ammoText;
@@ -295,7 +295,7 @@ public class UIManager : MonoBehaviour
             if (levelCompleteScreen != null) levelCompleteScreen.SetActive(false);
             
             // Find and reset the AmmoDisplay instead of hiding the entire HUD
-            AmmoDisplay ammoDisplay = FindObjectOfType<AmmoDisplay>();
+            AmmoDisplay ammoDisplay = FindFirstObjectByType<AmmoDisplay>();
             if (ammoDisplay != null)
             {
                 ammoDisplay.ResetDisplay(); // This keeps the display enabled with empty text
@@ -331,7 +331,7 @@ public class UIManager : MonoBehaviour
             if (gameOverScreen != null) gameOverScreen.SetActive(false);
             
             // Find and reset the AmmoDisplay instead of disabling it
-            AmmoDisplay ammoDisplay = FindObjectOfType<AmmoDisplay>();
+            AmmoDisplay ammoDisplay = FindFirstObjectByType<AmmoDisplay>();
             if (ammoDisplay != null)
             {
                 ammoDisplay.ResetDisplay(); // This keeps the display enabled with empty text

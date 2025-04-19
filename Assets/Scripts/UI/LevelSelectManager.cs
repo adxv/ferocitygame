@@ -177,10 +177,13 @@ public class LevelSelectManager : MonoBehaviour
                 // Reset important static variables before loading level
                 FloorAccessController.isLevelComplete = false;
                 
+                // Store the selected level to load after power-up selection
                 sceneToLoad = levelToLoad.sceneName;
+                PlayerPrefs.SetString("SelectedLevel", sceneToLoad);
+                PlayerPrefs.Save();
                 
-                Debug.Log("Loading level: " + sceneToLoad);
-                SceneManager.LoadScene(sceneToLoad);
+                Debug.Log("Selected level: " + sceneToLoad + ", loading power-up selection.");
+                SceneManager.LoadScene("PowerUpSelect");
             }
         }
     }

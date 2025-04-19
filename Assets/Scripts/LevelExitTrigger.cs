@@ -109,7 +109,7 @@ public class LevelExitTrigger : MonoBehaviour
             // If that didn't work, try to find any CanvasGroup
             if (fadeCanvasGroup == null)
             {
-                fadeCanvasGroup = GameObject.FindObjectOfType<CanvasGroup>();
+                fadeCanvasGroup = GameObject.FindFirstObjectByType<CanvasGroup>();
             }
             
             // If we found a canvasGroup, initialize it
@@ -223,6 +223,7 @@ public class LevelExitTrigger : MonoBehaviour
             ScoreScreenManager.Accuracy = ScoreManager.Instance.GetAccuracy();
             ScoreScreenManager.FinalScore = ScoreManager.Instance.GetCurrentScore();
             ScoreScreenManager.Grade = ScoreManager.Instance.GetGrade();
+            ScoreScreenManager.CompletionTime = ScoreManager.Instance.GetElapsedTime();
         }
         
         // Load the score screen instead of level select

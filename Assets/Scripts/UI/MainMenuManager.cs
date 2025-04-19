@@ -13,10 +13,7 @@ public class MainMenuManager : MonoBehaviour
     public Image controlsImage;
     
     [Header("Options Settings")]
-    public Slider volumeSlider;
     public Button backButton;
-    
-    private bool isInOptionsMenu = false;
     
     // Helper method to reset static game variables
     private void ResetGameState()
@@ -60,34 +57,18 @@ public class MainMenuManager : MonoBehaviour
         backButton.onClick.AddListener(() => {
             HideOptionsMenu();
         });
-        
-        // Add listener to volume slider
-        volumeSlider.onValueChanged.AddListener(SetVolume);
-        
-        // Initialize volume slider to current value
-        volumeSlider.value = AudioListener.volume;
     }
     
     private void ShowOptionsMenu()
     {
-        isInOptionsMenu = true;
         mainMenuPanel.SetActive(false);
         optionsPanel.SetActive(true);
     }
     
     private void HideOptionsMenu()
     {
-        isInOptionsMenu = false;
-        optionsPanel.SetActive(false);
         mainMenuPanel.SetActive(true);
-    }
-    
-    private void SetVolume(float volume)
-    {
-        AudioListener.volume = volume;
-        // You may want to save this value in PlayerPrefs
-        PlayerPrefs.SetFloat("MasterVolume", volume);
-        PlayerPrefs.Save();
+        optionsPanel.SetActive(false);
     }
     
     private void QuitGame()

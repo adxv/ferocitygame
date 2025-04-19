@@ -227,7 +227,7 @@ public class ScoreManager : MonoBehaviour
         Debug.Log("Level Ended. Calculating final score.");
 
         // Find any object that has a ShowLevelComplete method
-        var allMonoBehaviours = FindObjectsOfType<MonoBehaviour>();
+        var allMonoBehaviours = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
         bool levelCompleteShown = false;
         
         // In your game completion logic:
@@ -267,6 +267,7 @@ public class ScoreManager : MonoBehaviour
         ScoreScreenManager.Accuracy = GetAccuracy();
         ScoreScreenManager.FinalScore = currentScore;
         ScoreScreenManager.Grade = currentGrade;
+        ScoreScreenManager.CompletionTime = endTime - startTime;
     }
 
     void CalculateFinalScore()
@@ -275,8 +276,10 @@ public class ScoreManager : MonoBehaviour
         float accuracy = GetAccuracy();
 
         // Calculate time bonus (higher for faster completion)
-        float timeSaved = Mathf.Max(0, 60f - elapsedTime);  // Using 60 seconds as the target time
-        timeBonus = Mathf.RoundToInt(timeSaved * 10f * 15f);
+        // Dynamic target time based on enemy count (6 seconds per enemy)
+        float targetTime = Mathf.Max(90f, enemiesTotal * 6f); // Minimum 90 seconds, or 6 seconds per enemy
+        float timeSaved = Mathf.Max(0, targetTime - elapsedTime);
+        timeBonus = Mathf.RoundToInt(timeSaved * 5f); // Reduced multiplier for more balanced scoring
 
         // Calculate final score with accuracy multiplier
         float accuracyMultiplier = Mathf.Max(0.1f, accuracy); // At least 10% even with 0 accuracy
@@ -289,6 +292,7 @@ public class ScoreManager : MonoBehaviour
         CalculateGrade(accuracy, elapsedTime);
 
         Debug.Log($"Final Score: Kills ({killsScore}) + Combo Bonus ({comboBonus}) * Accuracy ({accuracy:P2}) + Time Bonus ({timeBonus}) = {currentScore}");
+        Debug.Log($"Target time: {targetTime}s for {enemiesTotal} enemies");
     }
     
     private void CalculateGrade(float accuracy, float completionTime)
@@ -321,9 +325,13 @@ public class ScoreManager : MonoBehaviour
             currentGrade = "D";  // Below 30% accuracy
         }
         
+        // Dynamic target time based on enemy count
+        float targetTime = Mathf.Max(90f, enemiesTotal * 6f); // Minimum 90 seconds, or 6 seconds per enemy
+        float exceptionalTime = targetTime * 0.6f; // 60% of target time is exceptional
+        float penaltyTime = targetTime * 1.5f; // 150% of target time triggers grade penalty
+        
         // Time can bump grade up or down by one level if exceptionally good/bad
-        float targetTime = 60f; // Expected completion time of about a minute
-        if (completionTime < targetTime * 0.6f && currentGrade != "SS") 
+        if (completionTime < exceptionalTime && currentGrade != "SS") // Exceptional time
         {
             // Exceptional time can bump grade up (unless already SS)
             string[] grades = { "D", "C", "B", "A", "S", "SS" };
@@ -333,7 +341,7 @@ public class ScoreManager : MonoBehaviour
                 currentGrade = grades[currentIndex + 1];
             }
         }
-        else if (completionTime > targetTime * 1.5f && currentGrade != "D") 
+        else if (completionTime > penaltyTime && currentGrade != "D") // Too slow
         {
             // Very slow time can bump grade down (unless already D)
             string[] grades = { "D", "C", "B", "A", "S", "SS" };
@@ -391,6 +399,11 @@ public class ScoreManager : MonoBehaviour
     public string GetGrade()
     {
         return currentGrade;
+    }
+
+    public float GetElapsedTime()
+    {
+        return endTime - startTime;
     }
 
     // Optional: Call this if enemies can spawn mid-level

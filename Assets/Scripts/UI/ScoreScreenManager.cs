@@ -12,6 +12,7 @@ public class ScoreScreenManager : MonoBehaviour
     public TextMeshProUGUI accuracyValue;
     public TextMeshProUGUI finalScoreValue;
     public TextMeshProUGUI gradeValue;
+    public TextMeshProUGUI completionTimeValue;
     
     [Header("Navigation")]
     public Button retryButton;
@@ -25,6 +26,7 @@ public class ScoreScreenManager : MonoBehaviour
     public static float Accuracy { get; set; }
     public static int FinalScore { get; set; }
     public static string Grade { get; set; } = "D";
+    public static float CompletionTime { get; set; }
     
     void Start()
     {
@@ -58,12 +60,15 @@ public class ScoreScreenManager : MonoBehaviour
             
         if (gradeValue != null)
             gradeValue.text = Grade;
+            
+        if (completionTimeValue != null)
+            completionTimeValue.text = CompletionTime.ToString("0.00") + "s";
     }
     
     public void ContinueToLevelSelect()
     {
         // Find and reset the fade canvas alpha
-        CanvasGroup fadeCanvas = FindObjectOfType<CanvasGroup>();
+        CanvasGroup fadeCanvas = FindFirstObjectByType<CanvasGroup>();
         if (fadeCanvas != null)
         {
             fadeCanvas.alpha = 0f;
@@ -79,7 +84,7 @@ public class ScoreScreenManager : MonoBehaviour
         FloorAccessController.isLevelComplete = false;
         
         // Find and reset the fade canvas alpha
-        CanvasGroup fadeCanvas = FindObjectOfType<CanvasGroup>();
+        CanvasGroup fadeCanvas = FindFirstObjectByType<CanvasGroup>();
         if (fadeCanvas != null)
         {
             fadeCanvas.alpha = 0f;

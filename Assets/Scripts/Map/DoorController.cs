@@ -19,9 +19,6 @@ public class DoorController : MonoBehaviour
     private float lastSoundTime = -1f;    // Track when we last played a sound
     private bool wasConsideredClosed = true; // Track if the door was closed last frame
     
-    // For debugging
-    private bool hasBeenPushed = false;
-    
     // Reference to the door trigger zone (child object)
     private GameObject doorTriggerZone;
     
@@ -117,8 +114,6 @@ public class DoorController : MonoBehaviour
     
     private void ApplyImmediatePush(Collider2D other)
     {
-        hasBeenPushed = true;
-        
         // Get direction vector from door to pusher
         Vector2 toPusher = (other.transform.position - transform.position).normalized;
         

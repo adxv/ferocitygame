@@ -15,6 +15,9 @@ public class Bullet : MonoBehaviour
     // Damage property
     private float damage = 1f; // Default damage value
     
+    // Weapon reference
+    private WeaponData weaponData; // Reference to the weapon that fired this bullet
+    
     // Range properties
     private float maxRange = 50f; // Maximum effective range
     private bool isOutOfRange = false; // Flag to track if bullet has exceeded its max range
@@ -146,12 +149,19 @@ public class Bullet : MonoBehaviour
         if (rb != null)
         {
             rb.linearVelocity = Vector2.zero;
-            rb.isKinematic = true;
+            rb.bodyType = RigidbodyType2D.Kinematic;
         }
         
         // Keep the LineRenderer active for the tracer effect
     }
 
+    // Method to set the weapon that fired this bullet
+    public void SetWeaponData(WeaponData weapon)
+    {
+        weaponData = weapon;
+    }
+
+    // Modified OnCollisionEnter2D to pass weapon data
     void OnCollisionEnter2D(Collision2D collision)
     {
         // Don't process collision if already hit something
@@ -178,6 +188,27 @@ public class Bullet : MonoBehaviour
                 Enemy enemy = collision.gameObject.GetComponent<Enemy>();
                 if (enemy != null && !enemy.isDead && !isOutOfRange)
                 {
+                    // Check for BossEnemy component first
+                    BossEnemy bossEnemy = enemy.GetComponent<BossEnemy>();
+                    if (bossEnemy != null)
+                    {
+                        // Use the specialized TakeDamage method for boss that accepts weapon data
+                        bossEnemy.TakeDamage(damage, weaponData);
+                        
+                        // Don't add blood effect here as the boss implementation will handle it
+                        // based on whether it's immune or not
+                    }
+                    else
+                    {
+                        // Regular enemy - show blood and apply damage normally
+                        // Instantiate blood particle effect at collision point with proper rotation
+                        GameObject bloodEffect = Instantiate(Resources.Load<GameObject>("Particles/Blood"),
+                            collision.contacts[0].point, Quaternion.LookRotation(Vector3.forward, travelDirection));
+                        
+                        // Apply damage to the regular enemy
+                        enemy.TakeDamage(damage);
+                    }
+                    
                     // Record hit only if player shot a LIVE enemy and bullet is in range
                     if (isPlayerShooter && ScoreManager.Instance != null)
                     {
@@ -192,8 +223,6 @@ public class Bullet : MonoBehaviour
                             hasRecordedHit = true;
                         }
                     }
-                    // Apply damage to the enemy instead of calling Die directly
-                    enemy.TakeDamage(damage); 
                     
                     // If enemy dies from this damage, pass the bullet direction so they die in the right direction
                     if (enemy.isDead)
@@ -208,6 +237,10 @@ public class Bullet : MonoBehaviour
                 // Apply damage/effect to the player only if bullet is in range
                 if (!isOutOfRange)
                 {
+                    // Instantiate blood particle effect at collision point with proper rotation
+                    GameObject bloodEffect = Instantiate(Resources.Load<GameObject>("Particles/Blood"),
+                        collision.contacts[0].point, Quaternion.LookRotation(Vector3.forward, travelDirection));
+                        
                     PlayerController player = collision.gameObject.GetComponent<PlayerController>();
                     if (player != null) { player.TakeDamage(1, travelDirection); } // Pass bullet direction
                 }

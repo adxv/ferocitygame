@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d8aa359b5944334189703fbbe6e7523, type: 3}
   m_Name: Enemy_Fists_Data
   m_EditorClassIdentifier: 
-  weaponName: Fists
+  weaponName: Enemy_Fists
   playerSprite: {fileID: -2143751929, guid: c906b75c70d228442a8a856f4f79f6a1, type: 3}
   weaponIcon: {fileID: -5243550030590857066, guid: 849907a0739fccc498c7e805d668adf8, type: 3}
   pickupPrefab: {fileID: 0}

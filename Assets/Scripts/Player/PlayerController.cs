@@ -55,7 +55,7 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
-                // After loading, reload the scene to fix the timer
+        // After loading, reload the scene to fix the timer
         rb = GetComponent<Rigidbody2D>();
         playerEquipment = GetComponent<PlayerEquipment>();
         // Get fist data via the public getter
@@ -100,6 +100,9 @@ public class PlayerController : MonoBehaviour
         {
              Debug.LogWarning("PlayerController could not find the UIManager instance.", this);
         }
+        
+        // Apply power-ups from PowerUpManager
+        ApplyPowerUps();
     }
 
     public static void ResetStaticVariables()
@@ -296,6 +299,9 @@ public class PlayerController : MonoBehaviour
                     weaponToPickup.currentAmmo = currentAmmo;
                 }
                 
+                // Apply power-ups to the new weapon (like double ammo)
+                ProcessWeaponPickup(weaponToPickup);
+                
                 UpdateLastFireTime(); // Update fire time for the new weapon
 
                 Destroy(nearbyWeaponPickup.gameObject);
@@ -375,6 +381,16 @@ public class PlayerController : MonoBehaviour
             // muzzleFlash.transform.parent = transform;
         }
         
+        // Apply accuracy multiplier from power-up (MOVED HERE from end of method)
+        float spreadWithPowerup = currentWep.spread;
+        // Only apply accuracy power-up if PowerUpManager is available
+        try {
+            spreadWithPowerup = currentWep.spread * PowerUpManager.AccuracyMultiplier;
+        } catch (System.Exception) {
+            // If PowerUpManager isn't accessible, use default spread
+            Debug.LogWarning("PowerUpManager not accessible, using default spread");
+        }
+        
         // Handle shotgun pellets
         bool hasHitEnemy = false; // Track if any pellet hits an enemy
         
@@ -387,10 +403,10 @@ public class PlayerController : MonoBehaviour
             float angle = 0;
             
             // Apply weapon general spread (random inaccuracy)
-            if (currentWep.spread > 0)
+            if (spreadWithPowerup > 0)  // CHANGED: Use spreadWithPowerup instead of currentWep.spread
             {
                 // Random deviation within the spread range
-                angle += Random.Range(-currentWep.spread, currentWep.spread);
+                angle += Random.Range(-spreadWithPowerup, spreadWithPowerup);  // CHANGED: Use spreadWithPowerup
             }
             
             // Apply shotgun spread for multiple pellets
@@ -413,6 +429,8 @@ public class PlayerController : MonoBehaviour
                 
                 // Pass weapon data parameters to the bullet
                 bulletScript.SetBulletParameters(currentWep.bulletSpeed, currentWep.range);
+                bulletScript.SetDamage(currentWep.damage);
+                bulletScript.SetWeaponData(currentWep);
                 
                 // Set shotgun flag to track only one hit per shot
                 bulletScript.isShotgunPellet = pelletCount > 1;
@@ -447,6 +465,8 @@ public class PlayerController : MonoBehaviour
             playerEquipment.UpdateSpriteToCurrentWeapon(); // Reset sprite immediately
             attackAnimationCoroutine = null;
         }
+
+        // REMOVED: Calculation of spreadWithPowerup has been moved up before bullet creation
     }
 
     public void ShakeCamera(float duration, float magnitude)
@@ -460,6 +480,19 @@ public class PlayerController : MonoBehaviour
         if (!isDead)
         {
             health -= damage;
+            
+            // Instantiate blood particle effect at player position
+            if (bulletDirection != default)
+            {
+                GameObject bloodEffect = Instantiate(Resources.Load<GameObject>("Particles/Blood"),
+                    transform.position, Quaternion.LookRotation(Vector3.forward, bulletDirection));
+            }
+            else
+            {
+                GameObject bloodEffect = Instantiate(Resources.Load<GameObject>("Particles/Blood"),
+                    transform.position, Quaternion.identity);
+            }
+            
             if (health <= 0)
             {
                 Die(bulletDirection);
@@ -477,7 +510,7 @@ public class PlayerController : MonoBehaviour
         shouldShoot = false; // Stop shooting/attacking
 
         // ADDED: Reset the ammo display but keep it enabled
-        AmmoDisplay ammoDisplay = FindObjectOfType<AmmoDisplay>();
+        AmmoDisplay ammoDisplay = FindFirstObjectByType<AmmoDisplay>();
         if (ammoDisplay != null)
         {
             ammoDisplay.ResetDisplay();
@@ -720,6 +753,10 @@ public class PlayerController : MonoBehaviour
                 // Calculate direction for potential knockback/effects
                 Vector2 directionToEnemy = (enemy.transform.position - transform.position).normalized;
 
+                // Instantiate blood particle effect at the hit point with proper rotation
+                GameObject bloodEffect = Instantiate(Resources.Load<GameObject>("Particles/Blood"),
+                    enemy.transform.position, Quaternion.LookRotation(Vector3.forward, directionToEnemy));
+
                 // Apply damage to the enemy
                 enemy.TakeDamage(meleeWeapon.damage); // Use weapon's damage value
                 didHit = true;
@@ -769,5 +806,35 @@ public class PlayerController : MonoBehaviour
             playerEquipment.UpdateSpriteToCurrentWeapon();
         }
         attackAnimationCoroutine = null; // Clear the coroutine reference
+    }
+
+    private void ApplyPowerUps()
+    {
+        // Apply double health
+        if (PowerUpManager.HasDoubleHealth)
+        {
+            health = 2;
+        }
+        
+        // Apply movement speed boost
+        moveSpeed *= PowerUpManager.MovementSpeedMultiplier;
+        
+        // Apply double ammo if power-up is active and player has a weapon
+        if (PowerUpManager.HasDoubleAmmo && playerEquipment.CurrentWeapon != null)
+        {
+            ProcessWeaponPickup(playerEquipment.CurrentWeapon);
+        }
+    }
+    
+    // Process weapon pickups to apply power-ups
+    private void ProcessWeaponPickup(WeaponData weaponData)
+    {
+        // Apply double ammo power-up for weapons
+        if (PowerUpManager.HasDoubleAmmo && !weaponData.isMelee && weaponData.magazineSize > 0)
+        {
+            // Double the magazine capacity
+            weaponData.currentAmmo = weaponData.magazineSize * 2;
+            Debug.Log($"Applied double ammo to {weaponData.weaponName}: {weaponData.currentAmmo}");
+        }
     }
 }

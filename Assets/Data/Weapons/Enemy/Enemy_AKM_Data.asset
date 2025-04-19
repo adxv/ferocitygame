@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d8aa359b5944334189703fbbe6e7523, type: 3}
   m_Name: Enemy_AKM_Data
   m_EditorClassIdentifier: 
-  weaponName: AKM
+  weaponName: Enemy_AKM
   playerSprite: {fileID: -8118767294720329345, guid: 47f11f76a5670b1438a15f1148f92954, type: 3}
   weaponIcon: {fileID: 21300000, guid: b6fd88e7c35c8174ca7146727c91edf4, type: 3}
   pickupPrefab: {fileID: 6688425372488289659, guid: 00f4c8568386fb7478352bf25ec5a7e6, type: 3}

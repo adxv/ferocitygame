@@ -30,20 +30,34 @@ public class WeaponPickupTrigger : MonoBehaviour
                 Enemy enemy = collision.GetComponent<Enemy>();
                 if (enemy != null && !enemy.isDead)
                 {
+                    // Check if this is a boss enemy
+                    BossEnemy bossEnemy = enemy.GetComponent<BossEnemy>();
+                    
                     // Get the thrown weapon data to check if it's melee
                     WeaponPickup parentPickup = transform.parent.GetComponent<WeaponPickup>();
-                    if (parentPickup != null && parentPickup.weaponData != null)
+                    WeaponData thrownWeaponData = null;
+                    if (parentPickup != null)
                     {
-                        // Check if the thrown weapon is a melee weapon
-                        if (parentPickup.weaponData.isMelee)
-                        {
-                            // Kill the enemy directly instead of disarming
-                            enemy.TakeDamage(1000); // Use high damage to ensure death
-                            return; // Skip the rest of the method
-                        }
+                        thrownWeaponData = parentPickup.weaponData;
                     }
                     
-                    // For non-melee weapons, continue with the original disarming logic
+                    // Handle boss enemies differently
+                    if (bossEnemy != null)
+                    {
+                        // Use the specialized method for boss enemies
+                        bossEnemy.HandleThrownWeapon(thrownWeaponData);
+                        return; // Skip the rest of the method
+                    }
+                    
+                    // For regular enemies
+                    if (thrownWeaponData != null && thrownWeaponData.isMelee)
+                    {
+                        // Apply 1 damage instead of killing instantly
+                        enemy.TakeDamage(1);
+                        return; // Skip the rest of the method
+                    }
+                    
+                    // For non-melee weapons on regular enemies
                     EnemyEquipment enemyEquipment = enemy.GetComponent<EnemyEquipment>();
                     if (enemyEquipment != null && 
                         enemyEquipment.CurrentWeapon != null && 

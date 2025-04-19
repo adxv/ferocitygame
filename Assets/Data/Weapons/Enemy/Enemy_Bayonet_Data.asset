@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d8aa359b5944334189703fbbe6e7523, type: 3}
   m_Name: Enemy_Bayonet_Data
   m_EditorClassIdentifier: 
-  weaponName: Fists
+  weaponName: Enemy_Bayonet
   playerSprite: {fileID: 9012999188157332283, guid: f30d7bf2382c8d14d9da477e5f5c2fe9, type: 3}
   weaponIcon: {fileID: 21300000, guid: 9cfd7a48e22276c4ba0d55de495f048d, type: 3}
   pickupPrefab: {fileID: 6688425372488289659, guid: 158b36ea22cdef64b8ca6628171b8581, type: 3}

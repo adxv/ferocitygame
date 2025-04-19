@@ -22,7 +22,7 @@ MonoBehaviour:
   projectilePrefab: {fileID: 4780090448626563172, guid: c55fcad0891b0aa4ea65546dde828a13, type: 3}
   fireRate: 2
   isFullAuto: 0
-  damage: 20
+  damage: 2
   bulletOffset: 0.3
   bulletOffsetSide: 0.1
   range: 26
