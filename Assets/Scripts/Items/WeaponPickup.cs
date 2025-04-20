@@ -3,39 +3,33 @@ using UnityEngine;
 [RequireComponent(typeof(SpriteRenderer))]
 public class WeaponPickup : MonoBehaviour
 {
-    public WeaponData weaponData; // Assign the specific WeaponData asset in the Inspector
+    public WeaponData weaponData;
     
-    // Variable to store current ammo state
     private int currentAmmo = -1;
     private SpriteRenderer spriteRenderer;
     
-    // Reference to the TriggerZone's component
+    // reference TriggerZone component
     private WeaponPickupTrigger triggerComponent;
 
     void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
         
-        // Find the TriggerZone child and its component
         Transform triggerZone = transform.Find("TriggerZone");
         if (triggerZone != null)
         {
             triggerComponent = triggerZone.GetComponent<WeaponPickupTrigger>();
             if (triggerComponent == null)
             {
-                // Add the component if it doesn't exist
-                triggerComponent = triggerZone.gameObject.AddComponent<WeaponPickupTrigger>();
+                triggerComponent = triggerZone.gameObject.AddComponent<WeaponPickupTrigger>(); //add if not found
             }
         }
         
-        // Optional: Set the pickup's sprite based on the WeaponData's player sprite
-        // (You might want a different sprite for the pickup item itself)
         if (weaponData != null && weaponData.playerSprite != null)
         {
-             // spriteRenderer.sprite = weaponData.playerSprite; // Uncomment if pickup uses same sprite
-             gameObject.name = weaponData.weaponName + " Pickup"; // Set GameObject name for clarity
+             gameObject.name = weaponData.weaponName + " Pickup"; //set GameObject name
              
-             // Initialize ammo to full if it hasn't been explicitly set
+             // initialize ammo to full
              if (currentAmmo < 0)
              {
                  currentAmmo = weaponData.magazineSize;
@@ -43,22 +37,20 @@ public class WeaponPickup : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"WeaponData or its playerSprite is not assigned for {gameObject.name}", this);
+            Debug.LogWarning($"WeaponData or playerSprite is not assigned for {gameObject.name}", this);
         }
     }
     
-    // Get the current ammo count for this pickup
+    // get current ammo count for this pickup
     public int GetCurrentAmmo()
     {
-        // Return the stored ammo state or default to weapon data's magazine size if not set
+        // return the stored ammo state or default to magazine size
         return currentAmmo >= 0 ? currentAmmo : (weaponData != null ? weaponData.magazineSize : 0);
     }
     
-    // Set the current ammo count for this pickup
+    // set current ammo count for this pickup
     public void SetCurrentAmmo(int ammo)
     {
         currentAmmo = ammo;
     }
-
-    // Optional: You could add rotation or bobbing effects here in Update()
 }

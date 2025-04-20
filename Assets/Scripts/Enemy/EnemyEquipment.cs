@@ -3,16 +3,11 @@ using System;
 
 public class EnemyEquipment : MonoBehaviour
 {
-    [Header("Configuration")]
-    [Tooltip("SpriteRenderer component on the enemy to update.")]
     [SerializeField] private SpriteRenderer enemySpriteRenderer;
-    [Tooltip("WeaponData representing the default weapon (can be fists).")]
     [SerializeField] private WeaponData defaultWeaponData;
-    [Tooltip("WeaponData representing the enemy's fists (assign if different from default or if default can change).")]
-    [SerializeField] private WeaponData fistWeaponData; // Assign enemy fist WeaponData here
+    [SerializeField] private WeaponData fistWeaponData;
 
-    // Public event that fires when the weapon changes
-    public event Action OnWeaponChanged;
+    public event Action OnWeaponChanged; // fires when the weapon changes
 
     public WeaponData CurrentWeapon { get; private set; }
     public WeaponData DefaultWeaponData => defaultWeaponData;
@@ -25,7 +20,7 @@ public class EnemyEquipment : MonoBehaviour
             enemySpriteRenderer = GetComponent<SpriteRenderer>();
             if (enemySpriteRenderer == null)
             {
-                Debug.LogError("Enemy Sprite Renderer not found on EnemyEquipment!", this);
+                Debug.LogError("enemy sprite renderer not assigned");
                 enabled = false;
                 return;
             }
@@ -33,27 +28,25 @@ public class EnemyEquipment : MonoBehaviour
         
         if (fistWeaponData == null)
         {
-            Debug.LogWarning("Enemy Fist Weapon Data not assigned in EnemyEquipment! Melee attacks might not work correctly.", this);
-            // Optionally, try to use defaultWeaponData if it's melee?
-            if(defaultWeaponData != null && defaultWeaponData.isMelee) fistWeaponData = defaultWeaponData;
+            Debug.LogWarning("enemy fist weapon data not assigned");
+            if(defaultWeaponData != null && defaultWeaponData.isMelee) fistWeaponData = defaultWeaponData; // use default if it's melee
         }
 
         if (defaultWeaponData == null)
         {
-            Debug.LogWarning("Default Weapon Data not assigned in EnemyEquipment. Equipping fists if available.", this);
+            Debug.LogWarning("default weapon data not assigned");
             if (fistWeaponData != null)
             {
-                 EquipWeapon(fistWeaponData); // Equip fists if no default weapon assigned
+                 EquipWeapon(fistWeaponData); // equip fists
             }
             else
             {
-                Debug.LogError("Neither Default nor Fist Weapon Data assigned! Enemy cannot attack.", this);
-                enabled = false; // Disable if no weapons are possible
+                Debug.LogError("no weapon data assigned", this);
+                enabled = false;
             }
         }
         else
         {
-            // Equip default weapon initially
             EquipWeapon(defaultWeaponData);
         }
     }
@@ -62,28 +55,26 @@ public class EnemyEquipment : MonoBehaviour
     {
         if (newWeapon == null) 
         {
-             Debug.LogError("Attempted to equip a null weapon.", this);
+             Debug.LogError("attempted to equip a null weapon.", this);
              return;
         }
-        // Optional: Check if already equipped to prevent unnecessary updates
         if (newWeapon == CurrentWeapon) return;
 
-        // Create a new instance of the weapon data to prevent sharing state
+        // create a new instance to prevent sharing state
         WeaponData weaponInstance = Instantiate(newWeapon);
 
-        // Initialize ammo to full for this instance (important even for melee for consistency)
+        // init ammo
         weaponInstance.currentAmmo = weaponInstance.magazineSize;
 
         CurrentWeapon = weaponInstance;
 
-        // Update Enemy Sprite using the new central method
         UpdateSpriteToCurrentWeapon();
 
-        // Notify listeners that the weapon has changed
+        // notify: weapon has changed
         OnWeaponChanged?.Invoke();
     }
 
-    // New method to directly set the sprite (used for attack animations)
+    // might be redundant or unused idk
     public void SetSprite(Sprite newSprite)
     {
         if (enemySpriteRenderer != null && newSprite != null)
@@ -92,38 +83,37 @@ public class EnemyEquipment : MonoBehaviour
         }
         else if (enemySpriteRenderer == null)
         {
-            Debug.LogError("Enemy Sprite Renderer is null in EnemyEquipment!", this);
+            Debug.LogError("enemy sprite renderer is null", this);
         }
     }
 
-    // New method to update the sprite based on the *currently equipped* weapon
     public void UpdateSpriteToCurrentWeapon()
     {
         if (enemySpriteRenderer == null) 
         {
-            Debug.LogError("Enemy Sprite Renderer is null in EnemyEquipment! Cannot update sprite.", this);
+            Debug.LogError("enemy sprite renderer is null", this);
             return;
         }
 
         Sprite spriteToSet = null;
-        if (CurrentWeapon != null && CurrentWeapon.playerSprite != null) // Use playerSprite for consistency
+        if (CurrentWeapon != null && CurrentWeapon.playerSprite != null)
         {
             spriteToSet = CurrentWeapon.playerSprite;
         }
         else if (defaultWeaponData != null && defaultWeaponData.playerSprite != null)
         {
-            // Fallback to default weapon sprite if current is invalid
+            // fallback to default if current is invalid
             spriteToSet = defaultWeaponData.playerSprite;
-            Debug.LogWarning("Current weapon or its sprite was null. Defaulting sprite to default weapon.", this);
-            // If current weapon became null, re-equip default
+            Debug.LogWarning("current weapon or its sprite was null", this);
+            // equip default
             if(CurrentWeapon == null) EquipWeapon(defaultWeaponData);
         }
         else if (fistWeaponData != null && fistWeaponData.playerSprite != null)
         {
-            // Further fallback to fist sprite if default is also invalid
+            // fallback to fist sprite if default is also invalid
             spriteToSet = fistWeaponData.playerSprite;
-            Debug.LogWarning("Current and default weapon/sprites were null. Defaulting sprite to fists.", this);
-            // If current weapon became null, re-equip fists
+            Debug.LogWarning("defaulting sprite to fists.", this);
+            // equip fists
              if(CurrentWeapon == null) EquipWeapon(fistWeaponData);
         }
 
@@ -133,11 +123,10 @@ public class EnemyEquipment : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Cannot update sprite: Current, Default, and Fist weapon data/sprites are all invalid!", this);
+            Debug.LogError("cannot update sprite: current, default, and fist weapon are invalid", this);
         }
     }
     
-    // Alternative method that allows setting weapon data from a pickup
     public void EquipWeaponFromPickup(WeaponPickup pickup)
     {
         if (pickup != null && pickup.weaponData != null)

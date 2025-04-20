@@ -13,7 +13,7 @@ public class GunPickup : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Ground")) // Tag your ground as "Ground"
         {
-            rb.angularVelocity = 0f; // Stop spinning
+            rb.angularVelocity = 0f; // stop spinning
         }
     }
 }

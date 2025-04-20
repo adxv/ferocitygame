@@ -20,7 +20,7 @@ MonoBehaviour:
   isMelee: 1
   isSilent: 0
   projectilePrefab: {fileID: 0}
-  fireRate: 3
+  fireRate: 2
   isFullAuto: 0
   damage: 1
   bulletOffset: 1

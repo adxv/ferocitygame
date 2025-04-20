@@ -65,26 +65,37 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.0.41f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.UIToolkit.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\LockedDoorController.cs" />
+    <Compile Include="Assets\Scripts\UI\ScoreManager.cs" />
+    <Compile Include="Assets\Scripts\Player\PowerUpManager.cs" />
     <Compile Include="Assets\Scripts\Data\WeaponData.cs" />
-    <Compile Include="Assets\PixelizeFeature.cs" />
-    <Compile Include="Assets\Scripts\ScoreManager.cs" />
-    <Compile Include="Assets\Scripts\FloorManager.cs" />
+    <Compile Include="Assets\Scripts\Enemy\EnemyController.cs" />
+    <Compile Include="Assets\Scripts\Enemy\EnemyEquipment.cs" />
+    <Compile Include="Assets\Scripts\Player\SoundDetectionField.cs" />
+    <Compile Include="Assets\Scripts\Map\EntranceDoubleDoorController.cs" />
     <Compile Include="Assets\Scripts\BackgroundColor.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerEquipment.cs" />
+    <Compile Include="Assets\Scripts\UI\LevelSelectManager.cs" />
+    <Compile Include="Assets\Scripts\Enemy\IncomingSoundDetector.cs" />
     <Compile Include="Assets\Scripts\TimerController.cs" />
-    <Compile Include="Assets\Scripts\DoorController.cs" />
-    <Compile Include="Assets\PixelizePass.cs" />
-    <Compile Include="Assets\Scripts\EnemyController.cs" />
+    <Compile Include="Assets\Scripts\Map\DoorController.cs" />
+    <Compile Include="Assets\Scripts\UI\MainMenuManager.cs" />
+    <Compile Include="Assets\Scripts\Items\WeaponPickupTrigger.cs" />
+    <Compile Include="Assets\Scripts\Map\StairsTeleporter.cs" />
+    <Compile Include="Assets\Scripts\Map\LockedDoorController.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerController.cs" />
-    <Compile Include="Assets\Scripts\Bullet.cs" />
-    <Compile Include="Assets\Scripts\FloorAccessController.cs" />
-    <Compile Include="Assets\Scripts\Restart.cs" />
+    <Compile Include="Assets\Scripts\LevelExitTrigger.cs" />
+    <Compile Include="Assets\Scripts\UI\Restart.cs" />
+    <Compile Include="Assets\Scripts\Items\WeaponPrefab.cs" />
     <Compile Include="Assets\Scripts\Items\WeaponPickup.cs" />
-    <Compile Include="Assets\Scripts\SceneFade.cs" />
-    <Compile Include="Assets\Scripts\WeaponPrefab.cs" />
+    <Compile Include="Assets\Scripts\Enemy\BossEnemy.cs" />
     <Compile Include="Assets\Scripts\UI\AmmoDisplay.cs" />
-    <Compile Include="Assets\Scripts\StairsTeleporter.cs" />
+    <Compile Include="Assets\Scripts\UI\ScoreScreenManager.cs" />
+    <Compile Include="Assets\Scripts\Map\FloorAccessController.cs" />
+    <Compile Include="Assets\Scripts\Map\FloorManager.cs" />
+    <Compile Include="Assets\Scripts\Data\EnemyData.cs" />
+    <Compile Include="Assets\Scripts\UI\UIManager.cs" />
+    <Compile Include="Assets\Scripts\Items\Bullet.cs" />
+    <Compile Include="Assets\Scripts\UI\VolumeManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
@@ -99,22 +110,24 @@
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Surface-Mobile.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\SDFFunctions.hlsl" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Surface.shader" />
-    <None Include="Assets\Shaders\Pixelize.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap-Custom-Atlas.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile SSD.shader" />
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Leading Characters.txt" />
+    <None Include="Assets\Prefabs\Door\README.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Properties.cginc" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Surface.cginc" />
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Following Characters.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile Masking.shader" />
     <None Include="Assets\Scripts\TwoFloorLevelSetup.txt" />
+    <None Include="Assets\Scripts\EnemyWeaponSetupGuide.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF Overlay.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap-Mobile.shader" />
     <None Include="Assets\TextMesh Pro\Fonts\LiberationSans - OFL.txt" />
     <None Include="Assets\Scripts\MultiFloorLevelSetup.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_Sprite.shader" />
+    <None Include="Assets\Fonts\data_trash\text.txt" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

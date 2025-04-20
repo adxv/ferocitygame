@@ -20,7 +20,7 @@ MonoBehaviour:
   isMelee: 1
   isSilent: 0
   projectilePrefab: {fileID: 0}
-  fireRate: 3
+  fireRate: 2
   isFullAuto: 0
   damage: 1
   bulletOffset: 1
@@ -37,9 +37,9 @@ MonoBehaviour:
   shootShakeMagnitude: 0.01
   muzzleFlashPrefab: {fileID: 0}
   muzzleFlashDuration: 0.05
-  hitSound: {fileID: 8300000, guid: 18838561845786c44897fbf1112482c9, type: 3}
+  hitSound: {fileID: 8300000, guid: 90509ebd36edd644dbbf0c157f9a5093, type: 3}
   missSound: {fileID: 8300000, guid: 119b89877848a0f4ea67c515f64cf6c5, type: 3}
   attackSprite: {fileID: -2003784211, guid: 5ebbea0524dc38e44a8fcb921bf157fc, type: 3}
   attackSprite2: {fileID: 1324605338, guid: 5ebbea0524dc38e44a8fcb921bf157fc, type: 3}
   useAlternatingSprites: 1
-  attackDuration: 0.4
+  attackDuration: 0.1

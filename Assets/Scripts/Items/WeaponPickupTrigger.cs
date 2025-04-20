@@ -5,15 +5,15 @@ public class WeaponPickupTrigger : MonoBehaviour
 {
     private float throwTime = 0f;
     private bool isThrown = false;
-    private const float weaponKnockbackWindow = 0.2f; // 300 milliseconds to knock out weapons
+    private const float weaponKnockbackWindow = 0.2f; // 200 milliseconds to knock out weapons
 
     void OnEnable()
     {
-        // Check if this is a newly thrown weapon
+        // check if this is a newly thrown weapon
         WeaponPickup parentPickup = transform.parent.GetComponent<WeaponPickup>();
         if (parentPickup != null)
         {
-            // Mark weapon as thrown and record the time
+            // mark weapon as thrown and record the time
             isThrown = true;
             throwTime = Time.time;
         }
@@ -21,19 +21,18 @@ public class WeaponPickupTrigger : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D collision)
     {
-        // Check if this is a thrown weapon still within the knockback window
+        // chekc if still within the knockback window
         if (isThrown && Time.time - throwTime <= weaponKnockbackWindow)
         {
-            // Check if we collided with an enemy
+            // check if collided with an enemy
             if (collision.gameObject.layer == LayerMask.NameToLayer("Enemy"))
             {
                 Enemy enemy = collision.GetComponent<Enemy>();
                 if (enemy != null && !enemy.isDead)
                 {
-                    // Check if this is a boss enemy
-                    BossEnemy bossEnemy = enemy.GetComponent<BossEnemy>();
+                    BossEnemy bossEnemy = enemy.GetComponent<BossEnemy>(); // check if boss
                     
-                    // Get the thrown weapon data to check if it's melee
+                    // get the thrown weapon data
                     WeaponPickup parentPickup = transform.parent.GetComponent<WeaponPickup>();
                     WeaponData thrownWeaponData = null;
                     if (parentPickup != null)
@@ -41,40 +40,38 @@ public class WeaponPickupTrigger : MonoBehaviour
                         thrownWeaponData = parentPickup.weaponData;
                     }
                     
-                    // Handle boss enemies differently
+                    // boss enemies
                     if (bossEnemy != null)
                     {
-                        // Use the specialized method for boss enemies
                         bossEnemy.HandleThrownWeapon(thrownWeaponData);
-                        return; // Skip the rest of the method
+                        return;
                     }
                     
-                    // For regular enemies
+                    // default enemy
                     if (thrownWeaponData != null && thrownWeaponData.isMelee)
                     {
-                        // Apply 1 damage instead of killing instantly
                         enemy.TakeDamage(1);
-                        return; // Skip the rest of the method
+                        return;
                     }
                     
-                    // For non-melee weapons on regular enemies
+                    // for non-melee weapons on regular enemies
                     EnemyEquipment enemyEquipment = enemy.GetComponent<EnemyEquipment>();
                     if (enemyEquipment != null && 
                         enemyEquipment.CurrentWeapon != null && 
                         enemyEquipment.CurrentWeapon != enemyEquipment.FistWeaponData &&
                         enemyEquipment.CurrentWeapon.pickupPrefab != null)
                     {
-                        // Get the weapon data before disarming
+                        // get weapon data before disarming
                         WeaponData enemyWeapon = enemyEquipment.CurrentWeapon;
                         
-                        // Instantiate the weapon pickup
+                        // instantiate weapon pickup
                         GameObject droppedWeapon = Instantiate(
                             enemyWeapon.pickupPrefab, 
                             enemy.transform.position, 
                             Quaternion.Euler(0f, 0f, Random.Range(0f, 360f))
                         );
                         
-                        // Apply the same forces as when enemy dies
+                        // apply forces
                         Rigidbody2D weaponRb = droppedWeapon.GetComponent<Rigidbody2D>();
                         if (weaponRb != null)
                         {
@@ -85,7 +82,7 @@ public class WeaponPickupTrigger : MonoBehaviour
                             weaponRb.AddTorque(Random.Range(-2f, 2f), ForceMode2D.Impulse);
                         }
                         
-                        // Switch the enemy to fists
+                        // switch the enemy to fists
                         enemyEquipment.EquipWeapon(enemyEquipment.FistWeaponData);
                     }
                 }

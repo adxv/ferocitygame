@@ -1,12 +1,12 @@
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using System.Collections.Generic;
-using System.Collections; // Added for Coroutines
+using System.Collections;
+using UnityEngine.AI;
 
 [RequireComponent(typeof(EnemyEquipment))]
 public class Enemy : MonoBehaviour
 {
-    [Header("Enemy Type")]
     public EnemyData enemyData;
     
     private Transform player;
@@ -15,19 +15,20 @@ public class Enemy : MonoBehaviour
     public float maxReactionTime = 0.23f;
     private float nextShootTime;
     private bool hasSpottedPlayer;
-    private bool hasReacted = false; // Track if enemy has reacted to seeing player
+    private bool hasReacted = false;
     private float lastSpottedTime;
-    private float lastAttackTime; // Tracks melee attacks
-    private Coroutine attackAnimationCoroutine; // To manage the attack sprite change
-    private bool playerInFOV = false; // Flag to track if player is within enemy's FOV collider
+    private float lastAttackTime;
+    private Coroutine attackAnimationCoroutine; // manage the attack sprite change
+    private bool playerInFOV = false; // track if player is within FOV
+    
 
     private EnemyEquipment enemyEquipment;
-    private WeaponData fistWeaponData; // To hold the fist weapon data
+    private WeaponData fistWeaponData;
     private byte emptyClickSoundCount = 0;
     public float randomModeInterval = 2.5f;
-    public float turnPauseDuration = 0.7f; // Duration to pause after turning in patrol mode
-    public float minTurnPauseDuration = 0.5f; // Minimum pause time after turning
-    public float maxTurnPauseDuration = 1.5f; // Maximum pause time after turning
+    public float turnPauseDuration = 0.7f; // duration to pause after turning while patrolling
+    public float minTurnPauseDuration = 0.5f; // minimum pause time after turning
+    public float maxTurnPauseDuration = 1.5f; // maximum
     private Rigidbody2D rb;
     private Vector2 patrolDirection;
     private float enemyRadius = 0.25f;
@@ -37,46 +38,46 @@ public class Enemy : MonoBehaviour
     private Quaternion targetRotation;
     private float waitTimer;
     private bool isWaiting;
-    private bool isPausedAfterTurn = false; // Track if paused after turning in patrol mode
-    private float turnPauseTimer = 0f; // Timer for pause after turning
-    private bool turnRight = true; // Determines if the enemy turns right (true) or left (false)
+    private bool isPausedAfterTurn = false; // if paused after turning
+    private float turnPauseTimer = 0f;
+    private bool turnRight = true;
 
-    // A* Pathfinding variables
+    // a* 
     private List<Vector2> path = new List<Vector2>();
     private int currentPathIndex;
-    private float pathUpdateTime = 0.5f; // How often to recalculate path
+    private float pathUpdateTime = 0.5f; // recalculate path every 0.5 seconds
     private float lastPathUpdateTime;
-    private float nodeSize = 0.5f; // Size of A* grid nodes
+    private float nodeSize = 0.5f; // node size
     private float pathNodeReachedDistance = 0.1f;
     
-    // Stuck detection variables
+    // stuck detection variables
     private Vector2 lastPosition;
     private float stuckCheckTime = 0.5f;
     private float lastStuckCheckTime;
-    private float stuckThreshold = 0.05f; // Distance threshold to consider "stuck"
+    private float stuckThreshold = 0.05f; // distance threshold for stuck detection
     private int consecutiveStuckFrames = 0;
-    private int stuckFrameThreshold = 3; // How many consecutive stuck checks before taking action
+    private int stuckFrameThreshold = 3; // consecutive stuck checks before taking action
 
-    private enum State { Patrol, Pursue, Random, Dead } // Added Dead state
-    private State currentState = State.Patrol;
+    private enum State { Patrol, Pursue, Random, Dead }
 
-    // Health system - using data from EnemyData
+
+    private State currentState;
+    
+
+    // from EnemyData
     private float currentHealth;
 
-    // Keep this property in EnemyController since it's runtime state
     public bool isDead = false;
 
     void Start()
     {
-        // Check if enemyData is assigned
         if (enemyData == null)
         {
-            Debug.LogError("EnemyData not assigned to Enemy!", this);
+            Debug.LogError("EnemyData not assigned", this);
             enabled = false;
             return;
         }
-        
-        // Initialize health from enemy data
+        currentState = Random.value < 0.2f ? State.Random : State.Patrol; // 20% chance for Random, else Patrol
         currentHealth = enemyData.health;
         
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
@@ -86,12 +87,12 @@ public class Enemy : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Enemy could not find Player with tag 'Player'!");
+            Debug.LogError("Enemy could not find Player");
         }
 
         rb = GetComponent<Rigidbody2D>();
-        rb.bodyType = RigidbodyType2D.Kinematic; // Change to Dynamic for nudge if needed
-        rb.freezeRotation = true; // Freeze all rotation (which is what we want for a 2D game)
+        rb.bodyType = RigidbodyType2D.Kinematic;
+        rb.freezeRotation = true;
         
         patrolDirection = transform.up;
         randomModeTimer = randomModeInterval;
@@ -99,38 +100,35 @@ public class Enemy : MonoBehaviour
         waitTimer = 0f;
         isWaiting = false;
         
-        // Get the EnemyEquipment component
+        // get EnemyEquipment
         enemyEquipment = GetComponent<EnemyEquipment>();
         if (enemyEquipment == null)
         {
-            Debug.LogError("EnemyEquipment component not found on Enemy!", this);
-            enabled = false; // Disable if no equipment
+            Debug.LogError("EnemyEquipment component not found", this);
+            enabled = false; //no equipment
             return;
         }
         
-        // Get fist data from equipment
+        // get fist data
         fistWeaponData = enemyEquipment.FistWeaponData; 
         if(fistWeaponData == null || !fistWeaponData.isMelee)
         {
-            Debug.LogWarning("Enemy has no valid FistWeaponData assigned in EnemyEquipment. Cannot perform melee attacks.", this);
-            // Consider disabling melee logic or falling back to default if melee?
+            Debug.LogWarning("no FistWeaponData assigned", this);
         }
 
-        // Initialize timers based on current weapon (could be fists or default)
         if (enemyEquipment.CurrentWeapon != null)
         {
             float initialDelay = 1f / enemyEquipment.CurrentWeapon.fireRate;
-            nextShootTime = Time.time + initialDelay + Random.Range(minReactionTime, maxReactionTime); // For ranged
-            lastAttackTime = -initialDelay; // For melee (allow immediate first attack)
+            nextShootTime = Time.time + initialDelay + Random.Range(minReactionTime, maxReactionTime); // randomize delay
+            lastAttackTime = -initialDelay; // for melee
         }
 
-        // Randomly determine initial turn direction
-        turnRight = Random.value > 0.5f;
+        turnRight = Random.value > 0.5f; // random turn direction
 
         gameObject.layer = LayerMask.NameToLayer("Enemy");
         
-        // Initialize for A* pathfinding
-        lastPathUpdateTime = -pathUpdateTime; // Force immediate path update when first chasing
+        // initialize A* pathfinding
+        lastPathUpdateTime = -pathUpdateTime;
         lastStuckCheckTime = Time.time;
         lastPosition = transform.position;
     }
@@ -142,7 +140,7 @@ public class Enemy : MonoBehaviour
         PlayerController playerController = player.GetComponent<PlayerController>();
         bool playerIsDead = playerController != null && playerController.IsDead();
 
-        // Stuck detection for chase mode
+        // stuck detection
         if (currentState == State.Pursue && Time.time >= lastStuckCheckTime + stuckCheckTime)
         {
             float distanceMoved = Vector2.Distance(lastPosition, transform.position);
@@ -150,32 +148,30 @@ public class Enemy : MonoBehaviour
             {
                 consecutiveStuckFrames++;
                 
-                // If stuck for several consecutive checks, take corrective action
+                // if stuck for several consecutive checks
                 if (consecutiveStuckFrames >= stuckFrameThreshold)
                 {
-                    // Force path recalculation with increased node size temporarily
+                    // force path recalculation with increased node size temporarily
                     float oldNodeSize = nodeSize;
-                    nodeSize *= 1.5f; // Temporarily increase node size
-                    CalculatePath();
-                    nodeSize = oldNodeSize; // Restore original node size
+                    nodeSize *= 1.5f;
+                    CalculatePath(); // recalculate then reset node size
+                    nodeSize = oldNodeSize;
                     
-                    // As a fallback, if still stuck, try a random direction
+                    // if still stuck, try a random direction
                     if (consecutiveStuckFrames >= stuckFrameThreshold * 2)
                     {
-                        // Clear path and generate a random direction to move
                         path.Clear();
                         float randomAngle = GetClearRandomAngle();
                         Vector2 randomDirection = Quaternion.Euler(0, 0, randomAngle) * Vector2.up;
                         Vector2 randomTarget = (Vector2)transform.position + randomDirection * 3f;
                         path.Add(randomTarget);
                         currentPathIndex = 0;
-                        consecutiveStuckFrames = 0; // Reset stuck counter after taking drastic action
+                        consecutiveStuckFrames = 0;
                     }
                 }
             }
             else
             {
-                // Not stuck, reset counter
                 consecutiveStuckFrames = 0;
             }
             
@@ -183,78 +179,52 @@ public class Enemy : MonoBehaviour
             lastStuckCheckTime = Time.time;
         }
 
-        HandleSightAndState(); // Refactored sight/state logic
+        HandleSightAndState(); // check if player is in sight
 
         if (currentState == State.Pursue && !playerIsDead)
         {
-            // --- Attack Logic --- 
+            // attack Logic
             WeaponData currentWep = enemyEquipment.CurrentWeapon;
             if (currentWep != null)
             {
-                bool isInMeleeRange = Vector2.Distance(transform.position, player.position) <= fistWeaponData.range; // Check fist range specifically
+                bool isInMeleeRange = Vector2.Distance(transform.position, player.position) <= fistWeaponData.range; // check fist range
                 bool canSee = CanSeePlayer();
 
-                // Prioritize Melee if in range and has fists equipped or available
+                // prioritize Melee if in range
                 if (fistWeaponData != null && fistWeaponData.isMelee && isInMeleeRange && Time.time >= lastAttackTime + (1f / fistWeaponData.fireRate))
                 {
-                    // First check if the enemy has reacted to spotting the player
+                    // check if reacted to player
                     if (!hasReacted && Time.time >= nextShootTime)
                     {
-                        // First attack after spotting player - apply reaction time
-                        MeleeAttack(fistWeaponData); // Pass fist data explicitly
+                        // first attack after spotting player, apply reaction time
+                        MeleeAttack(fistWeaponData); // pass fist data explicitly
                         lastAttackTime = Time.time;
-                        
-                        // Mark that the enemy has reacted
                         hasReacted = true;
+
                     }
                     else if (hasReacted)
                     {
-                        // Subsequent attacks use normal fire rate
-                        MeleeAttack(fistWeaponData); // Pass fist data explicitly
+                        MeleeAttack(fistWeaponData);
                         lastAttackTime = Time.time;
                     }
                 }
-                // Else, if not melee, try shooting
+                // if not melee, shoot
                 else if (!currentWep.isMelee && currentWep.canShoot && canSee && Time.time >= nextShootTime)
                 {
                     if (currentWep.HasAmmo())
                     {
-                        // If the enemy hasn't reacted yet to seeing the player
-                        if (!hasReacted)
-                        {
-                            Shoot();
-                            
-                            // Set the next shoot time based only on weapon fire rate for subsequent shots
-                            if (currentWep.isFullAuto)
-                            {
-                                // For full auto weapons, just use fire rate with no additional delay
-                                nextShootTime = Time.time + (1f / currentWep.fireRate);
-                            }
-                            else
-                            {
-                                // For semi-auto weapons, still use fire rate with no additional delay
-                                nextShootTime = Time.time + (1f / currentWep.fireRate);
-                            }
-                            
-                            hasReacted = true; // Mark that the enemy has reacted
-                        }
-                        else
-                        {
-                            // For subsequent shots, just use the weapon's fire rate
-                            Shoot();
-                            nextShootTime = Time.time + (1f / currentWep.fireRate);
-                        }
+                        Shoot();
+                        nextShootTime = Time.time + (1f / currentWep.fireRate); // use fire rate
+                        hasReacted = true;
                     }
                     else
                     {
-                        // Enemy has no ammo - maybe switch to fists or just wait?
-                        // For now, just resets shoot time to avoid constant checks
-                         nextShootTime = Time.time + 1f; // Wait a second before checking again
-                         
-                         if (emptyClickSoundCount < 3) {
-                            PlayEmptyClickSound(); // Play empty click sound when enemy tries to shoot with no ammo
+                        // enemy has no ammo
+                        nextShootTime = Time.time + 1f;
+                        if (emptyClickSoundCount < 3) { //play click 3 times
+                            PlayEmptyClickSound(); 
                             emptyClickSoundCount++;
-                         }
+                        }
                     }
                 }
             }
@@ -269,13 +239,13 @@ public class Enemy : MonoBehaviour
             }
         }
 
-        // Apply smooth rotation for Patrol and Random states
+        // apply smooth rotation
         if (currentState == State.Patrol || currentState == State.Random)
         {
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, enemyData.rotationSpeed * Time.deltaTime);
         }
         
-        // Update path to player at regular intervals when in pursue mode
+        // update path
         if (currentState == State.Pursue && Time.time >= lastPathUpdateTime + pathUpdateTime)
         {
             CalculatePath();
@@ -291,76 +261,70 @@ public class Enemy : MonoBehaviour
 
         if (!playerIsDead && canSee)
         {
-            // If previously not spotted, reset reaction state
             if (!hasSpottedPlayer)
             {
-                 hasSpottedPlayer = true;
-                 lastSpottedTime = Time.time;
-                 hasReacted = false; // Reset reaction flag - enemy needs to react again
-                 
-                 // Apply reaction time before enemy can shoot or melee
-                 float reactionDelay = Random.Range(minReactionTime, maxReactionTime);
-                 nextShootTime = Time.time + reactionDelay;
-                 // Also delay melee attacks by setting lastAttackTime appropriately
-                 if (fistWeaponData != null) {
-                     lastAttackTime = Time.time - (1f / fistWeaponData.fireRate) + reactionDelay;
-                 }
+                hasSpottedPlayer = true;
+                lastSpottedTime = Time.time;
+                hasReacted = false; // reset reaction
+
+                float reactionDelay = Random.Range(minReactionTime, maxReactionTime);
+                nextShootTime = Time.time + reactionDelay;
+                // delay melee
+                if (fistWeaponData != null) {
+                    lastAttackTime = Time.time - (1f / fistWeaponData.fireRate) + reactionDelay;
+                }
             }
             
             if (currentState != State.Pursue)
             {
-                 currentState = State.Pursue;
-                 lastPathUpdateTime = -pathUpdateTime; // Force path recalc on chase start
-                 
-                 // Only apply reaction time if not already in reaction delay
-                 // This prevents resetting reaction time if already triggered by sound
-                 if(!hasReacted && Time.time >= nextShootTime && enemyEquipment.CurrentWeapon != null)
-                 {
-                    // Set a random reaction time delay
-                    nextShootTime = Time.time + Random.Range(minReactionTime, maxReactionTime);
-                 }
+                currentState = State.Pursue;
+                lastPathUpdateTime = -pathUpdateTime;
+                
+                // only apply reaction time if not already in reaction delay
+                if(!hasReacted && Time.time >= nextShootTime && enemyEquipment.CurrentWeapon != null)
+                {
+                // set random reaction time delay
+                nextShootTime = Time.time + Random.Range(minReactionTime, maxReactionTime);
+                }
             }
         }
-        else // Cannot see player OR player is dead
+        else // cannot see player OR player is dead
         {
             if (hasSpottedPlayer && Time.time >= lastSpottedTime + enemyData.forgetTime)
             {
-                // Timer expired after spotting player
+                // timer expired after spotting player
                 hasSpottedPlayer = false; 
-                hasReacted = false; // Reset the reaction flag when forgetting player
+                hasReacted = false; // reset the reaction flag when forgetting player
 
                 if (currentState == State.Pursue)
                 {
-                     // MODIFIED: If player is not dead, switch to Patrol (or Random) after forgetTime
+                     // if player is not dead, switch to Random after forgetTime
                      if (!playerIsDead) 
                      {
-                         currentState = State.Patrol; // Or State.Random if you prefer
-                         path.Clear(); // Clear path
-                         rb.linearVelocity = Vector2.zero; // Stop movement briefly
-                         // Optional: Initiate Random mode behavior if switching to Random
+                         currentState = State.Random;
+                         path.Clear();
+                         rb.linearVelocity = Vector2.zero;
                          // randomModeTimer = randomModeInterval; 
                          // isMovingInRandomMode = false;
                      }
-                     // If player IS dead, switch to Patrol (already handled below, but explicit here is ok too)
+                     // player is dead, switch to random
                      else 
                      {
-                         currentState = State.Patrol; 
-                         path.Clear(); // Clear path when player dies
-                         rb.linearVelocity = Vector2.zero; // Stop movement
+                         currentState = State.Random; 
+                         path.Clear();
+                         rb.linearVelocity = Vector2.zero;
                      }
                 }
-                // If not in Pursue state when forgetTime expires (shouldn't happen often), just ensure hasSpotted is false.
             }
             else if (currentState == State.Pursue && playerIsDead) 
             {
-                // This handles the case where the player dies WHILE being pursued, before forgetTime expires
+                // player dies while being pursued before forgetTime expires
                 currentState = State.Patrol; 
                 path.Clear(); 
                 rb.linearVelocity = Vector2.zero; 
                 hasSpottedPlayer = false; 
                 hasReacted = false;
             }
-            // If never spotted or already forgotten, remain in current non-Pursue state
         }
     }
 
@@ -368,20 +332,20 @@ public class Enemy : MonoBehaviour
     {
         if (player == null || isDead) 
         {
-            rb.linearVelocity = Vector2.zero; // Stop if enemy or player is dead
+            rb.linearVelocity = Vector2.zero; // stop if enemy or player is dead
             return;
         }
 
         PlayerController playerController = player.GetComponent<PlayerController>();
         bool playerIsDead = playerController != null && playerController.IsDead();
 
-        // Stop movement if pursuing a dead player
+        // stop movement if pursuing a dead player
         if (currentState == State.Pursue && playerIsDead)
         {
             rb.linearVelocity = Vector2.zero;
             path.Clear(); // Clear path
-            // Consider changing state here too, although Update should handle it
-            currentState = State.Patrol; 
+            // update already does this
+            currentState = State.Random; 
             return; 
         }
 
@@ -390,30 +354,30 @@ public class Enemy : MonoBehaviour
             // A* pathfinding movement
             Vector2 moveDirection = Vector2.zero;
             
-            // If we have path nodes to follow
+            //  check if we have a path
             if (path.Count > 0 && currentPathIndex < path.Count)
             {
-                // Get next path point
+                // next node
                 Vector2 targetPosition = path[currentPathIndex];
                 
-                // Calculate distance and direction to the next node
+                // calculate distance and direction to the next node
                 float distanceToNode = Vector2.Distance(transform.position, targetPosition);
                 Vector2 directionToNode = (targetPosition - (Vector2)transform.position).normalized;
                 
-                // Enhanced wall avoidance with dynamic repulsion strength
-                Vector2 repulsion = CalculateRepulsion() * 0.8f; // Increased from 0.5f for better wall avoidance
+                // wall avoidance
+                Vector2 repulsion = CalculateRepulsion() * 0.8f;
                 moveDirection = (directionToNode + repulsion).normalized;
                 
-                // Check if we reached the current path node
+                // check if reached the current path node
                 if (distanceToNode <= pathNodeReachedDistance)
                 {
                     currentPathIndex++;
                 }
                 
-                // Add additional checks to skip unreachable nodes
+                // skip unreachable nodes
                 if (currentPathIndex < path.Count && !CanSeePoint(transform.position, path[currentPathIndex]) && path.Count > currentPathIndex + 1)
                 {
-                    // If we can see a future node directly, skip to it
+                    // if can see a future node directly, skip to it
                     for (int i = currentPathIndex + 1; i < path.Count; i++)
                     {
                         if (CanSeePoint(transform.position, path[i]))
@@ -424,7 +388,7 @@ public class Enemy : MonoBehaviour
                     }
                 }
                 
-                // Slow down when approaching turns for more natural movement
+                // slow down when approaching turns for more natural movement
                 float speedMultiplier = 1.0f;
                 if (currentPathIndex < path.Count - 1)
                 {
@@ -436,7 +400,7 @@ public class Enemy : MonoBehaviour
                         nextDirection = (path[currentPathIndex + 1] - path[currentPathIndex]).normalized;
                         float dot = Vector2.Dot(currentDirection, nextDirection);
                         
-                        // Slow down more for sharper turns
+                        // slow down more for sharper turns
                         if (dot < 0.7f) 
                         {
                             speedMultiplier = 0.6f + (dot * 0.4f);
@@ -444,20 +408,18 @@ public class Enemy : MonoBehaviour
                     }
                 }
                 
-                // Calculate the desired position with speed modifier
                 Vector2 desiredPosition = (Vector2)transform.position + moveDirection * enemyData.chaseSpeed * speedMultiplier * Time.fixedDeltaTime;
                 
-                // Move if not colliding with a wall
+                // move if not colliding with a wall
                 if (!WouldCollide(desiredPosition))
                 {
                     rb.MovePosition(desiredPosition);
                 }
                 else
                 {
-                    // Try to find an alternative direction if stuck
+                    // find an alternative direction if stuck
                     for (int i = 15; i <= 75; i += 15)
                     {
-                        // Try deflecting both left and right
                         Vector2 deflectedDirection = Quaternion.Euler(0, 0, i) * moveDirection;
                         Vector2 deflectedPosition = (Vector2)transform.position + deflectedDirection * enemyData.chaseSpeed * 0.5f * Time.fixedDeltaTime;
                         
@@ -478,7 +440,7 @@ public class Enemy : MonoBehaviour
                     }
                 }
                 
-                // Smooth rotation towards movement direction
+                // smooth rotation
                 if (moveDirection != Vector2.zero)
                 {
                     float angle = Mathf.Atan2(moveDirection.y, moveDirection.x) * Mathf.Rad2Deg - 90f;
@@ -488,7 +450,7 @@ public class Enemy : MonoBehaviour
             }
             else
             {
-                // Direct approach if no path or reached end of path
+                // no path or reached end of path
                 Vector2 directDirection = (player.position - transform.position).normalized;
                 Vector2 repulsion = CalculateRepulsion();
                 Vector2 finalDirection = (directDirection + repulsion).normalized;
@@ -499,7 +461,7 @@ public class Enemy : MonoBehaviour
                     rb.MovePosition(desiredPosition);
                 }
                 
-                // Smooth rotation
+                // smooth rotation
                 float angle = Mathf.Atan2(finalDirection.y, finalDirection.x) * Mathf.Rad2Deg - 90f;
                 Quaternion targetRot = Quaternion.Euler(0, 0, angle);
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, enemyData.rotationSpeed * Time.fixedDeltaTime);
@@ -507,7 +469,7 @@ public class Enemy : MonoBehaviour
         }
         else if (currentState == State.Patrol)
         {
-            // Handle pause timer after turning
+            // pause timer after turning
             if (isPausedAfterTurn)
             {
                 turnPauseTimer -= Time.fixedDeltaTime;
@@ -515,38 +477,35 @@ public class Enemy : MonoBehaviour
                 {
                     isPausedAfterTurn = false;
                 }
-                return; // Skip movement while paused
+                return; // skip movement while paused
             }
             
-            // Updated patrol logic - move forward until hitting a wall, then turn RIGHT 90 degrees
+            // move forward until hitting a wall, then turn 90 degrees
             Vector2 repulsion = CalculateRepulsion();
-            Vector2 finalDirection = (patrolDirection + repulsion * 0.3f).normalized; // Reduced repulsion influence
+            Vector2 finalDirection = (patrolDirection + repulsion * 0.3f).normalized;
             Vector2 desiredPosition = (Vector2)transform.position + finalDirection * enemyData.patrolSpeed * Time.fixedDeltaTime;
 
-            // Check if there's a wall directly ahead
+            // check for wall directly ahead
             RaycastHit2D hit = Physics2D.Raycast(transform.position, patrolDirection, safetyDistance + enemyRadius, wallLayer);
             if (hit.collider != null)
             {
-                // Simple 50/50 chance to turn right or left each time
+                // random turn direction
                 turnRight = Random.value > 0.5f;
-                
-                // Turn 90 degrees based on turnRight value
-                float turnAngle = turnRight ? -90 : 90; // Negative for right turn, positive for left turn
+                float turnAngle = turnRight ? -90 : 90; // negative for right, positive for left turn
                 Vector2 newDirection = Quaternion.Euler(0, 0, turnAngle) * patrolDirection;
                 targetRotation = Quaternion.LookRotation(Vector3.forward, newDirection);
                 patrolDirection = newDirection;
                 
-                // Start pause after turning with random duration
+                // pause
                 isPausedAfterTurn = true;
                 turnPauseTimer = Random.Range(minTurnPauseDuration, maxTurnPauseDuration);
             }
             else if (!WouldCollide(desiredPosition))
             {
-                // Continue moving forward
                 rb.MovePosition(desiredPosition);
             }
         }
-        else if (currentState == State.Random)
+        else if (currentState == State.Random) // random state
         {
             if (!isWaiting)
             {
@@ -570,19 +529,16 @@ public class Enemy : MonoBehaviour
             }
         }
         
-        // Ensure rotation is only on Z-axis
+        // ensure rotation is only on Z-axis
         if (!isDead && rb != null)
         {
-            // Reset rotation to ensure Z-axis only rotation
             transform.rotation = Quaternion.Euler(0, 0, transform.rotation.eulerAngles.z);
-            
-            // Ensure freeze rotation is set
             rb.freezeRotation = true;
             rb.constraints = RigidbodyConstraints2D.FreezeRotation;
         }
     }
     
-    // A* Pathfinding implementation
+    // A* 
     private void CalculatePath()
     {
         if (player == null) return;
@@ -590,45 +546,43 @@ public class Enemy : MonoBehaviour
         path.Clear();
         currentPathIndex = 0;
         
-        // Start and goal positions
         Vector2 startPos = transform.position;
         Vector2 goalPos = player.position;
         
-        // If we can see the player directly, just set a direct path
+        // if can see the player directly, set a direct path
         if (CanSeePlayer())
         {
             path.Add(goalPos);
             return;
         }
         
-        // Define our grid bounds around the start and goal
-        float gridRadius = Vector2.Distance(startPos, goalPos) * 1.5f; // Buffer around direct path
-        gridRadius = Mathf.Max(gridRadius, 10f); // Minimum search radius
+        // define our grid around the start and goal
+        float gridRadius = Vector2.Distance(startPos, goalPos) * 1.5f;
+        gridRadius = Mathf.Max(gridRadius, 10f); // minimum search radius
         
-        // Create nodes grid (simplified implementation)
+        // create nodes grid
         Dictionary<Vector2Int, PathNode> nodes = new Dictionary<Vector2Int, PathNode>();
         
-        // Convert world positions to grid coordinates
+        // convert world positions to grid coordinates
         Vector2Int startNode = WorldToGrid(startPos);
         Vector2Int goalNode = WorldToGrid(goalPos);
         
-        // Open and closed sets for A*
         List<Vector2Int> openSet = new List<Vector2Int>();
         HashSet<Vector2Int> closedSet = new HashSet<Vector2Int>();
         
-        // Initialize start node
+        // init start node
         nodes[startNode] = new PathNode { gCost = 0, hCost = HeuristicDistance(startNode, goalNode), parent = null };
         openSet.Add(startNode);
         
-        // Main A* loop
+        // loop
         int iterations = 0;
-        int maxIterations = 500; // Prevent infinite loops
+        int maxIterations = 500;
         
         while (openSet.Count > 0 && iterations < maxIterations)
         {
             iterations++;
             
-            // Find node with lowest fCost
+            // find node with lowest fCost
             Vector2Int current = openSet[0];
             for (int i = 1; i < openSet.Count; i++)
             {
@@ -642,46 +596,44 @@ public class Enemy : MonoBehaviour
                 }
             }
             
-            // Goal check
+            // check if arrived
             if (current == goalNode)
             {
-                // Reconstruct path
+                // reconstruct path
                 ReconstructPath(nodes, current);
                 return;
             }
             
-            // Move current from open to closed
             openSet.Remove(current);
             closedSet.Add(current);
             
-            // Check neighbors - include diagonals for smoother paths
+            // check neighbors
             for (int x = -1; x <= 1; x++)
             {
                 for (int y = -1; y <= 1; y++)
                 {
-                    // Skip center 
+                    // skip the center node
                     if (x == 0 && y == 0) continue;
                     
-                    // Make diagonal movement more expensive
                     bool isDiagonal = x != 0 && y != 0;
                     
                     Vector2Int neighbor = new Vector2Int(current.x + x, current.y + y);
                     
-                    // Skip if in closed set
+                    // skip if in closed set
                     if (closedSet.Contains(neighbor)) continue;
                     
-                    // Check if walkable with improved collision detection
+                    // check if walkable
                     Vector2 neighborWorldPos = GridToWorld(neighbor);
                     if (IsPositionBlocked(neighborWorldPos, isDiagonal))
                     {
-                        closedSet.Add(neighbor); // Mark as not walkable
+                        closedSet.Add(neighbor); // mark not walkable
                         continue;
                     }
                     
-                    // Calculate costs - diagonal costs more
-                    int moveCost = isDiagonal ? 14 : 10; // 1.4 cost for diagonal vs 1.0 for straight
+                    // calculate cost
+                    int moveCost = isDiagonal ? 14 : 10; // 1.4 diagonal 1 for straight
                     
-                    // If the neighbor is not in our dict, add it
+                    // if neighbor is not in our dict, add
                     if (!nodes.ContainsKey(neighbor))
                     {
                         nodes[neighbor] = new PathNode 
@@ -699,7 +651,7 @@ public class Enemy : MonoBehaviour
                     
                     if (tentativeGCost < neighborNode.gCost)
                     {
-                        // This path is better
+                        // this path is better
                         neighborNode.parent = current;
                         neighborNode.gCost = tentativeGCost;
                         
@@ -712,34 +664,30 @@ public class Enemy : MonoBehaviour
             }
         }
         
-        // If we got here, no path was found
-        // Set a direct path to the goal as fallback
+        // no path was found
         path.Add(goalPos);
     }
     
     private void ReconstructPath(Dictionary<Vector2Int, PathNode> nodes, Vector2Int current)
     {
-        // Create path from goal to start
+        // create path from goal to start
         List<Vector2> reversePath = new List<Vector2>();
-        
-        // Add goal position
         reversePath.Add(player.position);
         
-        // Trace back through parents
         while (nodes.ContainsKey(current) && nodes[current].parent.HasValue)
         {
-            // Add midpoint position to smooth path
+            // add current node to path
             Vector2 worldPos = GridToWorld(current);
             reversePath.Add(worldPos);
             
-            // Move to parent
+            // move to parent node
             current = nodes[current].parent.Value;
         }
         
-        // Reverse to get path from start to goal
+        // reverse path to get start to goal order
         reversePath.Reverse();
         
-        // Simplify path by checking line of sight between points
+        // simplify by checking line of sight between points
         path = SimplifyPath(reversePath);
     }
     
@@ -754,7 +702,6 @@ public class Enemy : MonoBehaviour
         
         simplifiedPath.Add(inputPath[0]);
         
-        // Check line of sight between points and skip those with clear path
         for (int i = 1; i < inputPath.Count - 1; i++)
         {
             Vector2 current = inputPath[i];
@@ -764,7 +711,7 @@ public class Enemy : MonoBehaviour
             Vector2 dirToCurrent = (current - lastAdded).normalized;
             Vector2 dirToNext = (next - lastAdded).normalized;
             
-            // If direction change is significant or we can't see through, add point
+            // if direction change is significant or we can't see through, add point
             float dot = Vector2.Dot(dirToCurrent, dirToNext);
             if (dot < 0.95f || !CanSeePoint(lastAdded, next))
             {
@@ -772,7 +719,7 @@ public class Enemy : MonoBehaviour
             }
         }
         
-        // Always add the last point (goal)
+        // add last
         simplifiedPath.Add(inputPath[inputPath.Count - 1]);
         
         return simplifiedPath;
@@ -805,31 +752,30 @@ public class Enemy : MonoBehaviour
     
     private int HeuristicDistance(Vector2Int a, Vector2Int b)
     {
-        // Manhattan distance
+        // manhattan distance
         int dx = Mathf.Abs(a.x - b.x);
         int dy = Mathf.Abs(a.y - b.y);
         return 10 * (dx + dy);
     }
     
-    // PathNode class for A* algorithm
+    // pathnode
     private class PathNode
     {
-        public int gCost; // Cost from start to this node
-        public int hCost; // Heuristic estimated cost to goal
-        public int fCost => gCost + hCost; // Total cost
-        public Vector2Int? parent; // Parent node for path reconstruction
+        public int gCost; // cost from start to this node
+        public int hCost; // heuristic estimated cost to goal
+        public int fCost => gCost + hCost; // total cost
+        public Vector2Int? parent; // parent node for path reconstruction
     }
 
-    // --- MELEE ATTACK LOGIC --- (New Method)
     void MeleeAttack(WeaponData meleeWeapon)
     {
-        if (player == null || isDead || meleeWeapon == null || !meleeWeapon.isMelee) return; // Safety checks
+        if (player == null || isDead || meleeWeapon == null || !meleeWeapon.isMelee) return; // safety checks
 
-        // Aim at player
+        // aim at player
         Vector2 directionToPlayer = (player.position - transform.position).normalized;
         transform.up = directionToPlayer;
         
-        // Ensure rotation stays on Z-axis only after aiming
+        // ensure rotation stays on Z-axis only after aiming
         transform.rotation = Quaternion.Euler(0, 0, transform.rotation.eulerAngles.z);
         if (rb != null)
         {
@@ -837,14 +783,13 @@ public class Enemy : MonoBehaviour
             rb.constraints = RigidbodyConstraints2D.FreezeRotation;
         }
 
-        // 1. Trigger Animation/Sprite Change
+        // trigger sprite change
         if (attackAnimationCoroutine != null) StopCoroutine(attackAnimationCoroutine);
         attackAnimationCoroutine = StartCoroutine(AttackAnimation(meleeWeapon));
 
-        // 2. Perform Hit Detection (e.g., OverlapCircle focused on Player)
-        // Use a slightly more directed check than a full circle if preferred
+        // hit detection: OverlapCircle focused on Player
         Vector2 attackOrigin = (Vector2)transform.position + (Vector2)transform.up * meleeWeapon.bulletOffset;
-        Collider2D hit = Physics2D.OverlapCircle(attackOrigin, meleeWeapon.range * 0.7f, LayerMask.GetMask("Player")); // Reduced radius, check only Player layer
+        Collider2D hit = Physics2D.OverlapCircle(attackOrigin, meleeWeapon.range * 0.7f, LayerMask.GetMask("Player"));
 
         bool didHit = false;
         if (hit != null)
@@ -852,29 +797,28 @@ public class Enemy : MonoBehaviour
             PlayerController playerController = hit.GetComponent<PlayerController>();
             if (playerController != null && !playerController.IsDead())
             {
-                // Check if there's a wall between enemy and player before dealing damage
+                // check for wall between enemy and player 
                 Vector2 direction = (player.position - transform.position).normalized;
                 float distance = Vector2.Distance(transform.position, player.position);
                 RaycastHit2D wallHit = Physics2D.Raycast(transform.position, direction, distance, wallLayer);
                 
-                // Only damage player if there's no wall in between
+                // only damage player if there's no wall in between
                 if (wallHit.collider == null)
                 {
-                    // Instantiate blood particle effect at the player position with proper rotation
+                    // blood particle
                     GameObject bloodEffect = Instantiate(Resources.Load<GameObject>("Particles/Blood"),
                         player.position, Quaternion.LookRotation(Vector3.forward, directionToPlayer));
                     
-                    // Apply damage to the player
-                    // Using Die directly as requested (replace with TakeDamage if needed)
-                    playerController.Die(directionToPlayer);
-                    // playerController.TakeDamage((int)meleeWeapon.damage, directionToPlayer);
+                    // apply damage to the player
+                    //playerController.Die(directionToPlayer);
+                    playerController.TakeDamage((int)meleeWeapon.damage, directionToPlayer);
                     didHit = true;
                 }
             }
         }
 
-        // 3. Play Sound (Use enemy's AudioSource)
-        AudioSource source = GetComponent<AudioSource>(); // Get AudioSource (make sure one exists)
+        // play sound
+        AudioSource source = GetComponent<AudioSource>();
         if (source != null)
         {
             if (didHit && meleeWeapon.hitSound != null)
@@ -890,18 +834,15 @@ public class Enemy : MonoBehaviour
         {
             Debug.LogWarning("Enemy requires an AudioSource component for attack sounds.", this);
         }
-
-        // 4. Camera Shake? (Probably not for enemy attacks unless special)
     }
 
     IEnumerator AttackAnimation(WeaponData weapon)
     {
         if (weapon.attackSprite != null)
         {
-            // Choose which sprite to use
             Sprite spriteToUse = weapon.attackSprite;
             
-            // If alternating sprites is enabled and second sprite exists, randomly choose
+            // alternating sprites is on and second sprite exists, randomly choose
             if (weapon.useAlternatingSprites && weapon.attackSprite2 != null)
             {
                 spriteToUse = (Random.value < 0.5f) ? weapon.attackSprite : weapon.attackSprite2;
@@ -909,9 +850,9 @@ public class Enemy : MonoBehaviour
             
             enemyEquipment.SetSprite(spriteToUse);
             yield return new WaitForSeconds(weapon.attackDuration);
-            enemyEquipment.UpdateSpriteToCurrentWeapon(); // Revert to the weapon's normal sprite
+            enemyEquipment.UpdateSpriteToCurrentWeapon(); // revert to normal sprite
         }
-        attackAnimationCoroutine = null; // Clear the coroutine reference
+        attackAnimationCoroutine = null; // clear the coroutine reference
     }
 
     void Shoot()
@@ -919,11 +860,10 @@ public class Enemy : MonoBehaviour
         WeaponData currentWep = enemyEquipment.CurrentWeapon;
         if (player == null || currentWep == null || currentWep.isMelee || !currentWep.canShoot || isDead || currentWep.projectilePrefab == null)
         {
-             // Added checks for isMelee and projectilePrefab
-             return; 
+            return; 
         }
 
-        // Stop any melee animation if switching to shooting
+        // stop melee animation if switching to shooting, unused (i think)
         if (attackAnimationCoroutine != null)
         {
              StopCoroutine(attackAnimationCoroutine);
@@ -931,11 +871,11 @@ public class Enemy : MonoBehaviour
              attackAnimationCoroutine = null;
         }
 
-        // Aim directly at player
+        // aim at player
         Vector3 directionToPlayer = (player.position - transform.position).normalized;
         transform.up = directionToPlayer;
         
-        // Ensure rotation stays on Z-axis only after aiming
+        // rotation only on Z
         transform.rotation = Quaternion.Euler(0, 0, transform.rotation.eulerAngles.z);
         if (rb != null)
         {
@@ -943,49 +883,44 @@ public class Enemy : MonoBehaviour
             rb.constraints = RigidbodyConstraints2D.FreezeRotation;
         }
 
-        // Use ammo (check already happened in Update, but double-check here)
+        // use ammo (already happened in Update)
         if (!currentWep.UseAmmo())
         {
-             // Should ideally not happen due to check in Update, but safety first
-             Debug.LogWarning($"{gameObject.name} tried to shoot {currentWep.weaponName} but UseAmmo failed.");
-
             if (emptyClickSoundCount < 3) {
-                PlayEmptyClickSound(); // Play empty click sound when enemy tries to shoot with no ammo
+                PlayEmptyClickSound();
                 emptyClickSoundCount++;
             }
              return; 
         }
 
-        // --- Restore Projectile Logic --- 
+        // bullet spawn position
         Vector3 spawnPosition = transform.position + (transform.up * currentWep.bulletOffset) + (transform.right * currentWep.bulletOffsetSide);
-
-        // Spawn muzzle flash if available
+        // spawn muzzle flash
         if (currentWep.muzzleFlashPrefab != null)
         {
             GameObject muzzleFlash = Instantiate(currentWep.muzzleFlashPrefab, spawnPosition, transform.rotation);
             Destroy(muzzleFlash, currentWep.muzzleFlashDuration); 
-            // muzzleFlash.transform.parent = transform; // Optional: Parent to enemy
         }
 
-        Quaternion bulletRotation = transform.rotation; // Start with enemy's rotation
+        Quaternion bulletRotation = transform.rotation; // start with enemy's rotation
 
-        // Handle shotgun pellets / spread
+        // handle shotgun pellets / spread
         int pelletCount = Mathf.Max(1, currentWep.pelletCount);
         bool isShotgun = pelletCount > 1;
 
         for (int i = 0; i < pelletCount; i++)
         {
             float angleOffset = 0;
-            // Apply general weapon spread
+            // apply weapon spread
             if (currentWep.spread > 0)
             {
                 angleOffset += Random.Range(-currentWep.spread / 2f, currentWep.spread / 2f);
             }
-            // Apply shotgun spread angle
+            // apply shotgun spread angle
             if (isShotgun && currentWep.spreadAngle > 0)
             {
                 angleOffset += Random.Range(-currentWep.spreadAngle / 2f, currentWep.spreadAngle / 2f); 
-                 // Or use a more even distribution if preferred:
+                 // alternative:
                  // float angleStep = currentWep.spreadAngle / (pelletCount - 1);
                  // angleOffset += -currentWep.spreadAngle / 2 + angleStep * i;
             }
@@ -993,24 +928,17 @@ public class Enemy : MonoBehaviour
             Quaternion finalRotation = bulletRotation * Quaternion.Euler(0, 0, angleOffset);
             GameObject bulletGO = Instantiate(currentWep.projectilePrefab, spawnPosition, finalRotation);
             
-            // Setup Bullet component
+            // bullet component
             Bullet bulletScript = bulletGO.GetComponent<Bullet>();
             if (bulletScript != null)
             {
-                bulletScript.SetShooter(gameObject); // Identify shooter
+                bulletScript.SetShooter(gameObject); // identify shooter
                 bulletScript.SetBulletParameters(currentWep.bulletSpeed, currentWep.range); 
                 bulletScript.SetDamage(currentWep.damage);
                 bulletScript.SetWeaponData(currentWep);
-                
-                // Shotgun hit tracking (if your Bullet script supports this)
-                /*
-                bulletScript.isShotgunPellet = isShotgun;
-                bulletScript.hasRecordedHit = hasHitRegistered;
-                bulletScript.OnEnemyHit += () => hasHitRegistered = true; // Lambda to update flag
-                */
             }
             
-            // Apply velocity
+            // apply velocity
             Rigidbody2D bulletRb = bulletGO.GetComponent<Rigidbody2D>();
             if (bulletRb != null)
             {
@@ -1018,37 +946,32 @@ public class Enemy : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"Projectile prefab {currentWep.projectilePrefab.name} is missing a Rigidbody2D.", bulletGO);
+                Debug.LogWarning("bullet prefab missing a Rigidbody2D.");
             }
         }
-        // --------------------------------
-
-        // Play sound
+        // play sound
         AudioSource source = GetComponent<AudioSource>();
         if(source != null && currentWep.shootSound != null)
         {
-            source.pitch = Random.Range(0.9f, 1.1f); // Add pitch variation
+            source.pitch = Random.Range(0.9f, 1.1f); // pitch variation
             source.PlayOneShot(currentWep.shootSound);
         }
     }
 
-    void OnCollisionEnter2D(Collision2D collision)
+    /*void OnCollisionEnter2D(Collision2D collision)
     {
-        // Prevent instant death on touch if the collision is with the player.
-        // MeleeAttack logic now handles player damage/death.
+        
         if (collision.gameObject.CompareTag("Player"))
         {
-            // Optionally add a small bounce effect or ignore
-            // Debug.Log("Enemy touched player - collision ignored for damage.");
+
             return; 
         }
 
-        // Original logic for hitting walls during patrol
         if (currentState == State.Patrol && ((1 << collision.gameObject.layer) & wallLayer) != 0)
         {
-           // ... (existing wall collision logic for patrol) ...
+        
         }
-    }
+    }*/
 
     bool CanSeePlayer()
     {
@@ -1056,10 +979,10 @@ public class Enemy : MonoBehaviour
         PlayerController playerController = player.GetComponent<PlayerController>();
         if (playerController != null && playerController.IsDead()) return false;
         
-        // First check if player is in FOV collider
+        // check if player is in FOV collider
         if (!playerInFOV) return false;
         
-        // Then check for line of sight (no walls obstructing)
+        // then check for line of sight
         Vector2 direction = (player.position - transform.position).normalized;
         float distance = Vector2.Distance(transform.position, player.position);
         RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, distance, wallLayer);
@@ -1077,7 +1000,7 @@ public class Enemy : MonoBehaviour
         int rayCount = 8;
         float angleStep = 360f / rayCount;
         
-        // Wall repulsion
+        // wall repulsion
         for (int i = 0; i < rayCount; i++)
         {
             float angle = i * angleStep;
@@ -1095,19 +1018,19 @@ public class Enemy : MonoBehaviour
             }
         }
         
-        // Enemy repulsion - Check for nearby enemies
+        // enemy repulsion
         Collider2D[] nearbyEnemies = Physics2D.OverlapCircleAll(transform.position, safetyDistance * 1.5f, LayerMask.GetMask("Enemy"));
         foreach (Collider2D enemyCollider in nearbyEnemies)
         {
-            // Skip self
+            // skip self
             if (enemyCollider.gameObject == gameObject)
                 continue;
                 
-            // Calculate distance and direction
+            // calculate distance and direction
             Vector2 enemyPos = enemyCollider.transform.position;
             float distance = Vector2.Distance(transform.position, enemyPos);
             
-            // Apply stronger repulsion for enemies than for walls to prevent overlapping
+            // stronger repulsion for enemies than for walls to prevent overlapping
             if (distance < safetyDistance * 1.5f)
             {
                 Vector2 repulsionDirection = (Vector2)transform.position - enemyPos;
@@ -1115,7 +1038,6 @@ public class Enemy : MonoBehaviour
                 repulsion += repulsionDirection.normalized * repulsionStrength * 1.5f; // Stronger than wall repulsion
             }
         }
-        
         return repulsion;
     }
 
@@ -1143,90 +1065,77 @@ public class Enemy : MonoBehaviour
         rb.linearVelocity = Vector2.zero;
         rb.angularVelocity = 0f;
 
-        // Record enemy defeat in ScoreManager
+        // record enemy defeat in ScoreManager
         if (ScoreManager.Instance != null)
         {
             ScoreManager.Instance.RecordEnemyDefeated();
         }
 
-        // Stop attack animation if enemy dies mid-punch
+        // stop attack animation
         if (attackAnimationCoroutine != null)
         {
             StopCoroutine(attackAnimationCoroutine);
             attackAnimationCoroutine = null;
         }
         
-        // Set the Death Sprite
+        // set Death Sprite
         if (enemyEquipment != null && enemyData.deathSprite != null)
         {
             enemyEquipment.SetSprite(enemyData.deathSprite);
         }
         else
         {
-            Debug.LogWarning("Cannot set death sprite: EnemyEquipment or deathSprite is null.", this);
+            Debug.LogWarning("cannot set death sprite");
         }
 
-        // Change the sorting layer to "DeadEnemies"
+        // change the sorting layer
         SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
         {
             spriteRenderer.sortingLayerName = "DeadEnemies";
         }
         
-        // Set the scale
+        // set scale 
         transform.localScale = new Vector3(3.4f, 3.4f, 3.4f);
 
-        // --- Drop Weapon Logic --- 
+        // weapon drop
         WeaponData deadEnemyWeapon = null;
         if (enemyEquipment != null && enemyEquipment.CurrentWeapon != null && enemyEquipment.CurrentWeapon != fistWeaponData)
         {
             deadEnemyWeapon = enemyEquipment.CurrentWeapon;
             
-            // Drop the weapon if it has a pickup prefab
             if (deadEnemyWeapon.pickupPrefab != null)
             {
                 GameObject weaponPickupGO = Instantiate(deadEnemyWeapon.pickupPrefab, transform.position, Quaternion.Euler(0f, 0f, Random.Range(0f, 360f)));
                 WeaponPickup pickupScript = weaponPickupGO.GetComponent<WeaponPickup>();
                 
-                // We no longer assign the enemy's instance data to the pickup.
-                // The pickup prefab MUST have the correct WeaponData asset assigned in the Inspector.
-                // if (pickupScript != null)
-                // {
-                //     pickupScript.weaponData = deadEnemyWeapon; // REMOVED THIS LINE
-                //     // Ammo should be handled by WeaponPickup's Awake or SetCurrentAmmo if needed
-                // }
-                
-                // Add force to the dropped weapon
+                // add force to dropped weapon
                 Rigidbody2D weaponRb = weaponPickupGO.GetComponent<Rigidbody2D>();
                 if (weaponRb != null)
                 {
                     float randomAngle = Random.Range(0f, 360f);
                     Vector2 randomDirection = Quaternion.Euler(0, 0, randomAngle) * Vector2.up;
-                    float forceMagnitude = Random.Range(30.0f, 60.0f); // Use previous force range
+                    float forceMagnitude = Random.Range(30.0f, 60.0f);
                     weaponRb.AddForce(randomDirection * forceMagnitude, ForceMode2D.Impulse);
-                    weaponRb.AddTorque(Random.Range(-2f, 2f), ForceMode2D.Impulse); // Use previous torque range
+                    weaponRb.AddTorque(Random.Range(-2f, 2f), ForceMode2D.Impulse);
                 }
             }
             else
             {
-                 Debug.LogWarning($"Enemy died with {deadEnemyWeapon.weaponName} but it has no pickupPrefab assigned.", this);
+                 Debug.LogWarning("no pickupPrefab assigned");
             }
         }
-        // ------------------------
-
         GetComponent<Collider2D>().enabled = false;
         rb.bodyType = RigidbodyType2D.Dynamic;
         rb.gravityScale = 0;
-        rb.freezeRotation = true; // Keep rotation frozen even when transitioning to Dynamic
+        rb.freezeRotation = true;
 
-        // Apply nudge force
+        // apply nudge force
         if (bulletDirection != default)
         {
             rb.AddForce(-bulletDirection * 10f, ForceMode2D.Impulse);
             Invoke(nameof(StopAfterNudge), 0.2f);
         }
-        
-        // Removed ScoreManager call
     }
 
     void StopAfterNudge()
@@ -1235,25 +1144,20 @@ public class Enemy : MonoBehaviour
         {
             rb.linearVelocity = Vector2.zero;
             rb.angularVelocity = 0f;
-            // Optionally set back to Kinematic if needed after nudge
-            // rb.bodyType = RigidbodyType2D.Kinematic; 
         }
     }
 
-    // Improved position blocking check
+    // position blocking check
     private bool IsPositionBlocked(Vector2 position, bool isDiagonal)
     {
-        // Basic circle overlap check
         bool isBlocked = Physics2D.OverlapCircle(position, nodeSize * 0.4f, wallLayer);
         
-        // For diagonal movement, check additional points to prevent corner cutting
+        // prevent corner cutting
         if (!isBlocked && isDiagonal)
         {
-            // Get the 4 grid points around this position
             Vector2Int gridPos = WorldToGrid(position);
             Vector2 worldPos = GridToWorld(gridPos);
             
-            // Check the orthogonal neighbors too (to avoid cutting corners)
             Vector2Int[] neighbors = new Vector2Int[]
             {
                 new Vector2Int(gridPos.x - 1, gridPos.y),
@@ -1262,7 +1166,7 @@ public class Enemy : MonoBehaviour
                 new Vector2Int(gridPos.x, gridPos.y + 1)
             };
             
-            // If two adjacent nodes are blocked, diagonal movement is not allowed
+            // if two adjacent nodes are blocked, diagonal movement is not allowed
             foreach (Vector2Int neighbor in neighbors)
             {
                 if (Physics2D.OverlapCircle(GridToWorld(neighbor), nodeSize * 0.4f, wallLayer))
@@ -1280,13 +1184,12 @@ public class Enemy : MonoBehaviour
     {
         hasSpottedPlayer = true;
         lastSpottedTime = Time.time;
-        hasReacted = false; // Reset reaction flag - enemy needs to react to the sound
+        hasReacted = false;
         
-        // Apply reaction time to the heard sound
+        // apply reaction time
         float reactionDelay = Random.Range(minReactionTime, maxReactionTime);
         nextShootTime = Time.time + reactionDelay;
         
-        // Also delay melee attacks
         if (fistWeaponData != null) {
             lastAttackTime = Time.time - (1f / fistWeaponData.fireRate) + reactionDelay;
         }
@@ -1294,59 +1197,49 @@ public class Enemy : MonoBehaviour
         if (currentState != State.Pursue)
         {
             currentState = State.Pursue;
-            lastPathUpdateTime = -pathUpdateTime; // Force path recalc
+            lastPathUpdateTime = -pathUpdateTime; // force path recalc
         }
         else
         {
-            // Even if already in Pursue state, still reset reaction time for new sound detection
-            // This ensures sounds always trigger a reaction time delay before shooting
             hasReacted = false;
         }
     }
-
-    // Add method to take damage
     public void TakeDamage(float amount)
     {
         if (isDead) return;
         
         currentHealth -= amount;
         
-        // Instantiate blood particle effect at the enemy position
+        // blood particle
         GameObject bloodEffect = Instantiate(Resources.Load<GameObject>("Particles/Blood"),
             transform.position, Quaternion.identity);
         
-        // Reset rotation to ensure Z-axis only rotation
+        // reset rotation
         transform.rotation = Quaternion.Euler(0, 0, transform.rotation.eulerAngles.z);
-        
-        // Ensure freeze rotation is set
-        if (rb != null)
-        {
-            rb.freezeRotation = true;
-            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
-        }
+        rb.freezeRotation = true;
+        rb.constraints = RigidbodyConstraints2D.FreezeRotation;
         
         if (currentHealth <= 0)
         {
-            // Stop any active shooting logic to ensure dying can happen
+            // stop shooting logic
             if (attackAnimationCoroutine != null)
             {
                 StopCoroutine(attackAnimationCoroutine);
                 attackAnimationCoroutine = null;
             }
-            
             Die();
         }
     }
 
-    // Add method to handle healing (used for boss invulnerability)
+    // used for boss invulnerability
     public void HealDamage(float amount)
     {
         if (isDead) return;
         
-        // Add the damage back as healing
+        // add the damage back
         currentHealth += amount;
         
-        // Make sure we don't exceed max health
+        // dont exceed max health
         if (currentHealth > enemyData.health)
         {
             currentHealth = enemyData.health;
@@ -1368,8 +1261,6 @@ public class Enemy : MonoBehaviour
             playerInFOV = false;
         }
     }
-
-    // Play a sound for empty magazine
     void PlayEmptyClickSound()
     {
         WeaponData currentWep = enemyEquipment.CurrentWeapon;
