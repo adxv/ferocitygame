@@ -2,37 +2,32 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
-using UnityEngine.SceneManagement; // ADDED: For scene management
+using UnityEngine.SceneManagement;
 
 public class UIManager : MonoBehaviour
 {
-    // Singleton pattern
-    public static UIManager Instance { get; private set; }
+    public static UIManager Instance { get; private set; } // singleton instance
 
-    [Header("UI Panels/Screens")]
     public GameObject hudPanel;
     public GameObject pauseMenuScreen;
     public GameObject gameOverScreen;
     public GameObject levelCompleteScreen;
 
-    [Header("HUD Elements")]
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI timerText;
     public TextMeshProUGUI ammoText;
 
-    // References to other managers
     private ScoreManager scoreManager;
     private TimerController timerController;
     private PlayerEquipment playerEquipment;
 
-    // Add these fields for escape key holding functionality
     private bool isHoldingEscape = false;
     private float escapeHeldTime = 0f;
     public float escapeHoldDuration = 0.75f;
 
     private void Awake()
     {
-        // Singleton setup
+        // prevent multiple instances
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -44,13 +39,11 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // ADDED: Subscribe to scene loaded event
     private void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
-    // ADDED: Unsubscribe from scene loaded event
     private void OnDisable()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
@@ -58,50 +51,42 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
-        // Find references to other managers
         scoreManager = FindFirstObjectByType<ScoreManager>();
         timerController = FindFirstObjectByType<TimerController>();
 
-        // Find player equipment
         GameObject player = GameObject.FindWithTag("Player");
         if (player != null)
         {
             playerEquipment = player.GetComponent<PlayerEquipment>();
-             if (playerEquipment != null)
-             {
-                 // Subscribe for potential future use if needed, but weapon display is now in AmmoDisplay
-                 // playerEquipment.OnWeaponChanged += UpdateWeaponDisplay; // Commented out
-             }
         }
 
-        // Initial setup
+        //init
         SetupUIElements();
 
-        // Initialize UI state - This will also be called by OnSceneLoaded
+        //also reset on scene load
         ResetUIState(); 
     }
 
     private void Update()
     {
-        // Check current scene name
+        // get current scene name
         string currentScene = SceneManager.GetActiveScene().name;
         
-        // Skip pause functionality if in MainMenu or LevelSelect
+        // skip input handling if in MainMenu or LevelSelect
         if (currentScene == "MainMenu" || currentScene == "LevelSelect")
         {
             return;
         }
-        
-        // Check for pause input (escape key)
+        // pause menu
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            // If game is paused, start tracking escape hold time
+            // if game is paused, start tracking escape hold time
             if (Time.timeScale == 0f)
             {
                 isHoldingEscape = true;
                 escapeHeldTime = Time.unscaledTime;
             }
-            // Otherwise handle normal pause toggle (if not in game over or level complete)
+            // otherwise toggle pause menu
             else if ((gameOverScreen == null || !gameOverScreen.activeSelf) && 
                 (levelCompleteScreen == null || !levelCompleteScreen.activeSelf))
             {
@@ -110,92 +95,64 @@ public class UIManager : MonoBehaviour
         }
         else if (Input.GetKeyUp(KeyCode.Escape))
         {
-            // If escape was being held but not long enough to trigger main menu return,
+            // if escape was being held but not long enough to trigger main menu return,
             // and the game is paused, then unpause on key release
             if (isHoldingEscape && Time.timeScale == 0f && 
                 (Time.unscaledTime - escapeHeldTime <= escapeHoldDuration))
             {
-                HidePauseMenu(); // Unpause the game
+                HidePauseMenu();
             }
             
             isHoldingEscape = false;
             escapeHeldTime = 0f;
         }
         
-        // Check if escape is being held while paused to return to main menu
+        // check if escape is being held while paused
         if (isHoldingEscape && Time.timeScale == 0f && Time.unscaledTime - escapeHeldTime > escapeHoldDuration)
         {
             isHoldingEscape = false;
             escapeHeldTime = 0f;
             
-            // Hide the timer and other HUD elements before scene change
+            //hide hud and timer
             if (hudPanel != null) hudPanel.SetActive(false);
-            
-            // Instead of disabling the timer, set its text to empty string
             if (timerText != null) timerText.text = "";
             
-            // Ensure time is restored before scene change
             Time.timeScale = 1f;
             
-            // Load the main menu scene
             SceneManager.LoadScene("MainMenu");
         }
     }
 
-    private void OnDestroy()
-    {
-         // Unsubscribe from events if subscribed
-         // if (playerEquipment != null)
-         // {
-         //     playerEquipment.OnWeaponChanged -= UpdateWeaponDisplay;
-         // }
-    }
-
-    // ADDED: Reset UI state when a scene loads
+    //reset ui on scene load
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        Debug.Log("UIManager: Scene Loaded, resetting UI state.");
-        
-        // Ensure time is running
+        Debug.Log("reset ui");
         Time.timeScale = 1f;
         
-        // Reset all screens to their initial state
         ResetUIState();
-        
-        // Re-find managers potentially destroyed/recreated in the new scene
         SetupUIElements();
         
-        // Ensure timer text is properly set up if needed
         if (timerText != null && timerText.gameObject != null)
         {
             timerText.gameObject.SetActive(true);
         }
     }
     
-    // ADDED: Helper method to reset UI state
     void ResetUIState()
     {
-        // Ensure game is not paused
-        Time.timeScale = 1f;
-        
-        // Reset all screens to default state
         ShowHUD();
         HidePauseMenu();
         HideGameOver();
         HideLevelComplete();
         
-        // Ensure all screens are properly inactive
         if (levelCompleteScreen != null) 
         {
             levelCompleteScreen.SetActive(false);
         }
     }
 
-    // Setup UI elements and connections
     private void SetupUIElements()
     {
-        // Connect UI elements to managers (Managers will update their own text)
-        // Find potentially new instances after scene load
         scoreManager = FindFirstObjectByType<ScoreManager>();
         timerController = FindFirstObjectByType<TimerController>();
 
@@ -209,36 +166,24 @@ public class UIManager : MonoBehaviour
             scoreManager.scoreText = scoreText;
         }
 
-        // Find and assign AmmoDisplay's text if not assigned in inspector
+        // assign ammotext
         if (ammoText == null)
         {
             AmmoDisplay ammoDisplayComponent = FindFirstObjectByType<AmmoDisplay>();
             if (ammoDisplayComponent != null)
             {
                  ammoText = ammoDisplayComponent.ammoText;
-                 // Also link AmmoDisplay's icon if needed by other systems, though it handles itself
-                 // weaponIconImage = ammoDisplayComponent.weaponIconImage;
             }
             else
             {
-                // If AmmoDisplay is part of HUD, it might not exist if HUD is initially inactive
-                // Optionally log a warning or handle differently
-                 Debug.LogWarning("UIManager: Could not find AmmoDisplay component to assign ammoText.");
+                Debug.LogWarning("coudl not find ammodisplay component");
             }
         }
-        // Removed direct ammo/weapon update from UIManager start - handled by AmmoDisplay
     }
-
-    // ------ UI State Management ------
 
     public void ShowHUD()
     {
         if (hudPanel != null) hudPanel.SetActive(true);
-        // Hide menus when HUD shows
-        // REMOVED redundant calls from here, handled by ResetUIState or specific show methods
-        // HidePauseMenu(); 
-        // HideGameOver();
-        // HideLevelComplete();
     }
 
     public void HideHUD()
@@ -246,18 +191,14 @@ public class UIManager : MonoBehaviour
         if (hudPanel != null) hudPanel.SetActive(false);
     }
 
-    // --- Pause Menu --- //
     public void ShowPauseMenu()
     {
         if (pauseMenuScreen != null)
         {
-            Time.timeScale = 0f; // Pause the game
+            Time.timeScale = 0f; // pause time
             pauseMenuScreen.SetActive(true);
-            // Ensure other menus are hidden if they share a parent or overlap
             if (gameOverScreen != null) gameOverScreen.SetActive(false);
             if (levelCompleteScreen != null) levelCompleteScreen.SetActive(false);
-            // Optional: Hide HUD when paused?
-            // HideHUD();
         }
     }
 
@@ -265,10 +206,8 @@ public class UIManager : MonoBehaviour
     {
         if (pauseMenuScreen != null)
         {
-            Time.timeScale = 1f; // Resume the game
+            Time.timeScale = 1f; // resume time
             pauseMenuScreen.SetActive(false);
-            // Optional: Show HUD when unpausing if it was hidden
-            // ShowHUD();
         }
     }
 
@@ -284,28 +223,18 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // --- Game Over Screen --- //
     public void ShowGameOver()
     {
         if (gameOverScreen != null)
         {
             gameOverScreen.SetActive(true);
-             // Ensure other menus are hidden
             if (pauseMenuScreen != null) pauseMenuScreen.SetActive(false);
             if (levelCompleteScreen != null) levelCompleteScreen.SetActive(false);
             
-            // Find and reset the AmmoDisplay instead of hiding the entire HUD
             AmmoDisplay ammoDisplay = FindFirstObjectByType<AmmoDisplay>();
             if (ammoDisplay != null)
             {
-                ammoDisplay.ResetDisplay(); // This keeps the display enabled with empty text
-            }
-            
-            // Hide the rest of the HUD
-            if (hudPanel != null)
-            {
-                // Keep the panel active but hide other HUD elements if needed
-                // For now we're just letting AmmoDisplay stay visible
+                ammoDisplay.ResetDisplay(); //empty string instead of disabling
             }
         }
     }
@@ -314,39 +243,28 @@ public class UIManager : MonoBehaviour
     {
         if (gameOverScreen != null)
         {
-             // Only resume time if restarting, handle this in button calls
-             // Time.timeScale = 1f; 
             gameOverScreen.SetActive(false);
         }
     }
 
-    // --- Level Complete Screen --- //
     public void ShowLevelComplete()
     {
         if (levelCompleteScreen != null)
         {
             levelCompleteScreen.SetActive(true);
-             // Ensure other menus are hidden
             if (pauseMenuScreen != null) pauseMenuScreen.SetActive(false);
             if (gameOverScreen != null) gameOverScreen.SetActive(false);
             
-            // Find and reset the AmmoDisplay instead of disabling it
             AmmoDisplay ammoDisplay = FindFirstObjectByType<AmmoDisplay>();
             if (ammoDisplay != null)
             {
-                ammoDisplay.ResetDisplay(); // This keeps the display enabled with empty text
+                ammoDisplay.ResetDisplay(); // empty string instead of disabling
             }
             
-            // Instead of hiding the entire HUD, ensure HUD elements remain visible
             if (hudPanel != null)
             {
-                // Keep the panel active and all HUD elements visible
                 hudPanel.SetActive(true);
-                
-                // Keep timer visible
                 if (timerText != null) timerText.gameObject.SetActive(true);
-                
-                // Ensure score is visible
                 if (scoreText != null) scoreText.gameObject.SetActive(true);
             }
         }
@@ -356,17 +274,9 @@ public class UIManager : MonoBehaviour
     {
         if (levelCompleteScreen != null)
         {
-             // Only resume time if going to next level/restarting, handle in button calls
-             // Time.timeScale = 1f;
             levelCompleteScreen.SetActive(false);
         }
     }
-
-    // ------ Display Updates ------
-
-    // Removed UpdateWeaponDisplay - AmmoDisplay.cs handles weapon icon and ammo text updates.
-
-    // ------ Button Actions (Add these methods to call from buttons) ------
 
     public void ResumeGame()
     {
@@ -375,26 +285,10 @@ public class UIManager : MonoBehaviour
 
     public void RestartLevel()
     {
-        Time.timeScale = 1f; // Ensure time is resumed before loading
+        Time.timeScale = 1f; // resume time
         
-        // Reset static variables
         FloorAccessController.isLevelComplete = false;
         
-        // Use UnityEngine.SceneManagement
         UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
     }
-
-    public void QuitGame()
-    {
-        Debug.Log("Quitting Game..."); // Log for editor testing
-        Application.Quit();
-    }
-
-    // Add method for "Next Level" if applicable
-    // public void LoadNextLevel()
-    // {
-    //     Time.timeScale = 1f;
-    //     // Load your next scene, e.g., SceneManager.LoadScene("Level2");
-    // }
-
 }

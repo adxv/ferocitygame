@@ -23,9 +23,9 @@ MonoBehaviour:
   fireRate: 5
   isFullAuto: 0
   damage: 1
-  bulletOffset: 1
+  bulletOffset: 0
   bulletOffsetSide: 0
-  range: 2.3
+  range: 3.3
   bulletSpeed: 120
   spread: 0
   magazineSize: 1

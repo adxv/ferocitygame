@@ -5,25 +5,18 @@ using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 using System.Collections;
 
-public class PowerUpManager : MonoBehaviour
+public class PowerUpManager : MonoBehaviour         //could rename to PerkManager
 {
-    [Header("UI References")]
-    [Tooltip("Drag your power-up buttons here directly from the scene")]
     public List<Button> powerUpButtons = new List<Button>();
-    [Tooltip("Button to return to level select screen")]
     public Button backButton;
     
-    [Header("Power-Up Data")]
     public List<PowerUpData> availablePowerUps = new List<PowerUpData>();
 
     
-    [Header("Scene Names")]
-    [Tooltip("Name of the level select scene")]
     public string levelSelectSceneName = "LevelSelect";
     
     private string sceneToLoad;
     
-    // Static properties to track selected power-up effects
     public static bool HasDoubleAmmo { get; private set; }
     public static bool HasDoubleHealth { get; private set; }
     public static float MovementSpeedMultiplier { get; private set; } = 1f;
@@ -33,8 +26,6 @@ public class PowerUpManager : MonoBehaviour
     public class PowerUpData
     {
         public string powerUpName;
-        public string description;
-        public Sprite icon;
         public PowerUpType type;
     }
     
@@ -43,25 +34,19 @@ public class PowerUpManager : MonoBehaviour
         DoubleAmmo,
         DoubleHealth,
         SpeedBoost,
-        AccuracyBoost
+        AccuracyBoost,
+        //Invincibility
     }
     
     void Start()
     {
-        // Initialize default values
         ResetPowerUps();
         
-        // Get the scene to load from LevelSelectManager or PlayerPrefs
+        //get scene
         sceneToLoad = PlayerPrefs.GetString("SelectedLevel", "");
-        if (string.IsNullOrEmpty(sceneToLoad))
-        {
-            Debug.LogError("No level selected! Make sure a level was selected before coming to this scene.");
-        }
-        
-        // Setup power-up buttons
+
         SetupPowerUpButtons();
         
-        // Setup back button
         if (backButton != null)
         {
             backButton.onClick.RemoveAllListeners();
@@ -71,44 +56,15 @@ public class PowerUpManager : MonoBehaviour
     
     private void SetupPowerUpButtons()
     {
-        // Validate button and data count match
-        if (powerUpButtons.Count != availablePowerUps.Count)
-        {
-            Debug.LogWarning($"Power-up button count ({powerUpButtons.Count}) doesn't match power-up data count ({availablePowerUps.Count})!");
-        }
-        
-        // Setup each button
         for (int i = 0; i < Mathf.Min(powerUpButtons.Count, availablePowerUps.Count); i++)
         {
             Button button = powerUpButtons[i];
             PowerUpData powerUpData = availablePowerUps[i];
-            int powerUpIndex = i; // Capture the index for lambda
+            int powerUpIndex = i;
             
             if (button == null) continue;
             
-            // Set button text and description
-            Transform nameText = button.transform.Find("NameText");
-            Transform descText = button.transform.Find("DescriptionText");
-            
-            if (nameText != null)
-            {
-                nameText.GetComponent<TextMeshProUGUI>().text = powerUpData.powerUpName;
-            }
-            
-            if (descText != null)
-            {
-                descText.GetComponent<TextMeshProUGUI>().text = powerUpData.description;
-            }
-            
-            // Set button icon if available
-            Image iconImage = button.transform.Find("Icon")?.GetComponent<Image>();
-            if (iconImage != null && powerUpData.icon != null)
-            {
-                iconImage.sprite = powerUpData.icon;
-                iconImage.preserveAspect = true;
-            }
-            
-            // Clear existing listeners and add new one
+            // clear existing listeners and add new one
             button.onClick.RemoveAllListeners();
             button.onClick.AddListener(() => {
                 SelectAndApplyPowerUp(powerUpIndex);
@@ -120,10 +76,8 @@ public class PowerUpManager : MonoBehaviour
     {
         if (index >= 0 && index < availablePowerUps.Count)
         {
-            // Reset all power-ups first
             ResetPowerUps();
             
-            // Apply the selected power-up
             PowerUpData selectedPowerUp = availablePowerUps[index];
             
             switch (selectedPowerUp.type)
@@ -138,20 +92,18 @@ public class PowerUpManager : MonoBehaviour
                     MovementSpeedMultiplier = 1.3f;
                     break;
                 case PowerUpType.AccuracyBoost:
-                    AccuracyMultiplier = 0.5f; // Lower number means better accuracy (spread)
+                    AccuracyMultiplier = 0.5f; // lower number = more accurate
                     break;
             }
             
-            Debug.Log("Applied power-up: " + selectedPowerUp.powerUpName);
+            Debug.Log("perk: " + selectedPowerUp.powerUpName);
             
-            // Start the game immediately
             LoadGameScene();
         }
     }
     
     private void GoBackToLevelSelect()
     {
-        // Load level select scene directly
         SceneManager.LoadScene(levelSelectSceneName);
     }
     
@@ -167,18 +119,16 @@ public class PowerUpManager : MonoBehaviour
     {
         if (!string.IsNullOrEmpty(sceneToLoad))
         {
-            Debug.Log("Loading game scene: " + sceneToLoad);
-            
-            // Load the game scene directly without transition
+            Debug.Log("scene: " + sceneToLoad);
             SceneManager.LoadScene(sceneToLoad);
         }
         else
         {
-            Debug.LogError("No scene to load! Make sure a level was selected.");
+            Debug.LogError("invalid level selected" + sceneToLoad);
         }
     }
     
-    // Static method to reset power-ups between game sessions
+    // static method to reset between game sessions
     public static void ResetAllPowerUps()
     {
         HasDoubleAmmo = false;

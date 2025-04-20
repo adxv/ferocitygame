@@ -6,40 +6,40 @@ using UnityEngine.UI;
 public class AmmoDisplay : MonoBehaviour
 {
     [SerializeField] public TextMeshProUGUI ammoText;
-    [SerializeField] public Image weaponIconImage;
+    //[SerializeField] public Image weaponIconImage; //unused
     [SerializeField] public PlayerController playerController;
     private PlayerEquipment playerEquipment;
     
     void Start()
     {
-        // Find player controller if not set
+        ammoText.gameObject.SetActive(true);
+        // Find player controller on start, need for restarting
         if (playerController == null)
         {
             playerController = FindObjectsByType<PlayerController>(FindObjectsSortMode.None).FirstOrDefault();
             if (playerController == null) 
             {
-                Debug.LogError("AmmoDisplay: Could not find PlayerController on Start!", this);
+                Debug.LogError("could not find playercontroller!");
             }
         }
         
-        // Get player equipment component
         if (playerController != null)
         {
             playerEquipment = playerController.GetComponent<PlayerEquipment>();
             
-            // Subscribe to weapon change events
+        
             if (playerEquipment != null)
             {
-                // Unsubscribe first to prevent double-subscription on scene reload if object persists
+                // unsubscribe to prevent double-subscription on scene reload
                 playerEquipment.OnWeaponChanged -= OnWeaponChanged; 
                 playerEquipment.OnWeaponChanged += OnWeaponChanged;
                 
-                // Initial update after subscribing
+                // first update
                 UpdateAmmoDisplay();
             }
             else
             {
-                Debug.LogError("AmmoDisplay: PlayerController found, but missing PlayerEquipment!", this);
+                Debug.LogError("ammodisplay missing PlayerEquipment");
             }
         }
         
@@ -50,130 +50,96 @@ public class AmmoDisplay : MonoBehaviour
             
             if (ammoText == null)
             {
-                Debug.LogError("AmmoDisplay: No TextMeshProUGUI component found!", this);
+                Debug.LogError("ammodisplay missing text");
                 enabled = false;
                 return;
             }
         }
         
-        // Update display immediately at start
         UpdateAmmoDisplay();
     }
     
     void OnDestroy()
     {
-        // Unsubscribe from event when destroyed to prevent memory leaks
+        // unsubscribe from event when destroyed to prevent memory leaks
         if (playerEquipment != null)
         {
             playerEquipment.OnWeaponChanged -= OnWeaponChanged;
         }
     }
     
-    // Called when the weapon changes
     private void OnWeaponChanged()
     {
         UpdateAmmoDisplay();
     }
     
-    // Update the ammo display based on current weapon
+    
     private void UpdateAmmoDisplay()
     {
         if (playerEquipment != null && playerEquipment.CurrentWeapon != null)
         {
             WeaponData weapon = playerEquipment.CurrentWeapon;
             
-            // Modified condition to handle weapons with magazineSize of 0
+            // normal weapon
             if (weapon.canShoot && !weapon.isMelee)
             {
-                // Display the current ammo (will show "0" for weapons with magazineSize of 0)
                 ammoText.text = weapon.currentAmmo.ToString();
-                ammoText.gameObject.SetActive(true);
-                // Update weapon icon if available
-                if (weaponIconImage != null && weapon.weaponIcon != null)
-                {
-                    weaponIconImage.sprite = weapon.weaponIcon;
-                    weaponIconImage.gameObject.SetActive(true);
-                }
-                else if (weaponIconImage != null) // Ensure icon is hidden if no sprite
-                {
-                    weaponIconImage.gameObject.SetActive(false);
-                }
-
-                Debug.Log($"AmmoDisplay: Showing ammo for {weapon.weaponName}: {weapon.currentAmmo}");
             }
             else
             {
-                // Instead of disabling the text, set it to empty string for melee weapons
+                // show empty string instead of disabling
                 ammoText.text = "";
-                ammoText.gameObject.SetActive(true); // Keep the text object active
-                if (weaponIconImage != null)
-                {
-                    weaponIconImage.gameObject.SetActive(false);
-                }
-
-                Debug.Log($"AmmoDisplay: Empty display for {weapon.weaponName} (canShoot={weapon.canShoot}, magazineSize={weapon.magazineSize}, isMelee={weapon.isMelee})");
+                //Debug.Log("ammodisplay: empty string");
             }
         }
         else
         {
-            // When no weapon is equipped at all (edge case)
+            //nothing equipped
             ammoText.text = "";
-            ammoText.gameObject.SetActive(true); // Keep the text object active
+            ammoText.gameObject.SetActive(true);
             Debug.Log("AmmoDisplay: No weapon equipped, showing empty display");
         }
     }
     
-    // ADDED: Method to reset the display (called on restart)
+    // called on restart
     public void ResetDisplay()
     {
-        // Keep ammoText active but set to empty string
+        //show empty string instead of disabling
         if (ammoText != null) 
         {
             ammoText.text = "";
-            ammoText.gameObject.SetActive(true);
         }
-        if (weaponIconImage != null)
-        {
-            weaponIconImage.gameObject.SetActive(false);
-            weaponIconImage.sprite = null; // Clear the sprite just in case
-        }
-        Debug.Log("AmmoDisplay: Resetting display");
+        Debug.Log("ammodisplay: reset");
     }
 
     void Update()
     {
-        // Keep the update method to handle ongoing changes in ammo count
         if (playerEquipment != null && playerEquipment.CurrentWeapon != null)
         {
             WeaponData weapon = playerEquipment.CurrentWeapon;
             
-            // Updated to match UpdateAmmoDisplay logic - show ammo count for non-melee weapons that can shoot
             if (weapon.canShoot && !weapon.isMelee && ammoText.gameObject.activeSelf)
             {
                 int currentAmmo = weapon.currentAmmo;
 
-                // Just update text, don't change visibility (that's done in UpdateAmmoDisplay)
                 ammoText.text = currentAmmo.ToString();
             }
         }
     }
 
-    // Add this method to handle scene loading events
     void OnEnable()
     {
-        // Subscribe to scene loaded event
         UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     void OnDisable()
     {
-        // Unsubscribe to prevent memory leaks
         UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
     {
-        // Re-initialize after scene load (this will find references and subscribe to events again)
+        //reinint
         Start();
     }
 }

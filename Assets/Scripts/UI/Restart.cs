@@ -7,17 +7,14 @@ public class Restart : MonoBehaviour
 {
     public static bool isHolding = false;
     float heldAtTime = 0f;
-    public float holdTime = 0.75f;
+    public float holdTime = 0.75f; // 0.75 seconds
     
-    // References
     private UIManager uiManager;
     private ScoreManager scoreManager;
     private AmmoDisplay ammoDisplay;
 
-    // Static method to reset all necessary static variables
     public static void ResetStaticVariables()
     {
-        // Reset FloorAccessController variables
         FloorAccessController.isLevelComplete = false;
     }
 
@@ -26,15 +23,13 @@ public class Restart : MonoBehaviour
         //GameObject CanvasFade = GameObject.Find("CanvasFade");
         //CanvasFade.SetActive(true);
         
-        // Get references
         uiManager = UIManager.Instance; 
         scoreManager = ScoreManager.Instance;
         ammoDisplay = FindFirstObjectByType<AmmoDisplay>();
         
-        if (uiManager == null) Debug.LogWarning("Restart script could not find UIManager.", this);
-        if (ammoDisplay == null) Debug.LogWarning("Restart script could not find AmmoDisplay.", this);
+        if (uiManager == null) Debug.LogWarning("could not find UIManager.", this);
+        if (ammoDisplay == null) Debug.LogWarning("could not find AmmoDisplay.", this);
         
-        // Reset static variables when scene starts
         ResetStaticVariables();
     }
     
@@ -55,10 +50,8 @@ public class Restart : MonoBehaviour
             isHolding = false;
             heldAtTime = 0f;
 
-            // Reset static variables before loading the scene
             ResetStaticVariables();
             
-            // Load scene - the ScoreManager's OnSceneLoaded handler will reset its state
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
     }

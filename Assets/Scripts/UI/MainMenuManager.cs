@@ -6,54 +6,40 @@ using System.Collections.Generic;
 
 public class MainMenuManager : MonoBehaviour
 {
-    [Header("Menu Items")]
     public GameObject mainMenuPanel;
     public GameObject optionsPanel;
-    public List<Button> menuButtons; // Ordered: New Game, Options, Exit
+    public List<Button> menuButtons;
     public Image controlsImage;
     
-    [Header("Options Settings")]
     public Button backButton;
     
-    // Helper method to reset static game variables
     private void ResetGameState()
     {
-        // Reset FloorAccessController variables
         FloorAccessController.isLevelComplete = false;
-        
-        // Reset any other static variables that need to be reset between levels
-        // This ensures a clean state when starting a new level
     }
     
     private void Start()
     {
-        // Hide options panel initially
         optionsPanel.SetActive(false);
         mainMenuPanel.SetActive(true);
         
-        // Add listeners to buttons
         if (menuButtons.Count >= 3)
         {
-            // New Game button
-            menuButtons[0].onClick.AddListener(() => {
-                // Reset game state before loading level select
+            menuButtons[0].onClick.AddListener(() => {  // lambda function, have no idea about this syntax
                 ResetGameState();
-                // Load level select scene - replace with your actual scene name
                 SceneManager.LoadScene("LevelSelect");
             });
             
-            // Options button
             menuButtons[1].onClick.AddListener(() => {
                 ShowOptionsMenu();
             });
             
-            // Exit button
             menuButtons[2].onClick.AddListener(() => {
                 QuitGame();
             });
         }
         
-        // Add listener to back button
+        //back button
         backButton.onClick.AddListener(() => {
             HideOptionsMenu();
         });
@@ -73,10 +59,9 @@ public class MainMenuManager : MonoBehaviour
     
     private void QuitGame()
     {
-        Debug.Log("Quitting game...");
         Application.Quit();
         
-        // In the Unity Editor, this line will stop play mode
+        // stops play mode in editor
         #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
         #endif

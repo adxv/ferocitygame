@@ -7,22 +7,18 @@ using System.Collections;
 
 public class LevelSelectManager : MonoBehaviour
 {
-    [Header("UI References")]
     public GameObject levelButtonPrefab;
     public Transform levelButtonsContainer;
     public Button backButton;
     
-    [Header("Level Data")]
     public List<LevelData> availableLevels = new List<LevelData>();
     
-    [Header("Screen Transition")]
     public CanvasGroup fadeCanvasGroup;
     public float fadeDuration = 0.5f;
     
     private int selectedLevelIndex = 0;
     private string sceneToLoad;
-    
-    // Static flag to indicate a scene needs to fade in after loading
+
     public static bool shouldFadeInOnLoad = false;
     
     [System.Serializable]
@@ -31,65 +27,19 @@ public class LevelSelectManager : MonoBehaviour
         public string levelName;
         public string sceneName;
         public Sprite levelPreview;
-        public bool isLocked = false;
+        public bool isLocked = false;   //unused for now
     }
     
     void Start()
     {
-        // Create level buttons based on available levels
         CreateLevelButtons();
         
-        // Add listener to back button
+        // back button
         if (backButton != null)
         {
             backButton.onClick.AddListener(() => {
                 SceneManager.LoadScene("MainMenu");
             });
-        }
-        
-        // Select first level by default
-        if (availableLevels.Count > 0)
-        {
-            SelectLevel(0);
-        }
-        
-    }
-    
-    void Update()
-    {
-        // Handle keyboard/gamepad navigation
-        HandleInput();
-    }
-    
-    private void HandleInput()
-    {
-        // Navigate left/right between levels
-        if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A))
-        {
-            selectedLevelIndex--;
-            if (selectedLevelIndex < 0) selectedLevelIndex = availableLevels.Count - 1;
-            SelectLevel(selectedLevelIndex);
-        }
-        else if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D))
-        {
-            selectedLevelIndex++;
-            if (selectedLevelIndex >= availableLevels.Count) selectedLevelIndex = 0;
-            SelectLevel(selectedLevelIndex);
-        }
-        
-        // Select current level
-        if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
-        {
-            if (availableLevels.Count > 0 && !availableLevels[selectedLevelIndex].isLocked)
-            {
-                LoadSelectedLevel();
-            }
-        }
-        
-        // Go back to main menu
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            SceneManager.LoadScene("MainMenu");
         }
     }
     
@@ -108,15 +58,14 @@ public class LevelSelectManager : MonoBehaviour
             
             GameObject buttonObj = Instantiate(levelButtonPrefab, levelButtonsContainer);
             Button button = buttonObj.GetComponent<Button>();
-            
-            // Set button text
+            //set text
             TextMeshProUGUI buttonText = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
             if (buttonText != null)
             {
                 buttonText.text = availableLevels[i].levelName;
             }
             
-            // Set button image if available
+            // set preview
             Image buttonImage = buttonObj.GetComponent<Image>();
             if (buttonImage != null && availableLevels[i].levelPreview != null)
             {
@@ -124,18 +73,14 @@ public class LevelSelectManager : MonoBehaviour
                 buttonImage.preserveAspect = true;
             }
             
-            // Handle locked levels
+            // Handle locked levels, unused
             if (availableLevels[i].isLocked)
             {
                 button.interactable = false;
-                // Add lock icon or visual indicator
-                GameObject lockIcon = new GameObject("LockIcon");
-                lockIcon.transform.SetParent(buttonObj.transform, false);
-                Image lockImage = lockIcon.AddComponent<Image>();
-                // Set lock icon sprite here
+                //add lock ???
             }
             
-            // Add click listener
+            // click listener
             button.onClick.AddListener(() => {
                 SelectLevel(levelIndex);
                 LoadSelectedLevel();
@@ -147,22 +92,9 @@ public class LevelSelectManager : MonoBehaviour
     {
         selectedLevelIndex = index;
         
-        // Highlight the selected button
         for (int i = 0; i < levelButtonsContainer.childCount; i++)
         {
             Button button = levelButtonsContainer.GetChild(i).GetComponent<Button>();
-            ColorBlock colors = button.colors;
-            
-            if (i == selectedLevelIndex)
-            {
-                colors.normalColor = new Color(0.9f, 0.9f, 0.9f);
-                button.colors = colors;
-            }
-            else
-            {
-                colors.normalColor = Color.white;
-                button.colors = colors;
-            }
         }
     }
     
@@ -174,15 +106,14 @@ public class LevelSelectManager : MonoBehaviour
             
             if (!levelToLoad.isLocked)
             {
-                // Reset important static variables before loading level
+                // reset before loading level
                 FloorAccessController.isLevelComplete = false;
                 
-                // Store the selected level to load after power-up selection
+                
                 sceneToLoad = levelToLoad.sceneName;
                 PlayerPrefs.SetString("SelectedLevel", sceneToLoad);
                 PlayerPrefs.Save();
                 
-                Debug.Log("Selected level: " + sceneToLoad + ", loading power-up selection.");
                 SceneManager.LoadScene("PowerUpSelect");
             }
         }

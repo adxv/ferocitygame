@@ -2,9 +2,9 @@ using UnityEngine;
 
 public class BackgroundColor : MonoBehaviour
 {
-    public Camera mainCamera; // Assign in Inspector
-    public Color[] colors; // Array of colors to fade between
-    public float fadeDuration = 2f; // Time (seconds) for each fade
+    public Camera mainCamera;
+    public Color[] colors;
+    public float fadeDuration = 2f;
 
     private int currentColorIndex = 0;
     private float fadeTimer = 0f;
@@ -13,38 +13,35 @@ public class BackgroundColor : MonoBehaviour
     {
         if (mainCamera == null)
         {
-            mainCamera = Camera.main; // Auto-find main camera if not assigned
+            mainCamera = Camera.main;
         }
 
         if (colors.Length == 0)
         {
-            Debug.LogError("No colors assigned to CameraBackgroundFader!");
-            colors = new Color[] { Color.black }; // Default to black if empty
+            colors = new Color[] { Color.black };
         }
 
-        mainCamera.backgroundColor = colors[0]; // Set initial color
+        mainCamera.backgroundColor = colors[0];
     }
 
     void Update()
     {
-        if (colors.Length < 2) return; // Need at least 2 colors to fade
+        if (colors.Length < 2) return;
 
         fadeTimer += Time.deltaTime;
-        float t = fadeTimer / fadeDuration; // Progress (0 to 1)
+        float t = fadeTimer / fadeDuration;
 
-        // Get current and next color
         int nextColorIndex = (currentColorIndex + 1) % colors.Length;
         Color currentColor = colors[currentColorIndex];
         Color nextColor = colors[nextColorIndex];
 
-        // Fade between colors
-        mainCamera.backgroundColor = Color.Lerp(currentColor, nextColor, t);
+        //fade
+        mainCamera.backgroundColor = Color.Lerp(currentColor, nextColor, t); //a + (b - a) * t cool
 
-        // Move to next color when fade is complete
         if (t >= 1f)
         {
             currentColorIndex = nextColorIndex;
-            fadeTimer = 0f; // Reset timer
+            fadeTimer = 0f;
         }
     }
 }

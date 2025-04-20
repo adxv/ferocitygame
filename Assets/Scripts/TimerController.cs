@@ -13,38 +13,33 @@ public class TimerController : MonoBehaviour
     private bool isRunning = false;
     private bool hasStarted = false;
     
-    // Reference to track all enemies
     private List<Enemy> enemies = new List<Enemy>();
     
     private void OnEnable()
     {
-        // Subscribe to scene loaded event
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     private void OnDisable()
     {
-        // Unsubscribe from scene loaded event
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Only reset timer for gameplay scenes (not menus)
         if (scene.name.Contains("map_") || scene.name.Contains("Level"))
         {
-            Debug.Log("TimerController: Resetting timer for scene: " + scene.name);
+            Debug.Log("resetting timer");
             ResetTimer();
         }
         else
         {
-            // For non-gameplay scenes, make sure the timer is still in a clean state
             startTime = 0;
             stopTime = 0;
             isRunning = false;
             hasStarted = false;
             
-            // Reset timer display
+            // reset timer
             if (timerText != null)
             {
                 timerText.text = "00.000";
@@ -59,13 +54,13 @@ public class TimerController : MonoBehaviour
         isRunning = false;
         hasStarted = false;
         
-        // Reset timer display
+        // reset timer
         if (timerText != null)
         {
             timerText.text = "00.000";
         }
         
-        // Clear and refind enemies
+        // refresh enemies list
         enemies.Clear();
         foreach (Enemy enemy in FindObjectsByType<Enemy>(FindObjectsSortMode.None))
         {
@@ -75,13 +70,12 @@ public class TimerController : MonoBehaviour
     
     void Start()
     {
-        // Find all enemies in the scene at start
+        // find all enemies
         foreach (Enemy enemy in FindObjectsByType<Enemy>(FindObjectsSortMode.None))
         {
             enemies.Add(enemy);
         }
-        
-        // Make sure timer text is initialized but empty
+        // reset timer
         if (timerText != null)
         {
             timerText.text = "00.000";
@@ -92,17 +86,15 @@ public class TimerController : MonoBehaviour
     {
         if (isRunning)
         {
-            // Calculate and display elapsed time
             float elapsedTime = Time.time - startTime;
             
             UpdateTimerDisplay(elapsedTime);
             
-            // Check if all enemies are dead
             CheckEnemiesStatus();
         }
     }
     
-    // Call this when player first moves
+    // call when player first moves
     public void StartTimer()
     {
         if (!hasStarted)
@@ -113,7 +105,7 @@ public class TimerController : MonoBehaviour
         }
     }
     
-    // Call this when all enemies are defeated
+    // call when all enemies are defeated
     public void StopTimer()
     {
         if (isRunning)
@@ -121,22 +113,14 @@ public class TimerController : MonoBehaviour
             stopTime = Time.time;
             isRunning = false;
             
-            // One final update to ensure accuracy
             float elapsedTime = stopTime - startTime;
             UpdateTimerDisplay(elapsedTime);
         }
     }
     
-    // Register new enemies that spawn after the game starts
-    public void RegisterEnemy(Enemy enemy)
-    {
-        if (!enemies.Contains(enemy))
-            enemies.Add(enemy);
-    }
-    
     private void CheckEnemiesStatus()
     {
-        // If there are no enemies or all enemies are dead, stop the timer
+        // ff there are no enemies or all enemies are dead, stop the timer
         bool allDead = true;
         
         foreach (Enemy enemy in enemies)
@@ -158,15 +142,14 @@ public class TimerController : MonoBehaviour
     {
         if (timerText == null) return;
         
-        // Calculate seconds and milliseconds
+        // calculate seconds and milliseconds
         int seconds = Mathf.FloorToInt(timeToDisplay);
         int milliseconds = Mathf.FloorToInt((timeToDisplay - seconds) * 1000);
-        
-        // Update the TMP Text with the formatted time
+
+        // format text
         timerText.text = string.Format("{0:00}.{1:000}", seconds, milliseconds);
     }
 
-    // Get the current time (for UIManager)
     public float GetCurrentTime()
     {
         if (isRunning)

@@ -5,7 +5,6 @@ using TMPro;
 
 public class ScoreScreenManager : MonoBehaviour
 {
-    [Header("UI Elements")]
     public TextMeshProUGUI killsValue;
     public TextMeshProUGUI comboBonusValue;
     public TextMeshProUGUI timeBonusValue;
@@ -14,12 +13,10 @@ public class ScoreScreenManager : MonoBehaviour
     public TextMeshProUGUI gradeValue;
     public TextMeshProUGUI completionTimeValue;
     
-    [Header("Navigation")]
     public Button retryButton;
     public Button backButton;
     public string levelSelectScene = "LevelSelect";
     
-    // Score data to be transferred between scenes
     public static int KillsScore { get; set; }
     public static int ComboBonus { get; set; }
     public static int TimeBonus { get; set; }
@@ -30,10 +27,8 @@ public class ScoreScreenManager : MonoBehaviour
     
     void Start()
     {
-        // Setup UI with score data
         DisplayScoreInfo();
         
-        // Setup button listeners
         if (backButton != null)
             backButton.onClick.AddListener(ContinueToLevelSelect);
             
@@ -67,7 +62,7 @@ public class ScoreScreenManager : MonoBehaviour
     
     public void ContinueToLevelSelect()
     {
-        // Find and reset the fade canvas alpha
+        // find and reset the fade canvas alpha
         CanvasGroup fadeCanvas = FindFirstObjectByType<CanvasGroup>();
         if (fadeCanvas != null)
         {
@@ -80,10 +75,9 @@ public class ScoreScreenManager : MonoBehaviour
     
     public void RetryLevel()
     {
-        // Reset level completion flag before reloading
         FloorAccessController.isLevelComplete = false;
         
-        // Find and reset the fade canvas alpha
+        // find and reset the fade canvas alpha
         CanvasGroup fadeCanvas = FindFirstObjectByType<CanvasGroup>();
         if (fadeCanvas != null)
         {
@@ -91,7 +85,6 @@ public class ScoreScreenManager : MonoBehaviour
             fadeCanvas.blocksRaycasts = false;
         }
         
-        // Store the current level name to reload it
         string currentLevel = PlayerPrefs.GetString("LastPlayedLevel", "Level1");
         SceneManager.LoadScene(currentLevel);
     }

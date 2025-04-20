@@ -1,62 +1,47 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System;
-// using System.Linq; // No longer needed
+// using System.Linq;
 
 public class PlayerEquipment : MonoBehaviour
 {
-    [Header("Configuration")]
-    [Tooltip("SpriteRenderer component on the player to update.")]
     [SerializeField] private SpriteRenderer playerSpriteRenderer;
-    [Tooltip("WeaponData representing the 'unarmed' state.")]
-    [SerializeField] private WeaponData fistWeaponData; // Assign your 'Fists' WeaponData here
+    [SerializeField] private WeaponData fistWeaponData;
 
-    // Public event that fires when the weapon changes
     public event Action OnWeaponChanged;
 
-    // REMOVED List<WeaponData> availableWeapons
-
-    // private int currentWeaponIndex = -1; // REMOVED index tracking
-    public WeaponData CurrentWeapon { get; private set; } // Public property to get current weapon info
-    public WeaponData FistWeaponData => fistWeaponData; // Public getter for fist data
+    public WeaponData CurrentWeapon { get; private set; } // get current weapon data
+    public WeaponData FistWeaponData => fistWeaponData; // get fist data
 
     void Awake()
     {
         if (playerSpriteRenderer == null)
         {
-            Debug.LogError("Player Sprite Renderer not assigned in PlayerEquipment!", this);
+            Debug.LogError("player sprite renderer not assigned in PlayerEquipment");
             enabled = false;
             return;
         }
         if (fistWeaponData == null)
         {
-            Debug.LogError("Fist Weapon Data not assigned in PlayerEquipment!", this);
+            Debug.LogError("fist not assigned in PlayerEquipment");
             enabled = false;
             return;
         }
-
-        // Equip fists initially
         EquipWeapon(fistWeaponData); 
     }
 
-    // REMOVED Update method (weapon switching logic)
-
-    // Changed to accept WeaponData directly
     public void EquipWeapon(WeaponData newWeapon)
     {
-        // Optional: Check if already equipped to prevent unnecessary updates
+        //check if already equipped
         if (newWeapon == CurrentWeapon) return; 
 
         CurrentWeapon = newWeapon;
 
-        // Update Player Sprite using the new central method
         UpdateSpriteToCurrentWeapon();
 
-        // Notify listeners that the weapon has changed
-        OnWeaponChanged?.Invoke();
+        OnWeaponChanged?.Invoke(); //notify that weapon has changed
     }
 
-    // New method to directly set the sprite (used for attack animations)
     public void SetSprite(Sprite newSprite)
     {
         if (playerSpriteRenderer != null && newSprite != null)
@@ -65,46 +50,30 @@ public class PlayerEquipment : MonoBehaviour
         }
         else if (playerSpriteRenderer == null)
         {
-             Debug.LogError("Player Sprite Renderer is null in PlayerEquipment!", this);
+             Debug.LogError("player sprite renderer is null");
         }
-        // Don't log error if newSprite is null, might be intentional
     }
 
-    // New method to update the sprite based on the *currently equipped* weapon
     public void UpdateSpriteToCurrentWeapon()
     {
-        if (playerSpriteRenderer == null) 
-        {
-            Debug.LogError("Player Sprite Renderer is null in PlayerEquipment! Cannot update sprite.", this);
-            return;
-        }
-
         if (CurrentWeapon != null && CurrentWeapon.playerSprite != null)
         {
             playerSpriteRenderer.sprite = CurrentWeapon.playerSprite;
         }
-        else if (fistWeaponData != null && fistWeaponData.playerSprite != null) // Ensure fallback exists
+        else if (fistWeaponData != null && fistWeaponData.playerSprite != null)
         {
-            // Fallback if CurrentWeapon is null or its sprite is null
-            if(CurrentWeapon == null) EquipWeapon(fistWeaponData); // Re-equip fists if current weapon became null
+            if(CurrentWeapon == null) EquipWeapon(fistWeaponData); //fallback
+            
             playerSpriteRenderer.sprite = fistWeaponData.playerSprite;
-            Debug.LogWarning("Current weapon or its sprite was null. Defaulting sprite to fists.", this);
-        }
-        else
-        {
-             Debug.LogError("Cannot update sprite: Both current weapon/sprite and fist data/sprite are invalid!", this);
+            Debug.LogWarning("weapon or its sprite was null");
         }
     }
-
-    // REMOVED SwitchToNext/PreviousWeapon
-    // REMOVED AddWeapon / RemoveWeapon
 
     public void Shoot()
     {
         if (CurrentWeapon != null && !CurrentWeapon.isSilent)
         {
-            // Notify the sound detection field
-            var soundField = GetComponentInChildren<SoundDetectionField>();
+            var soundField = GetComponentInChildren<SoundDetectionField>(); // sound detection
             if (soundField != null)
             {
                 soundField.WeaponFired(CurrentWeapon.isSilent);

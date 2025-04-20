@@ -1,42 +1,38 @@
 using UnityEngine;
-using TMPro; // Keep: Needed for TextMeshPro
-using System.Collections.Generic; // Keep: Needed for potential future use
+using TMPro;
 using System.Collections;
 using UnityEngine.SceneManagement;
 using System.Linq;
-using System.Reflection; // Add for reflection support
-using static FloorAccessController;
+using UnityEngine.AI;
 
 public class ScoreManager : MonoBehaviour
 {
     public static ScoreManager Instance { get; private set; }
 
-    public TextMeshProUGUI scoreText; // Keep: Inspector assignment info
+    public TextMeshProUGUI scoreText;
 
-    [Header("Combo System")]
-    public float comboTimeWindow = 3f; // Time window in seconds before combo expires
-    public float comboMultiplierBase = 1.5f; // How much each combo tier multiplies score
+    public float comboTimeWindow = 3f; //combo expiration time
+    public float comboMultiplierBase = 1.5f;
 
-    // Score components
-    private int baseKillScore = 100; // Base score per kill
+    private int baseKillScore = 100;
     private int shotsFired = 0;
     private int shotsHit = 0;
     private int enemiesTotal = 0;
     private int enemiesDefeated = 0;
-    private float startTime = 0f;
-    private float endTime = 0f;
-    private bool levelActive = false;
     private int currentScore = 0;
     private int killsScore = 0;
     private int comboBonus = 0;
     private int timeBonus = 0;
-    
-    // Combo system
+    private float startTime = 0f;
+    private float endTime = 0f;
+    private bool levelActive = false;
+
+    float targetTime;
+   
     private int currentCombo = 0;
     private float lastKillTime = 0f;
     private Coroutine comboTimerCoroutine;
 
-    // Grade system ratings
     private string currentGrade = "D";
 
     void Awake()
@@ -44,7 +40,7 @@ public class ScoreManager : MonoBehaviour
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
-        }
+        } // prevent multiple instances of the ScoreManager
         else
         {
             Instance = this;
@@ -53,22 +49,18 @@ public class ScoreManager : MonoBehaviour
 
     void OnEnable()
     {
-        // Subscribe to scene loaded event
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     void OnDisable()
     {
-        // Unsubscribe to prevent memory leaks
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Reset state on scene reload
         ResetState();
         
-        // Start level automatically after a small delay
         Invoke("StartLevel", 0.1f);
     }
 
@@ -95,7 +87,7 @@ public class ScoreManager : MonoBehaviour
             scoreText.text = "0";
         }
         
-        // Stop combo timer if it's running
+        // stop combo timer
         if (comboTimerCoroutine != null)
         {
             StopCoroutine(comboTimerCoroutine);
@@ -105,28 +97,12 @@ public class ScoreManager : MonoBehaviour
 
     void Start()
     {
-        // Initial setup
         if (scoreText != null)
         {
-            scoreText.text = "0"; // Initialize with 0 rather than empty string
-        }
-        else
-        {
-            Debug.LogWarning("ScoreManager: Score Text UI not assigned!");
+            scoreText.text = "0";
         }
         
-        // Start level automatically after a small delay
-        Invoke("StartLevel", 0.1f);
-    }
-
-    void Update()
-    {
-        // Score text update is now handled immediately when score changes
-        // If you want continuous updates, uncomment below:
-        // if (scoreText != null)
-        // {
-        //     scoreText.text = currentScore.ToString();
-        // }
+        Invoke("StartLevel", 0.1f); //0.1s delay for safety
     }
 
     public void StartLevel()
@@ -146,13 +122,14 @@ public class ScoreManager : MonoBehaviour
         var allEnemies = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None)
             .Where(obj => obj.GetType().Name == "Enemy")
             .ToArray();
-        enemiesTotal = allEnemies.Length;
+        enemiesTotal = allEnemies.Length; //count enemies in scene
+        targetTime = Mathf.Max(30f, enemiesTotal * 6f); // level completion target time, minimum 30 seconds, or 6 seconds per enemy
 
-        Debug.Log($"Level started. Enemies found: {enemiesTotal}");
+        Debug.Log("enemies found:" + enemiesTotal);
 
         if (scoreText != null)
         {
-            scoreText.text = ""; // Clear score text at level start
+            scoreText.text = ""; // clear score text
         }
     }
 
@@ -172,35 +149,32 @@ public class ScoreManager : MonoBehaviour
     {
         if (!levelActive) return;
         
-        // Increase combo
+        // increase combo
         currentCombo++;
         lastKillTime = Time.time;
         
-        // Calculate kill score with combo multiplier
-        float comboMultiplier = 1f + (currentCombo - 1) * 0.1f; // Each combo adds 10% more
+        // calculate kill score with combo multiplier
+        float comboMultiplier = 1f + (currentCombo - 1) * 0.1f; // 10% increase per combo
         int scoreForKill = Mathf.RoundToInt(baseKillScore * comboMultiplier);
         
-        // Add to score components
         killsScore += scoreForKill;
-        comboBonus += scoreForKill - baseKillScore; // The extra from combo is tracked separately
+        comboBonus += scoreForKill - baseKillScore;
         
-        // Update total score
+        // update total
         currentScore = killsScore;
         
-        // Update UI
         UpdateScoreUI();
         
-        // Handle combo timer
+
+        // combo timer
         if (comboTimerCoroutine != null)
         {
             StopCoroutine(comboTimerCoroutine);
         }
         comboTimerCoroutine = StartCoroutine(ComboTimer());
         
-        // Increment defeated count
         enemiesDefeated++;
         
-        // Check for level completion
         if (enemiesDefeated >= enemiesTotal)
         {
             EndLevel();
@@ -211,10 +185,9 @@ public class ScoreManager : MonoBehaviour
     {
         yield return new WaitForSeconds(comboTimeWindow);
         
-        // Reset combo if time ran out
         if (Time.time - lastKillTime >= comboTimeWindow)
         {
-            Debug.Log($"Combo of {currentCombo} expired");
+            Debug.Log("combo expired");
             currentCombo = 0;
         }
     }
@@ -224,43 +197,44 @@ public class ScoreManager : MonoBehaviour
         endTime = Time.time;
         levelActive = false;
         CalculateFinalScore();
-        Debug.Log("Level Ended. Calculating final score.");
+        Debug.Log("level end");
 
-        // Find any object that has a ShowLevelComplete method
+        // find all MonoBehaviour objects in the scene
         var allMonoBehaviours = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
         bool levelCompleteShown = false;
-        
-        // In your game completion logic:
+
+        // mark the level as complete in the FloorAccessController
         FloorAccessController.isLevelComplete = true;
-        
+
+        // iterate through all MonoBehaviour objects to find one with a "levelCompleteScreen" field
         foreach (var behaviour in allMonoBehaviours)
         {
-            // Try to find the UIManager by checking for a levelCompleteScreen field
+            //get all public instance fields of the current MonoBehaviour
             var fields = behaviour.GetType().GetFields(System.Reflection.BindingFlags.Public | 
-                                                      System.Reflection.BindingFlags.Instance);
-            
+                                  System.Reflection.BindingFlags.Instance); //i forgot what this does
+
+            // check each field to see if it matches the name "levelCompleteScreen"
             foreach (var field in fields)
             {
-                if (field.Name == "levelCompleteScreen")
-                {
-                    // Found the UIManager, call ShowLevelComplete
-                    behaviour.SendMessage("ShowLevelComplete", null, SendMessageOptions.DontRequireReceiver);
-                    Debug.Log($"Sent ShowLevelComplete to {behaviour.name}");
-                    levelCompleteShown = true;
-                    break;
-                }
+            if (field.Name == "levelCompleteScreen")
+            {
+                // if found, send a message to the object to invoke the "ShowLevelComplete" method
+                behaviour.SendMessage("ShowLevelComplete", null, SendMessageOptions.DontRequireReceiver);
+                Debug.Log($"showLevelComplete to {behaviour.name}");
+                levelCompleteShown = true;
+                break;
             }
-            
+        }
             if (levelCompleteShown)
                 break;
         }
         
         if (!levelCompleteShown)
         {
-            Debug.LogWarning("Could not find an object with levelCompleteScreen field to show level complete screen");
+            Debug.LogWarning("could not find levelCompleteScreen");
         }
         
-        // Store the data for the score screen
+        // pass data to ScoreScreenManager
         ScoreScreenManager.KillsScore = killsScore;
         ScoreScreenManager.ComboBonus = comboBonus;
         ScoreScreenManager.TimeBonus = timeBonus;
@@ -270,35 +244,37 @@ public class ScoreManager : MonoBehaviour
         ScoreScreenManager.CompletionTime = endTime - startTime;
     }
 
-    void CalculateFinalScore()
+    void CalculateFinalScore() //rewrite??????
     {
         float elapsedTime = endTime - startTime;
         float accuracy = GetAccuracy();
 
-        // Calculate time bonus (higher for faster completion)
-        // Dynamic target time based on enemy count (6 seconds per enemy)
-        float targetTime = Mathf.Max(90f, enemiesTotal * 6f); // Minimum 90 seconds, or 6 seconds per enemy
+        // time bonus calculation
+        // dynamic target time based on enemy count 6 seconds per enemy
         float timeSaved = Mathf.Max(0, targetTime - elapsedTime);
-        timeBonus = Mathf.RoundToInt(timeSaved * 5f); // Reduced multiplier for more balanced scoring
+        timeBonus = Mathf.RoundToInt(timeSaved * 5f);
 
-        // Calculate final score with accuracy multiplier
-        float accuracyMultiplier = Mathf.Max(0.1f, accuracy); // At least 10% even with 0 accuracy
+        //accuracy hard limit
+        if(accuracy > 1.0f)
+        {
+            accuracy = 1.0f;
+        }
+
+        float accuracyMultiplier = Mathf.Max(0.1f, accuracy);
         int scoreWithAccuracy = Mathf.RoundToInt((killsScore + comboBonus) * accuracyMultiplier);
         
-        // Total score = score with accuracy + time bonus
         currentScore = scoreWithAccuracy + timeBonus;
         
-        // Calculate grade (mostly based on accuracy)
+        // calculate grade (mostly based on accuracy)
         CalculateGrade(accuracy, elapsedTime);
 
-        Debug.Log($"Final Score: Kills ({killsScore}) + Combo Bonus ({comboBonus}) * Accuracy ({accuracy:P2}) + Time Bonus ({timeBonus}) = {currentScore}");
-        Debug.Log($"Target time: {targetTime}s for {enemiesTotal} enemies");
+        Debug.Log($"target time: {targetTime} ");
     }
     
     private void CalculateGrade(float accuracy, float completionTime)
     {
-        // Accuracy has higher weight (80%) in grade calculation
-        // Time has lower weight (20%)
+        // accuracy weight 80%
+        // time weight 20%
         
         if (accuracy >= 1.0f) 
         {
@@ -325,15 +301,12 @@ public class ScoreManager : MonoBehaviour
             currentGrade = "D";  // Below 30% accuracy
         }
         
-        // Dynamic target time based on enemy count
-        float targetTime = Mathf.Max(90f, enemiesTotal * 6f); // Minimum 90 seconds, or 6 seconds per enemy
         float exceptionalTime = targetTime * 0.6f; // 60% of target time is exceptional
         float penaltyTime = targetTime * 1.5f; // 150% of target time triggers grade penalty
         
-        // Time can bump grade up or down by one level if exceptionally good/bad
-        if (completionTime < exceptionalTime && currentGrade != "SS") // Exceptional time
+        if (completionTime < exceptionalTime && currentGrade != "SS") // exceptional time
         {
-            // Exceptional time can bump grade up (unless already SS)
+            //bump grade up
             string[] grades = { "D", "C", "B", "A", "S", "SS" };
             int currentIndex = System.Array.IndexOf(grades, currentGrade);
             if (currentIndex < grades.Length - 1)
@@ -341,9 +314,9 @@ public class ScoreManager : MonoBehaviour
                 currentGrade = grades[currentIndex + 1];
             }
         }
-        else if (completionTime > penaltyTime && currentGrade != "D") // Too slow
+        else if (completionTime > penaltyTime && currentGrade != "D") // exceptionally bad time
         {
-            // Very slow time can bump grade down (unless already D)
+            // bump grade down
             string[] grades = { "D", "C", "B", "A", "S", "SS" };
             int currentIndex = System.Array.IndexOf(grades, currentGrade);
             if (currentIndex > 0)
@@ -404,11 +377,5 @@ public class ScoreManager : MonoBehaviour
     public float GetElapsedTime()
     {
         return endTime - startTime;
-    }
-
-    // Optional: Call this if enemies can spawn mid-level
-    public void RegisterEnemy()
-    {
-        enemiesTotal++;
     }
 }

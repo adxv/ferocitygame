@@ -6,28 +6,21 @@ using UnityEditor;
 
 public class FloorManager : MonoBehaviour
 {
-    [Header("Floor Settings")]
     public string floorName = "Floor 1";
-    public int floorIndex = 0; // 0-based index for floor identification
+    public int floorIndex = 0;
     public Color gizmoColor = Color.cyan;
-    public Vector2 floorBounds = new Vector2(30f, 20f); // Width, Height of the floor area
+    public Vector2 floorBounds = new Vector2(30f, 20f);
     
-    // Optional list of stairways on this floor
-    public List<FloorAccessController> stairwaysOnFloor = new List<FloorAccessController>();
+    //public List<FloorAccessController> stairwaysOnFloor = new List<FloorAccessController>(); //unused
 
     private void OnDrawGizmos()
     {
-        // Draw floor boundaries in the editor for visualization
+        // draw floor boundaries in editor
         Gizmos.color = gizmoColor;
         Gizmos.DrawWireCube(transform.position, new Vector3(floorBounds.x, floorBounds.y, 1f));
-        
-        // Draw floor name text
-        #if UNITY_EDITOR
-        Handles.Label(transform.position, floorName);
-        #endif
     }
     
-    // Get a list of all enemies on this floor
+    // get a list of all enemies on this floor
     public Enemy[] GetEnemiesOnFloor()
     {
         Enemy[] allEnemies = FindObjectsByType<Enemy>(FindObjectsSortMode.None);
@@ -46,7 +39,7 @@ public class FloorManager : MonoBehaviour
         return enemiesOnFloor.ToArray();
     }
     
-    // Check if all enemies on this floor are dead
+    // check if all enemies on this floor are dead
     public bool AreAllEnemiesDead()
     {
         Enemy[] enemiesOnFloor = GetEnemiesOnFloor();
