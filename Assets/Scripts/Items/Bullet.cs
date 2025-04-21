@@ -1,5 +1,7 @@
 using UnityEngine;
 using System;
+using System.Collections.Generic;
+using System.Collections;
 
 public class Bullet : MonoBehaviour
 {
@@ -23,6 +25,12 @@ public class Bullet : MonoBehaviour
     
     public bool isShotgunPellet = false;
     public bool hasRecordedHit = false;
+    public string shotgunBlastID = ""; // Unique ID to track pellets from the same shotgun blast
+    
+    // Static dictionary to track which shotgun blasts have already recorded a hit
+    private static Dictionary<string, bool> shotgunHitsRecorded = new Dictionary<string, bool>();
+    // Static dictionary to track when shotgun blasts were created (for cleanup)
+    private static Dictionary<string, float> shotgunBlastTimes = new Dictionary<string, float>();
     
     // tracer
     public bool useTracerEffect = true;
@@ -51,6 +59,21 @@ public class Bullet : MonoBehaviour
         // store start position for range calculation
         startPosition = transform.position;
         
+        // If this is a shotgun pellet, record the time it was created
+        if (isShotgunPellet && !string.IsNullOrEmpty(shotgunBlastID))
+        {
+            if (!shotgunBlastTimes.ContainsKey(shotgunBlastID))
+            {
+                shotgunBlastTimes[shotgunBlastID] = Time.time;
+            }
+            
+            // Start a coroutine to clean up old entries (only on the first pellet)
+            if (!shotgunHitsRecorded.ContainsKey(shotgunBlastID))
+            {
+                StartCoroutine(CleanupOldShotgunEntries());
+            }
+        }
+        
         if (useTracerEffect)
         {
             if (!TryGetComponent(out lineRenderer))
@@ -71,6 +94,16 @@ public class Bullet : MonoBehaviour
             lineRenderer.SetPosition(1, startPosition);
             
             tracerTimer = tracerFadeTime;
+        }
+    }
+
+    void OnDestroy()
+    {
+        // Log missed shots for player bullets that didn't hit anything
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (shooter == player && !hasHitSomething && ScoreManager.Instance != null)
+        {
+            ScoreManager.Instance.LogMissedShot();
         }
     }
 
@@ -165,6 +198,36 @@ public class Bullet : MonoBehaviour
                 Enemy enemy = collision.gameObject.GetComponent<Enemy>();
                 if (enemy != null && !enemy.isDead && !isOutOfRange)
                 {
+                    // Record the hit BEFORE applying damage
+                    if (isPlayerShooter && ScoreManager.Instance != null)
+                    {
+                        bool shouldRecordHit = true;
+                        
+                        // For shotgun pellets, check if this blast ID has already recorded a hit
+                        if (isShotgunPellet && !string.IsNullOrEmpty(shotgunBlastID))
+                        {
+                            // Check if we've already recorded a hit for this shotgun blast
+                            if (shotgunHitsRecorded.ContainsKey(shotgunBlastID) && shotgunHitsRecorded[shotgunBlastID])
+                            {
+                                // This shotgun blast already recorded a hit
+                                shouldRecordHit = false;
+                            }
+                            else
+                            {
+                                // Record that this shotgun blast has recorded a hit
+                                shotgunHitsRecorded[shotgunBlastID] = true;
+                            }
+                        }
+                        
+                        if (shouldRecordHit)
+                        {
+                            ScoreManager.Instance.RecordHit();
+                            OnEnemyHit?.Invoke();
+                            hasRecordedHit = true;
+                        }
+                    }
+                    
+                    // Now apply damage
                     BossEnemy bossEnemy = enemy.GetComponent<BossEnemy>(); // check if boss enemy
                     if (bossEnemy != null)
                     {
@@ -175,17 +238,6 @@ public class Bullet : MonoBehaviour
                         GameObject bloodEffect = Instantiate(Resources.Load<GameObject>("Particles/Blood"),
                             collision.contacts[0].point, Quaternion.LookRotation(Vector3.forward, travelDirection));
                         enemy.TakeDamage(damage);
-                    }
-                    
-                    if (isPlayerShooter && ScoreManager.Instance != null)
-                    {
-                        // shotgun pellets, only record one hit per shotgun blast
-                        if (!isShotgunPellet || !hasRecordedHit)
-                        {
-                            ScoreManager.Instance.RecordHit();
-                            OnEnemyHit?.Invoke();
-                            hasRecordedHit = true;
-                        }
                     }
                     
                     // pass the bullet direction so they die in the right direction
@@ -240,6 +292,31 @@ public class Bullet : MonoBehaviour
                 lineRenderer.startColor = fadeColor;
                 lineRenderer.endColor = fadeColor;
             }
+        }
+    }
+    
+    // Coroutine to clean up old entries in the static dictionaries
+    private IEnumerator CleanupOldShotgunEntries()
+    {
+        yield return new WaitForSeconds(10f); // Wait a bit before cleaning
+        
+        float currentTime = Time.time;
+        List<string> keysToRemove = new List<string>();
+        
+        // Find entries older than 10 seconds
+        foreach (var entry in shotgunBlastTimes)
+        {
+            if (currentTime - entry.Value > 10f)
+            {
+                keysToRemove.Add(entry.Key);
+            }
+        }
+        
+        // Remove the old entries
+        foreach (string key in keysToRemove)
+        {
+            shotgunHitsRecorded.Remove(key);
+            shotgunBlastTimes.Remove(key);
         }
     }
 }

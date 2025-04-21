@@ -361,8 +361,13 @@ public class PlayerController : MonoBehaviour
             Debug.Log("default accuracy");
         }
         
-        bool hasHitEnemy = false;
         int pelletCount = Mathf.Max(1, currentWep.pelletCount);
+        
+        // create a shared hit state reference for shotgun pellets
+        bool[] sharedHitState = new bool[1] { false };
+        
+        // generate a unique ID for this shotgun blast to ensure pellets share state
+        string shotgunBlastID = System.Guid.NewGuid().ToString();
         
         for (int i = 0; i < pelletCount; i++)
         {
@@ -397,8 +402,11 @@ public class PlayerController : MonoBehaviour
                 
                 // Set shotgun flag to track only one hit per shot
                 bulletScript.isShotgunPellet = pelletCount > 1;
-                bulletScript.hasRecordedHit = hasHitEnemy;
-                bulletScript.OnEnemyHit += () => hasHitEnemy = true; // subscribe to hit event
+                if (pelletCount > 1)
+                {
+                    // For shotgun pellets, use the same ID to track them as a group
+                    bulletScript.shotgunBlastID = shotgunBlastID;
+                }
             }
             
             Rigidbody2D bulletRb = bulletGO.GetComponent<Rigidbody2D>();

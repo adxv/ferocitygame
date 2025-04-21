@@ -172,6 +172,10 @@ public class LevelExitTrigger : MonoBehaviour
             ScoreScreenManager.Grade = ScoreManager.Instance.GetGrade();
             ScoreScreenManager.CompletionTime = ScoreManager.Instance.GetElapsedTime();
         }
+        else
+        {
+            Debug.LogWarning("LevelExitTrigger: ScoreManager.Instance is null!");
+        }
         
         SceneManager.LoadScene(scoreScreenName);
     }

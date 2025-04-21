@@ -44,6 +44,9 @@ public class ScoreManager : MonoBehaviour
         else
         {
             Instance = this;
+            
+            // Make the ScoreManager persist between scenes
+            DontDestroyOnLoad(gameObject);
         }
     }
 
@@ -137,12 +140,20 @@ public class ScoreManager : MonoBehaviour
     {
         if (!levelActive) return;
         shotsFired++;
+        Debug.Log($"Shot fired! Total: {shotsFired}, Accuracy: {GetAccuracy():P2}");
     }
 
     public void RecordHit()
     {
         if (!levelActive) return;
         shotsHit++;
+        Debug.Log($"HIT! Total hits: {shotsHit}/{shotsFired}, Accuracy: {GetAccuracy():P2}");
+    }
+
+    public void LogMissedShot()
+    {
+        if (!levelActive) return;
+        Debug.Log($"MISSED! Hits: {shotsHit}/{shotsFired}, Accuracy: {GetAccuracy():P2}");
     }
 
     public void RecordEnemyDefeated()
@@ -197,7 +208,16 @@ public class ScoreManager : MonoBehaviour
         endTime = Time.time;
         levelActive = false;
         CalculateFinalScore();
-        Debug.Log("level end");
+        Debug.Log($"level end - Final Accuracy: {GetAccuracy():P2}");
+
+        // Store values in static variables to ensure they're accessible even if the instance is destroyed
+        ScoreScreenManager.KillsScore = killsScore;
+        ScoreScreenManager.ComboBonus = comboBonus;
+        ScoreScreenManager.TimeBonus = timeBonus;
+        ScoreScreenManager.Accuracy = GetAccuracy();
+        ScoreScreenManager.FinalScore = currentScore;
+        ScoreScreenManager.Grade = currentGrade;
+        ScoreScreenManager.CompletionTime = endTime - startTime;
 
         // find all MonoBehaviour objects in the scene
         var allMonoBehaviours = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
@@ -233,15 +253,6 @@ public class ScoreManager : MonoBehaviour
         {
             Debug.LogWarning("could not find levelCompleteScreen");
         }
-        
-        // pass data to ScoreScreenManager
-        ScoreScreenManager.KillsScore = killsScore;
-        ScoreScreenManager.ComboBonus = comboBonus;
-        ScoreScreenManager.TimeBonus = timeBonus;
-        ScoreScreenManager.Accuracy = GetAccuracy();
-        ScoreScreenManager.FinalScore = currentScore;
-        ScoreScreenManager.Grade = currentGrade;
-        ScoreScreenManager.CompletionTime = endTime - startTime;
     }
 
     void CalculateFinalScore() //rewrite??????
@@ -377,5 +388,15 @@ public class ScoreManager : MonoBehaviour
     public float GetElapsedTime()
     {
         return endTime - startTime;
+    }
+    
+    public int GetShotsFired()
+    {
+        return shotsFired;
+    }
+    
+    public int GetShotsHit()
+    {
+        return shotsHit;
     }
 }
