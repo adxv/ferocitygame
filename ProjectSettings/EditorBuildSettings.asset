@@ -27,6 +27,9 @@ EditorBuildSettings:
     path: Assets/Scenes/map_lair.unity
     guid: d056c6cd25184e44ca7225072439a20a
   - enabled: 1
+    path: Assets/Scenes/map_demo.unity
+    guid: e71993d2293c29c439d5dc5b3dce1bb4
+  - enabled: 1
     path: Assets/Scenes/debug.unity
     guid: e194799f9e2ee364a8b9bd104e9b1325
   m_configObjects:
