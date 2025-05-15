@@ -414,7 +414,7 @@ MonoBehaviour:
   dashCooldownMax: 4
   dashTelegraphTime: 0.1
   dashTelegraphColor: {r: 0.5613713, g: 0, b: 1, a: 1}
-  dashSound: {fileID: 0}
+  dashSound: {fileID: 8300000, guid: c13d7eaa7dca6fd45b9360e806fe6768, type: 3}
 --- !u!50 &1512164128219611355
 Rigidbody2D:
   serializedVersion: 5
