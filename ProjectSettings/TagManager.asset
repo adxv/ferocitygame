@@ -11,6 +11,7 @@ TagManager:
   - WeaponPickup
   - Door
   - FadeCanvas
+  - Weapon
   layers:
   - Default
   - TransparentFX

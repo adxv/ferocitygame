@@ -19,12 +19,12 @@ MonoBehaviour:
   canShoot: 1
   isMelee: 0
   isSilent: 1
-  projectilePrefab: {fileID: 4780090448626563172, guid: 6c01535542fab8f4c924a0c6b50555ee, type: 3}
+  projectilePrefab: {fileID: 4780090448626563172, guid: a0157aabaff02054794a8db5a8141974, type: 3}
   fireRate: 4
   isFullAuto: 0
   damage: 1
-  bulletOffset: 1.3
-  bulletOffsetSide: 0.45
+  bulletOffset: 2
+  bulletOffsetSide: 0.5
   range: 26
   bulletSpeed: 120
   spread: 2

@@ -52,6 +52,7 @@ MonoBehaviour:
   lifeDuration: 0.2
   isShotgunPellet: 0
   hasRecordedHit: 0
+  shotgunBlastID: 
   useTracerEffect: 0
   tracerWidth: 0.1
   tracerFadeTime: 0.1
@@ -233,8 +234,8 @@ MonoBehaviour:
   m_LightType: 1
   m_BlendStyleIndex: 0
   m_FalloffIntensity: 0.77
-  m_Color: {r: 0.9924077, g: 1, b: 0.1462264, a: 1}
-  m_Intensity: 3.54
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Intensity: 0.4
   m_LightVolumeIntensity: 0.16
   m_LightVolumeEnabled: 1
   m_ApplyToSortingLayers: bbeca2965ffc29db5987ec29c71bf3ec53c9e698db6160191138ec71890b60ac00000000

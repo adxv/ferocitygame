@@ -64,7 +64,6 @@ MonoBehaviour:
   unlockSound: {fileID: 0}
   minTimeBetweenSounds: 1
   currentFloor: {fileID: 0}
-  autoDetectFloor: 1
 --- !u!82 &320377178258281450
 AudioSource:
   m_ObjectHideFlags: 0
@@ -74,7 +73,7 @@ AudioSource:
   m_GameObject: {fileID: 3004242916253218197}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: -4378284374887062126, guid: a6fb47fc7526f124ba75bc113a631068, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 0

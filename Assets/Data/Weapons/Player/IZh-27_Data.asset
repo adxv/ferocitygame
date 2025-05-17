@@ -23,8 +23,8 @@ MonoBehaviour:
   fireRate: 2
   isFullAuto: 0
   damage: 2
-  bulletOffset: 0.3
-  bulletOffsetSide: 0.1
+  bulletOffset: 1.5
+  bulletOffsetSide: 0.6
   range: 26
   bulletSpeed: 120
   spread: 2

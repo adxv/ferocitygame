@@ -9,6 +9,11 @@ public class Enemy : MonoBehaviour
 {
     public EnemyData enemyData;
     
+    [SerializeField] private Animator legsAnimator;
+    private static readonly int IsMoving = Animator.StringToHash("isMoving");
+    private float moveThreshold = 0.01f;
+    private Vector2 lastAnim;
+
     private Transform player;
     public LayerMask wallLayer;
     public float minReactionTime = 0.19f;
@@ -333,7 +338,21 @@ public class Enemy : MonoBehaviour
         if (player == null || isDead) 
         {
             rb.linearVelocity = Vector2.zero; // stop if enemy or player is dead
+            // stop animating legs
+            if (legsAnimator != null)
+            {
+                legsAnimator.SetBool(IsMoving, false);
+            }
             return;
+        }
+
+        Vector2 currentPos = transform.position;
+        //animate legs
+        if (legsAnimator != null)
+        {
+            bool isMoving = Vector2.Distance(lastAnim, currentPos) > moveThreshold;
+            legsAnimator.SetBool(IsMoving, isMoving);
+            lastAnim = currentPos;
         }
 
         PlayerController playerController = player.GetComponent<PlayerController>();

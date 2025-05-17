@@ -271,6 +271,9 @@ MonoBehaviour:
   doorOpenSound: {fileID: 8300000, guid: 19b3bb2adbec0f745af3a2bdf36a22fc, type: 3}
   minTimeBetweenSounds: 0.1
   closedAngleThreshold: 2
+  initialRotation: {x: 0, y: 0, z: 0, w: 0}
+  currentAngularVelocity: 0
+  currentRelativeAngle: 0
 --- !u!61 &5141665906748624129
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -326,7 +329,7 @@ AudioSource:
   m_GameObject: {fileID: 4854605733399859645}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: -4378284374887062126, guid: a6fb47fc7526f124ba75bc113a631068, type: 2}
   m_audioClip: {fileID: 8300000, guid: 19b3bb2adbec0f745af3a2bdf36a22fc, type: 3}
   m_Resource: {fileID: 8300000, guid: 19b3bb2adbec0f745af3a2bdf36a22fc, type: 3}
   m_PlayOnAwake: 0

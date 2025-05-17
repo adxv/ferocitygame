@@ -106,9 +106,9 @@ TextureImporter:
         x: 0
         y: 0
         width: 48
-        height: 48
+        height: 96
       alignment: 9
-      pivot: {x: 0.4791667, y: 0.375}
+      pivot: {x: 0.5208334, y: 0.22916667}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -128,9 +128,9 @@ TextureImporter:
         x: 48
         y: 0
         width: 48
-        height: 48
+        height: 96
       alignment: 9
-      pivot: {x: 0.4791667, y: 0.39583334}
+      pivot: {x: 0.5208334, y: 0.21875}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -150,9 +150,9 @@ TextureImporter:
         x: 96
         y: 0
         width: 48
-        height: 48
+        height: 96
       alignment: 9
-      pivot: {x: 0.5, y: 0.375}
+      pivot: {x: 0.5, y: 0.22916667}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []

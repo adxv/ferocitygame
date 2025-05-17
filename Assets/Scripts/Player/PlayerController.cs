@@ -47,6 +47,11 @@ public class PlayerController : MonoBehaviour
     // Weapon Handling
     public float weaponThrowForce = 130f;
 
+    // Walk anim
+    [SerializeField] private Animator legsAnimator;
+    [SerializeField] private Transform legsTransform;
+    private static readonly int IsMoving = Animator.StringToHash("isMoving");
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -187,12 +192,36 @@ public class PlayerController : MonoBehaviour
         if (!isDead)
         {
             rb.linearVelocity = movementInput * moveSpeed;
+            
+        if (legsAnimator != null)
+        {
+            bool isMoving = movementInput.sqrMagnitude > 0.01f;
+            legsAnimator.SetBool(IsMoving, isMoving);
+            
+            // Rotate legs to face movement direction (only if moving)
+            if (isMoving && legsTransform != null)
+            {
+                // Calculate legs rotation based on movement input
+                float angle = Mathf.Atan2(movementInput.y, movementInput.x) * Mathf.Rad2Deg;
+                // Subtract 90 degrees to align with Unity's rotation system (up is 0 degrees)
+                angle -= 90f;
+                
+                // Apply rotation to legs only
+                legsTransform.rotation = Quaternion.Euler(0f, 0f, angle);
+            }
+        }
         }
         else 
         {
             //dead, stop movement and rotation
             rb.linearVelocity = Vector2.zero;
             rb.angularVelocity = 0f;
+
+            // Make sure legs stop animating when dead
+            if (legsAnimator != null)
+            {
+                legsAnimator.SetBool(IsMoving, false);
+            }
         }
     }
 
